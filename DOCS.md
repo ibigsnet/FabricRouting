@@ -12,6 +12,8 @@
 
 **Scope:** host-wide **routing suite**, not a Thunderbolt driver. Defaults are written so **normal Unraid Ethernet keeps working**; see [docs/scope-and-safety.md](docs/scope-and-safety.md).
 
+**With Thunderbolt Net:** underlay + OpenFabric *policy* stay in that plugin; this plugin only supplies FRR. See [integration-thunderboltnet.md](docs/integration-thunderboltnet.md).
+
 Upstream: [FRRouting](https://frrouting.org/) · [fabricd / OpenFabric](https://docs.frrouting.org/en/latest/fabricd.html)
 
 ## Why separate from Thunderbolt Net
