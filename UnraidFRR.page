@@ -29,6 +29,12 @@ $tbn = !empty($st['thunderboltnet_present']);
     (zebra, OpenFabric <code>fabricd</code>, and friends).
     <strong>Standalone</strong> — Thunderbolt Net is not required.
   </p>
+  <p>
+    <strong>Not Thunderbolt-only:</strong> FRR is a <em>host-wide</em> routing suite.
+    Defaults do <strong>not</strong> put eth0/br0 into any protocol and do not edit Unraid Network Settings.
+    Normal LAN should keep working; risk is from custom FRR conf or enabling OSPF/BGP on LAN interfaces yourself.
+    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/scope-and-safety.md" target="_blank" rel="noopener">Scope &amp; safety ↗</a>
+  </p>
 
   <table class="tablesorter shift" style="width:100%">
     <tr><td style="width:12em">Plugin version</td><td><code><?= $ver ?></code></td></tr>

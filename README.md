@@ -21,13 +21,19 @@ Installing a full routing stack is more invasive than a Settings UI for Thunderb
 
 (After the repo is published on GitHub.)
 
+### Scope (important)
+
+UnraidFRR is **not Thunderbolt-only**. It manages **FRRouting on the Unraid host** (same class of software as FRR on any Linux router).  
+
+**Defaults are LAN-safe:** no auto-config of eth0/br0 into OSPF/BGP/OpenFabric, no Unraid `network.cfg` edits, no IP forwarding toggle.  
+**Risk appears if you** (or another tool) put LAN interfaces into a routing protocol. Details: [docs/scope-and-safety.md](docs/scope-and-safety.md).
+
 ### Safety
 
-- Default: **do not** force-start daemons until packages are present and you Apply.
-- Uninstall removes plugin files; optional keep/remove packages is documented.
+- Default: **idle** until packages exist on flash (no installpkg / no start).
+- Uninstall removes plugin files; flash config/packages kept by default.
 - Does not modify Thunderbolt Net, eth0/br0 Unraid Network Settings UI, or Docker networking by itself.
 - IP forwarding is **not** enabled by this plugin alone (Thunderbolt Net may enable it when OpenFabric is active with FRR present).
-
 ### Packages
 
 Unraid is Slackware-based. Place compatible `.txz` / `.tgz` builds under:

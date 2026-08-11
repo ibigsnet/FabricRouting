@@ -8,7 +8,9 @@
 |--|--|
 | **Name** | UnraidFRR |
 | **Does** | Install FRR packages from flash (or future download URL), enable selected daemons (`zebra`, `fabricd`, …), show status |
-| **Does not** | Require Thunderbolt Net; configure TB IPs; replace Unraid Network Settings; enable IP forwarding by default |
+| **Does not** | Require Thunderbolt Net; configure TB IPs; replace Unraid Network Settings; enable IP forwarding by default; auto-add eth0/br0 to any protocol |
+
+**Scope:** host-wide **routing suite**, not a Thunderbolt driver. Defaults are written so **normal Unraid Ethernet keeps working**; see [docs/scope-and-safety.md](docs/scope-and-safety.md).
 
 Upstream: [FRRouting](https://frrouting.org/) · [fabricd / OpenFabric](https://docs.frrouting.org/en/latest/fabricd.html)
 

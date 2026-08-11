@@ -28,7 +28,9 @@
 
 <CHANGES>
 ###&version;
-- Initial public scaffold: standalone FRR package install hooks, daemon toggles (zebra/fabricd default on), Settings page, array-start install, companion marker for Thunderbolt Net. Idle and safe when packages/ is empty. Does not require Thunderbolt Net.
+- Initial public scaffold: standalone FRR package install hooks, daemon toggles (zebra/fabricd default on), Settings page, array-start install, companion marker for Thunderbolt Net.
+- Scope/safety docs: host-wide routing suite (not TB-only); LAN-safe defaults (no eth/br auto-enroll, no ip_forward); baseline frr.conf does not touch Unraid network.cfg.
+- Idle and safe when packages/ is empty. Does not require Thunderbolt Net.
 </CHANGES>
 
 <!--

@@ -164,6 +164,48 @@ function frr_write_companion_marker() {
 }
 
 /**
+ * Ensure a minimal frr.conf exists that does NOT enroll eth/br interfaces.
+ * Never deletes ThunderboltNet marked blocks. Never enables ip_forward.
+ */
+function frr_ensure_baseline_conf() {
+  $path = '/etc/frr/frr.conf';
+  $dir = dirname($path);
+  if (!is_dir($dir)) {
+    // Package not installed yet
+    return ['ok' => false, 'error' => 'no /etc/frr'];
+  }
+
+  $begin_tbn = '! BEGIN ThunderboltNet OpenFabric';
+  $baseline = <<<'CONF'
+! UnraidFRR baseline — host routing suite; no eth/br interfaces enrolled.
+! Thunderbolt Net may append a marked OpenFabric block for thunderbolt* + lo only.
+! Do not add br0/eth0 here unless you intend LAN into a routing protocol.
+frr defaults traditional
+!
+hostname unraid
+!
+! zebra runs; protocols need explicit interface stanzas elsewhere (or TBN markers)
+!
+CONF;
+
+  if (!is_file($path) || filesize($path) === 0) {
+    $ok = @file_put_contents($path, $baseline) !== false;
+    frr_log($ok ? 'wrote baseline frr.conf' : 'failed baseline frr.conf');
+    return ['ok' => $ok, 'created' => true];
+  }
+
+  $raw = (string)@file_get_contents($path);
+  // Refuse to "fix" confs that already have content; only ensure header comment once
+  if (strpos($raw, 'UnraidFRR baseline') === false && strpos($raw, $begin_tbn) === false) {
+    // Prepend safety banner without destroying user/TBN config
+    $banner = "! UnraidFRR: existing frr.conf preserved. Do not add br0/eth0 to protocols unless intended.\n";
+    @file_put_contents($path, $banner . $raw);
+    return ['ok' => true, 'banner' => true];
+  }
+  return ['ok' => true, 'exists' => true];
+}
+
+/**
  * Best-effort patch /etc/frr/daemons for selected daemons.
  */
 function frr_apply_daemons_file(array $cfg = null) {
