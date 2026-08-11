@@ -32,20 +32,37 @@ $pk = $det['packages_on_flash'] ?? [];
 $bundle_ok = !empty($bundle['ok']);
 ?>
 <style>
-.frr-wrap { max-width: 54em; }
+.frr-wrap { max-width: 54em; margin-left: auto; margin-right: auto; }
 .frr-wrap .frr-lead {
-  margin: 0 0 0.75em;
+  margin: 0 0 0.55em;
   font-size: 0.95em;
-  line-height: 1.4;
+  line-height: 1.35;
   opacity: 0.9;
 }
 .frr-wrap .frr-companion {
-  margin: 0.4em 0 1em;
-  padding: 0.55em 0.75em;
+  margin: 0.35em 0 0.85em;
+  padding: 0.5em 0.7em;
   border-left: 3px solid #e68a2e;
   background: rgba(200, 140, 40, 0.08);
+  font-size: 0.88em;
+  line-height: 1.35;
+}
+.frr-wrap details.frr-about {
+  margin: 0 0 0.85em;
   font-size: 0.9em;
+}
+.frr-wrap details.frr-about summary {
+  cursor: pointer;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.frr-wrap details.frr-about .frr-about-body {
+  margin-top: 0.45em;
+  padding: 0.5em 0.65em;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.05);
   line-height: 1.4;
+  opacity: 0.92;
 }
 .frr-wrap .frr-muted { opacity: 0.78; font-size: 0.9em; }
 .frr-wrap .frr-ok { color: #2a7; font-weight: 600; }
@@ -110,21 +127,28 @@ $bundle_ok = !empty($bundle['ok']);
   </p>
 
   <div class="frr-companion">
-    <strong>When:</strong> rings / multi-hop / Proxmox+Unraid fabrics.
-    <strong>Skip:</strong> single static TB cable only.
-    <br>
+    <strong>When:</strong> rings / multi-hop / Proxmox fabrics ·
+    <strong>Skip:</strong> single static TB cable ·
 <?php if ($tbn): ?>
-    <strong>Thunderbolt Net:</strong> installed — OpenFabric <em>policy</em> on
-    <a href="/Settings/NetworkSettings">Network Settings → Thunderbolt</a>
-    (Advanced). This tab = packages only.
+    <strong>TBN:</strong> policy on <a href="/Settings/NetworkSettings">Thunderbolt</a> (this tab = packages)
 <?php else: ?>
-    <strong>Thunderbolt Net:</strong> optional
-    (<a href="https://github.com/ibigsnet/ThunderboltNet" target="_blank" rel="noopener">GitHub</a>) for TB + OpenFabric policy.
+    <strong>TBN:</strong> optional companion
 <?php endif; ?>
-    <span class="frr-muted"> · Not USB4STREAM / <code>thunderbolt_stream</code></span>
   </div>
+  <details class="frr-about">
+    <summary>About Fabric Routing / FRR (details)</summary>
+    <div class="frr-about-body">
+      Installs <a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>
+      like the Nvidia Driver plugin (catalog → download → <code>installpkg</code> → daemons).
+      OpenFabric is <code>fabricd</code> here; Thunderbolt Net owns TB underlay + OpenFabric <em>policy</em>.
+      Defaults do not enroll eth0/br0. Not USB4STREAM (<code>uname -r</code> kernel feature).
+      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/scope-and-safety.md" target="_blank" rel="noopener">Scope ↗</a>
+      ·
+      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS ↗</a>
+    </div>
+  </details>
 
-  <div class="frr-section" style="margin-top:0.5em">
+  <div class="frr-section" style="margin-top:0.35em">
     <h3>Status</h3>
     <table class="frr-status tablesorter shift">
       <tr>
@@ -185,18 +209,6 @@ $bundle_ok = !empty($bundle['ok']);
           : '<span class="frr-muted">Not installed (OK)</span>' ?></td>
       </tr>
     </table>
-    <dl>
-      <dt>Status fields:</dt>
-      <dd class="frr-muted">Live FRR · catalog · companions</dd>
-    </dl>
-    <blockquote class="inline_help">
-      Fully automated like the Nvidia Driver plugin: catalog → download → <code>installpkg</code> → enable daemons → start.
-      Matched to <strong>Unraid product version + arch</strong>, not <code>uname -r</code>.
-      Defaults do not put eth0/br0 into any protocol.
-      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/scope-and-safety.md" target="_blank" rel="noopener">Scope &amp; safety ↗</a>
-      ·
-      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS ↗</a>
-    </blockquote>
   </div>
 
   <form method="POST" action="/update.php" target="progressFrame">
