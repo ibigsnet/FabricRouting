@@ -27,9 +27,20 @@ function frr_log_path() {
   return '/var/log/unraidfrr.log';
 }
 
+/**
+ * Default catalog (Nvidia-style automated package source).
+ */
+function frr_default_catalog_url() {
+  return 'https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/packages/manifest.json';
+}
+
 function frr_load_cfg() {
   $defaults = [
+    // Fully automated: download + install without user package drops
     'install_on_start' => 'yes',
+    'auto_download' => 'yes',
+    'package_channel' => 'latest', // latest | previous
+    'package_base_url' => '', // empty = frr_default_catalog_url()
     'enable_zebra' => 'yes',
     'enable_fabricd' => 'yes',
     'enable_bgpd' => 'no',
@@ -38,8 +49,6 @@ function frr_load_cfg() {
     'enable_isisd' => 'no',
     'enable_bfdd' => 'no',
     'enable_staticd' => 'yes',
-    'auto_download' => 'no',
-    'package_base_url' => '',
     'start_frr' => 'yes',
   ];
   $cfg = [];
@@ -129,15 +138,324 @@ function frr_detect() {
     sort($out['packages_on_flash']);
   }
 
+  $out['unraid_version'] = frr_unraid_version();
+  $out['arch'] = frr_arch();
+  $out['bundle'] = frr_resolve_bundle();
+
   if ($out['present']) {
     $out['note'] = 'FRR tools present on this host';
   } elseif ($out['packages_on_flash']) {
-    $out['note'] = 'Packages on flash but FRR not live — run Apply or reboot (array start install)';
+    $out['note'] = 'Packages cached on flash but not live — Apply or reboot to install into RAM';
+  } elseif (!empty($out['bundle']['ok'])) {
+    $out['note'] = 'Ready to auto-download FRR ' . ($out['bundle']['frr_version'] ?? '') . ' for Unraid ' . $out['unraid_version'];
   } else {
-    $out['note'] = 'No FRR binaries and no packages in ' . $dir . ' — idle (safe)';
+    $out['note'] = $out['bundle']['error']
+      ?? 'No automated package set for this Unraid build yet — plugin stays idle (no manual package drop required)';
   }
 
   return $out;
+}
+
+function frr_unraid_version() {
+  $v = '';
+  if (is_readable('/etc/unraid-version')) {
+    $raw = (string)@file_get_contents('/etc/unraid-version');
+    // version="7.0.0" or similar
+    if (preg_match('/version="([^"]+)"/', $raw, $m)) {
+      $v = $m[1];
+    } elseif (preg_match('/(\d+\.\d+(?:\.\d+)?)/', $raw, $m)) {
+      $v = $m[1];
+    }
+  }
+  if ($v === '' && is_readable('/etc/slackware-version')) {
+    // fallback only for lab; not ideal
+    $v = trim((string)@file_get_contents('/etc/slackware-version'));
+  }
+  return $v !== '' ? $v : 'unknown';
+}
+
+function frr_arch() {
+  $m = trim((string)@shell_exec('uname -m 2>/dev/null'));
+  if ($m === 'amd64' || $m === 'x86_64') {
+    return 'x86_64';
+  }
+  if ($m === 'aarch64' || $m === 'arm64') {
+    return 'aarch64';
+  }
+  return $m !== '' ? $m : 'x86_64';
+}
+
+function frr_catalog_url(array $cfg = null) {
+  if ($cfg === null) {
+    $cfg = frr_load_cfg();
+  }
+  $u = trim((string)($cfg['package_base_url'] ?? ''));
+  if ($u === '') {
+    return frr_default_catalog_url();
+  }
+  // Allow base dir or full manifest URL
+  if (substr($u, -5) === '.json') {
+    return $u;
+  }
+  return rtrim($u, '/') . '/manifest.json';
+}
+
+/**
+ * Fetch package catalog (cached briefly on flash).
+ */
+function frr_fetch_manifest($force = false) {
+  $cfg = frr_load_cfg();
+  $url = frr_catalog_url($cfg);
+  $cache = frr_cfg_dir() . '/manifest.cache.json';
+  if (!$force && is_readable($cache) && (time() - filemtime($cache) < 3600)) {
+    $j = json_decode((string)@file_get_contents($cache), true);
+    if (is_array($j)) {
+      return ['ok' => true, 'manifest' => $j, 'source' => 'cache', 'url' => $url];
+    }
+  }
+  // Prefer plugin-tree copy when offline / first install
+  $local = dirname(__DIR__) . '/packages/manifest.json';
+  $installed = '/usr/local/emhttp/plugins/UnraidFRR/packages/manifest.json';
+
+  $body = frr_http_get($url);
+  if ($body === null || $body === '') {
+    foreach ([$installed, $local] as $p) {
+      if (is_readable($p)) {
+        $body = (string)@file_get_contents($p);
+        $url = $p;
+        break;
+      }
+    }
+  }
+  if ($body === null || $body === '') {
+    return ['ok' => false, 'error' => 'could not fetch package catalog', 'url' => $url];
+  }
+  $j = json_decode($body, true);
+  if (!is_array($j)) {
+    return ['ok' => false, 'error' => 'invalid catalog JSON', 'url' => $url];
+  }
+  @mkdir(frr_cfg_dir(), 0755, true);
+  @file_put_contents($cache, json_encode($j, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+  return ['ok' => true, 'manifest' => $j, 'source' => 'download', 'url' => $url];
+}
+
+function frr_http_get($url, $timeout = 60) {
+  if (!preg_match('#^https?://#i', $url) && is_readable($url)) {
+    return (string)@file_get_contents($url);
+  }
+  if (!preg_match('#^https://#i', $url)) {
+    frr_log('refuse non-https URL: ' . $url);
+    return null;
+  }
+  $ctx = stream_context_create([
+    'http' => [
+      'timeout' => $timeout,
+      'header' => "User-Agent: UnraidFRR/1.0\r\n",
+      'follow_location' => 1,
+    ],
+    'ssl' => [
+      'verify_peer' => true,
+      'verify_peer_name' => true,
+    ],
+  ]);
+  $body = @file_get_contents($url, false, $ctx);
+  if ($body === false || $body === '') {
+    // curl fallback
+    $tmp = tempnam('/tmp', 'frrget');
+    $cmd = 'curl -fsSL --max-time ' . (int)$timeout . ' -o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($url) . ' 2>/dev/null';
+    @exec($cmd, $o, $rc);
+    if ($rc === 0 && is_readable($tmp)) {
+      $body = (string)@file_get_contents($tmp);
+      @unlink($tmp);
+      return $body;
+    }
+    @unlink($tmp);
+    return null;
+  }
+  return $body;
+}
+
+function frr_version_compare_loose($a, $b) {
+  // Strip non-numeric suffix junk for Unraid strings
+  $na = preg_replace('/[^0-9.].*$/', '', (string)$a);
+  $nb = preg_replace('/[^0-9.].*$/', '', (string)$b);
+  return version_compare($na, $nb);
+}
+
+/**
+ * Resolve automated package bundle for this host + channel.
+ *
+ * @return array{ok:bool,error?:string,channel?:string,frr_version?:string,packages?:array,id?:string}
+ */
+function frr_resolve_bundle(array $cfg = null) {
+  if ($cfg === null) {
+    $cfg = frr_load_cfg();
+  }
+  $mf = frr_fetch_manifest(false);
+  if (empty($mf['ok'])) {
+    return ['ok' => false, 'error' => $mf['error'] ?? 'catalog unavailable'];
+  }
+  $manifest = $mf['manifest'];
+  $channel = trim((string)($cfg['package_channel'] ?? 'latest'));
+  if ($channel === '') {
+    $channel = $manifest['default_channel'] ?? 'latest';
+  }
+  $arch = frr_arch();
+  $uver = frr_unraid_version();
+  $bundles = $manifest['bundles'] ?? [];
+  if (!is_array($bundles) || !$bundles) {
+    return [
+      'ok' => false,
+      'error' => 'No automated FRR builds published yet for any Unraid version (catalog empty). Maintainer will add bundles — no manual package drop required from you.',
+      'channel' => $channel,
+      'unraid_version' => $uver,
+      'arch' => $arch,
+    ];
+  }
+
+  $candidates = [];
+  foreach ($bundles as $b) {
+    if (!is_array($b)) {
+      continue;
+    }
+    if (($b['channel'] ?? 'latest') !== $channel) {
+      continue;
+    }
+    if (($b['arch'] ?? 'x86_64') !== $arch) {
+      continue;
+    }
+    $min = (string)($b['unraid_min'] ?? '0');
+    $max = (string)($b['unraid_max'] ?? '999.99.99');
+    if ($uver !== 'unknown') {
+      if (frr_version_compare_loose($uver, $min) < 0) {
+        continue;
+      }
+      if (frr_version_compare_loose($uver, $max) > 0) {
+        continue;
+      }
+    }
+    $pkgs = $b['packages'] ?? [];
+    if (!is_array($pkgs) || !$pkgs) {
+      continue;
+    }
+    $candidates[] = $b;
+  }
+
+  if (!$candidates) {
+    return [
+      'ok' => false,
+      'error' => 'No automated package set for Unraid ' . $uver . ' / ' . $arch . ' (channel=' . $channel . '). Catalog will be updated when a build is ready — no manual package steps.',
+      'channel' => $channel,
+      'unraid_version' => $uver,
+      'arch' => $arch,
+    ];
+  }
+
+  usort($candidates, function ($a, $b) {
+    return frr_version_compare_loose($b['frr_version'] ?? '0', $a['frr_version'] ?? '0');
+  });
+  $best = $candidates[0];
+  $id = ($best['channel'] ?? 'latest') . '|' . ($best['frr_version'] ?? '') . '|' . ($best['arch'] ?? '') . '|' . ($best['unraid_min'] ?? '');
+  return [
+    'ok' => true,
+    'channel' => $channel,
+    'frr_version' => $best['frr_version'] ?? '',
+    'packages' => $best['packages'],
+    'id' => $id,
+    'unraid_version' => $uver,
+    'arch' => $arch,
+    'label' => $best['label'] ?? '',
+  ];
+}
+
+/**
+ * Download resolved bundle into flash packages cache (automated).
+ */
+function frr_download_bundle($force = false) {
+  $cfg = frr_load_cfg();
+  $bundle = frr_resolve_bundle($cfg);
+  if (empty($bundle['ok'])) {
+    frr_log('download skip: ' . ($bundle['error'] ?? 'no bundle'));
+    return $bundle + ['downloaded' => []];
+  }
+
+  $dir = frr_packages_dir();
+  @mkdir($dir, 0755, true);
+  $id_file = $dir . '/.bundle-id';
+  $cur = is_readable($id_file) ? trim((string)@file_get_contents($id_file)) : '';
+  $want = $bundle['id'] ?? '';
+
+  $downloaded = [];
+  $errors = [];
+  $order = [];
+
+  foreach ($bundle['packages'] as $pkg) {
+    if (!is_array($pkg)) {
+      continue;
+    }
+    $file = basename((string)($pkg['file'] ?? ''));
+    $url = trim((string)($pkg['url'] ?? ''));
+    $sha = strtolower(trim((string)($pkg['sha256'] ?? '')));
+    if ($file === '' || $url === '') {
+      $errors[] = 'package entry missing file/url';
+      continue;
+    }
+    if (!preg_match('#^https://#i', $url)) {
+      $errors[] = 'refusing non-https package URL for ' . $file;
+      continue;
+    }
+    $dest = $dir . '/' . $file;
+    $order[] = $file;
+    $need = $force || $cur !== $want || !is_readable($dest);
+    if (!$need && $sha !== '') {
+      $have = hash_file('sha256', $dest);
+      if (strtolower((string)$have) !== $sha) {
+        $need = true;
+      }
+    }
+    if (!$need) {
+      $downloaded[] = ['file' => $file, 'status' => 'cached'];
+      continue;
+    }
+    frr_log('download ' . $url . ' -> ' . $dest);
+    $body = frr_http_get($url, 600);
+    if ($body === null || $body === '') {
+      $errors[] = 'download failed: ' . $file;
+      continue;
+    }
+    if (@file_put_contents($dest, $body) === false) {
+      $errors[] = 'write failed: ' . $file;
+      continue;
+    }
+    if ($sha !== '') {
+      $have = hash_file('sha256', $dest);
+      if (strtolower((string)$have) !== $sha) {
+        @unlink($dest);
+        $errors[] = 'sha256 mismatch: ' . $file;
+        continue;
+      }
+    }
+    $downloaded[] = ['file' => $file, 'status' => 'downloaded', 'bytes' => strlen($body)];
+  }
+
+  if ($order) {
+    $lines = ["# Generated by UnraidFRR — do not edit; install order", ''];
+    foreach ($order as $f) {
+      $lines[] = $f;
+    }
+    @file_put_contents($dir . '/MANIFEST.txt', implode("\n", $lines) . "\n");
+  }
+  if (!$errors) {
+    @file_put_contents($id_file, $want . "\n");
+  }
+
+  return [
+    'ok' => empty($errors),
+    'bundle' => $bundle,
+    'downloaded' => $downloaded,
+    'errors' => $errors,
+    'error' => $errors ? implode('; ', $errors) : null,
+  ];
 }
 
 /**
@@ -286,7 +604,8 @@ function frr_try_start() {
 }
 
 /**
- * Full Apply path from UI / array start.
+ * Full Apply path from UI / array start — fully automated (Nvidia-style).
+ * Downloads catalog + packages, installpkg, daemons, start. No manual file drops.
  */
 function frr_apply() {
   $cfg = frr_load_cfg();
@@ -298,22 +617,41 @@ function frr_apply() {
 
   @mkdir(frr_packages_dir(), 0755, true);
 
-  $det = $result['detect_before'];
-  if (!$det['present'] && empty($det['packages_on_flash'])) {
-    $result['actions'][] = 'idle: no packages and no live FRR';
+  // 1) Auto-download package bundle when enabled (default yes)
+  if (($cfg['auto_download'] ?? 'yes') === 'yes') {
+    $dl = frr_download_bundle(false);
+    $result['download'] = $dl;
+    if (!empty($dl['ok'])) {
+      $result['actions'][] = 'package bundle ready (auto-download/cache)';
+    } else {
+      $result['actions'][] = 'auto-download: ' . ($dl['error'] ?? 'no bundle for this Unraid version yet');
+      // Continue if packages already cached or FRR already present
+    }
+  }
+
+  $det = frr_detect();
+  $have_pkgs = !empty($det['packages_on_flash']);
+  $have_frr = !empty($det['present']);
+
+  if (!$have_frr && !$have_pkgs) {
+    $result['ok'] = true; // safe idle until catalog has a build
+    $result['actions'][] = 'waiting for automated package set (nothing to install yet)';
     frr_write_companion_marker();
-    $result['detect'] = frr_detect();
+    $result['detect'] = $det;
     return $result;
   }
 
-  if (($cfg['install_on_start'] ?? 'yes') === 'yes' && !empty($det['packages_on_flash'])) {
+  // 2) installpkg into RAM root
+  if (($cfg['install_on_start'] ?? 'yes') === 'yes' && $have_pkgs) {
     $ins = frr_run_install_packages();
     $result['install'] = $ins;
-    $result['actions'][] = $ins['ok'] ? 'packages installed/checked' : 'package install failed or skipped';
+    $result['actions'][] = !empty($ins['ok']) ? 'packages installed into live system' : 'package install failed or incomplete';
+    if (empty($ins['ok'])) {
+      $result['ok'] = false;
+    }
   }
 
   // Safety: never touch Unraid network.cfg; never sysctl ip_forward here.
-  // Baseline conf must not auto-enroll eth*/br*.
   $base = frr_ensure_baseline_conf();
   $result['baseline_conf'] = $base;
   $result['actions'][] = !empty($base['ok']) ? 'frr.conf baseline checked' : ('frr.conf: ' . ($base['error'] ?? 'skip'));
@@ -352,10 +690,13 @@ function frr_plugin_version() {
 }
 
 function frr_status() {
+  $cfg = frr_load_cfg();
   return [
     'plugin_version' => frr_plugin_version(),
-    'cfg' => frr_load_cfg(),
+    'cfg' => $cfg,
     'detect' => frr_detect(),
+    'catalog_url' => frr_catalog_url($cfg),
+    'bundle' => frr_resolve_bundle($cfg),
     'companion' => is_readable(frr_companion_path()) ? json_decode((string)file_get_contents(frr_companion_path()), true) : null,
     'thunderboltnet_present' => is_dir('/usr/local/emhttp/plugins/ThunderboltNet'),
     'time' => date('c'),

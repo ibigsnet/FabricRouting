@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "updated": "2026-08-11T00:00:00Z",
+  "default_channel": "latest",
+  "channels": {
+    "latest": {
+      "label": "Latest stable",
+      "description": "Recommended. Plugin downloads matching packages for your Unraid version automatically."
+    },
+    "previous": {
+      "label": "Previous stable",
+      "description": "Rollback channel when available in the catalog."
+    }
+  },
+  "bundles": [],
+  "notes": "Bundles are filled as Unraid-compatible FRR .txz builds are published to GitHub Releases. Until a bundle matches this host, UnraidFRR reports that clearly and does not require manual package drops—the catalog is the product path."
+}

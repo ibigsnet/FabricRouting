@@ -10,12 +10,17 @@ Unraid does **not** ship a full IP routing stack (no FRR, no OpenFabric, no OSPF
 
 | Capability | What happens |
 |------------|----------------|
-| **Package install** | Runs Slackware-style `installpkg` on `.txz`/`.tgz` files you place under `/boot/config/plugins/UnraidFRR/packages/` (and again on array start if configured) |
-| **Daemon selection** | Edits `/etc/frr/daemons` so chosen daemons are enabled (`zebra`, `fabricd`, optional `bgpd` / `ospfd` / …) |
-| **Service start** | Best-effort start/restart of the FRR service after packages and daemons are set |
-| **Status UI** | **Settings → FRR (FRRouting)** — FRR present?, version, package list, zebra/fabricd running? |
-| **Companion marker** | Writes `/boot/config/plugins/UnraidFRR/companion.json` so other plugins (e.g. Thunderbolt Net) can detect that UnraidFRR is installed |
-| **Safe idle** | If `packages/` is **empty** and FRR is not already on the system, Apply and array-start do **nothing harmful** |
+| **Auto package pipeline** | Fetches a **catalog** (`manifest.json`), picks a bundle for this Unraid version + arch + channel, **downloads** `.txz` files, **sha256-verifies**, caches on flash |
+| **Package install** | Runs `installpkg` into the live system; on array start, rehydrates RAM (Unraid does not persist packages) |
+| **Daemon selection** | Edits `/etc/frr/daemons` for chosen daemons (`zebra`, `fabricd`, optional `bgpd` / `ospfd` / …) |
+| **Service start** | Best-effort start/restart of FRR after install |
+| **Status UI** | **Settings → FRR** — host version, bundle match, FRR present?, daemons running? |
+| **Companion marker** | `/boot/config/plugins/UnraidFRR/companion.json` for Thunderbolt Net / others |
+| **Safe until builds exist** | If the catalog has **no** matching bundle yet, status explains that; no broken half-install |
+
+**Users never manually copy packages** (same idea as the Nvidia Driver plugin). Options only: channel, daemons, auto-download on/off.
+
+Full design: [docs/automation-design.md](docs/automation-design.md).
 
 ### What it does *not* do
 
@@ -24,9 +29,9 @@ Unraid does **not** ship a full IP routing stack (no FRR, no OpenFabric, no OSPF
 | Thunderbolt discovery, tbn IPs, cables | [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) |
 | Generate OpenFabric interface stanzas for `thunderbolt*` | Thunderbolt Net (marked FRR conf blocks) |
 | Edit Unraid **Network Settings** / `network.cfg` / br0 / eth bonds | Unraid core UI |
-| Enable `net.ipv4.ip_forward` by default | Not UnraidFRR (Thunderbolt Net may enable forwarding only when OpenFabric is on **and** FRR is present) |
+| Enable `net.ipv4.ip_forward` by default | Not UnraidFRR (TBN may when OpenFabric + FRR) |
 | Auto-enroll eth0/br0 into OSPF/BGP/OpenFabric | **Never** by default |
-| Ship pre-built FRR `.txz` for every Unraid version (yet) | You drop packages in `packages/`; project Releases may host builds later |
+| Instant FRR on every Unraid version day one | Maintainer publishes catalog bundles; until then UI waits safely |
 
 ---
 
@@ -81,19 +86,11 @@ See [RELEASES.md](RELEASES.md) for pins/tags when published.
 ### After install (first run)
 
 1. Open **Settings → FRR (FRRouting)**.  
-2. Status will usually say packages missing / FRR not live — **expected**.  
-3. Place compatible FRR packages in:
+2. Leave **Auto-download = Yes**, channel **Latest**, daemons as desired.  
+3. Click **Apply** — plugin downloads + installs when a catalog bundle matches your Unraid version.  
+4. Confirm status shows FRR present / `vtysh -v`.  
 
-   ```text
-   /boot/config/plugins/UnraidFRR/packages/
-   ```
-
-   See [packages/README.md](packages/README.md).  
-
-4. Click **Apply** (or reboot so array-start runs install).  
-5. Confirm `vtysh -v` (or the status table shows FRR present).
-
-Until packages exist, the plugin is **idle and safe**.
+If the catalog has no build for your Unraid version yet, status says so clearly; leave auto-download on and Apply again after a plugin/catalog update. **No manual package download required.**
 
 ---
 

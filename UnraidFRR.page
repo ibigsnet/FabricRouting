@@ -6,7 +6,7 @@ Markdown="false"
 ---
 <?php
 /**
- * Standalone FRR package manager. Must not require ThunderboltNet.
+ * Fully automated FRR manager (Nvidia-plugin style). Never require ThunderboltNet.
  */
 require_once '/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php';
 
@@ -18,63 +18,100 @@ if (!is_array($cfg)) {
 $cfg = array_merge(frr_load_cfg(), $cfg);
 $st = frr_status();
 $det = $st['detect'];
+$bundle = $st['bundle'] ?? [];
 $ver = htmlspecialchars($st['plugin_version'] ?? 'dev');
 $tbn = !empty($st['thunderboltnet_present']);
+$uver = htmlspecialchars($det['unraid_version'] ?? frr_unraid_version());
+$arch = htmlspecialchars($det['arch'] ?? frr_arch());
 ?>
 <div class="frr-wrap" style="max-width:52em">
   <h3>FRR (FRRouting) for Unraid</h3>
   <p>
-    Optional package + daemon manager for
+    Fully automated install and management of
     <a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>
-    (zebra, OpenFabric <code>fabricd</code>, and friends).
+    (like the Nvidia Driver plugin: you choose options; the plugin downloads, verifies, and installs).
     <strong>Standalone</strong> — Thunderbolt Net is not required.
   </p>
   <p>
-    <strong>Not Thunderbolt-only:</strong> FRR is a <em>host-wide</em> routing suite.
-    Defaults do <strong>not</strong> put eth0/br0 into any protocol and do not edit Unraid Network Settings.
-    Normal LAN should keep working; risk is from custom FRR conf or enabling OSPF/BGP on LAN interfaces yourself.
+    <strong>Not Thunderbolt-only:</strong> FRR is a host-wide routing suite.
+    Defaults do not put eth0/br0 into any protocol and do not edit Unraid Network Settings.
     <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/scope-and-safety.md" target="_blank" rel="noopener">Scope &amp; safety ↗</a>
+    ·
+    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/automation-design.md" target="_blank" rel="noopener">Automation design ↗</a>
   </p>
 
   <table class="tablesorter shift" style="width:100%">
-    <tr><td style="width:12em">Plugin version</td><td><code><?= $ver ?></code></td></tr>
+    <tr><td style="width:14em">Plugin version</td><td><code><?= $ver ?></code></td></tr>
+    <tr><td>Unraid / arch</td><td><code><?= $uver ?></code> · <code><?= $arch ?></code></td></tr>
     <tr><td>Status</td><td><?= htmlspecialchars($det['note'] ?? '') ?></td></tr>
+    <tr><td>Automated bundle</td>
+      <td><?php
+        if (!empty($bundle['ok'])) {
+          echo 'FRR <code>' . htmlspecialchars($bundle['frr_version'] ?? '') . '</code> · channel <code>'
+            . htmlspecialchars($bundle['channel'] ?? '') . '</code>';
+        } else {
+          echo '<em>' . htmlspecialchars($bundle['error'] ?? 'resolving…') . '</em>';
+        }
+      ?></td></tr>
     <tr><td>vtysh</td><td><code><?= htmlspecialchars($det['vtysh'] ?: '—') ?></code>
-      <?= $det['version'] !== '' ? ' · ' . htmlspecialchars($det['version']) : '' ?></td></tr>
+      <?= !empty($det['version']) ? ' · ' . htmlspecialchars($det['version']) : '' ?></td></tr>
     <tr><td>zebra / fabricd</td>
       <td><?= !empty($det['running_zebra']) ? 'zebra running' : 'zebra not running' ?>
         · <?= !empty($det['running_fabricd']) ? 'fabricd running' : 'fabricd not running' ?></td></tr>
-    <tr><td>Packages on flash</td>
+    <tr><td>Package cache</td>
       <td><?php
-        if (empty($det['packages_on_flash'])) {
-          echo '<em>none</em> — place <code>.txz</code> under <code>' . htmlspecialchars($det['packages_dir']) . '</code>';
-        } else {
-          echo '<code>' . htmlspecialchars(implode('</code>, <code>', $det['packages_on_flash'])) . '</code>';
-        }
+        $pk = $det['packages_on_flash'] ?? [];
+        echo $pk
+          ? count($pk) . ' file(s) managed under flash cache'
+          : '<em>empty — Apply will auto-download when a bundle exists</em>';
       ?></td></tr>
     <tr><td>Thunderbolt Net</td>
       <td><?= $tbn
         ? 'Installed — can use FRR for OpenFabric when enabled there'
-        : 'Not installed (OK — this plugin does not need it)' ?></td></tr>
+        : 'Not installed (OK)' ?></td></tr>
   </table>
 
   <blockquote class="inline_help">
-    <strong>Invasive by design:</strong> this plugin can run <code>installpkg</code> and start routing daemons.
-    It is separate from Thunderbolt Net so you can opt in. Empty <code>packages/</code> = idle, no damage.<br><br>
-    Package notes:
-    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/packages/README.md" target="_blank" rel="noopener">packages/README.md</a>
-    · Docs:
+    <strong>Fully automated:</strong> you do not download or copy <code>.txz</code> files yourself.
+    Apply (or array start) fetches the catalog, downloads the matching package set for this Unraid version,
+    verifies checksums, runs <code>installpkg</code>, enables daemons, and starts FRR — same idea as the Nvidia Driver plugin.<br><br>
+    Until a build is published for your Unraid version, status explains that clearly; the system stays safe.
+    Docs:
     <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS.md</a>
   </blockquote>
 
   <form method="POST" action="/update.php" target="progressFrame">
     <input type="hidden" name="#file" value="UnraidFRR/UnraidFRR.cfg">
     <input type="hidden" name="#include" value="/plugins/UnraidFRR/include/frr-update.php">
-    <input type="hidden" name="auto_download" value="<?= htmlspecialchars($cfg['auto_download'] ?? 'no') ?>">
-    <input type="hidden" name="package_base_url" value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>">
 
     <dl>
-      <dt>Install packages on array start:</dt>
+      <dt>Package channel:</dt>
+      <dd>
+        <select name="package_channel">
+          <?= mk_option($cfg['package_channel'] ?? 'latest', 'latest', 'Latest stable (recommended)') ?>
+          <?= mk_option($cfg['package_channel'] ?? 'latest', 'previous', 'Previous stable (rollback)') ?>
+        </select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">
+      Which automated package set to download from the project catalog. Channels appear as builds are published.
+    </blockquote>
+
+    <dl>
+      <dt>Auto-download packages:</dt>
+      <dd>
+        <select name="auto_download">
+          <?= mk_option($cfg['auto_download'] ?? 'yes', 'yes', 'Yes (default — fully automatic)') ?>
+          <?= mk_option($cfg['auto_download'] ?? 'yes', 'no', 'No — use flash cache only') ?>
+        </select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">
+      <strong>Yes</strong> (product default): fetch catalog + packages when missing or outdated. No manual package steps.
+    </blockquote>
+
+    <dl>
+      <dt>Install on array start:</dt>
       <dd>
         <select name="install_on_start">
           <?= mk_option($cfg['install_on_start'] ?? 'yes', 'yes', 'Yes') ?>
@@ -83,7 +120,19 @@ $tbn = !empty($st['thunderboltnet_present']);
       </dd>
     </dl>
     <blockquote class="inline_help">
-      When Yes, runs <code>installpkg</code> for files in the flash packages directory if present.
+      Reinstall FRR into the live (RAM) system after reboot — required because Unraid does not keep packages across boot.
+    </blockquote>
+
+    <dl>
+      <dt>Catalog URL (advanced):</dt>
+      <dd>
+        <input type="text" name="package_base_url" style="width:32em"
+          value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>"
+          placeholder="default: GitHub packages/manifest.json">
+      </dd>
+    </dl>
+    <blockquote class="inline_help">
+      Leave empty for the official catalog. Only change if you host a mirror.
     </blockquote>
 
     <dl>
@@ -107,7 +156,7 @@ $tbn = !empty($st['thunderboltnet_present']);
       </dd>
     </dl>
     <blockquote class="inline_help">
-      OpenFabric daemon used by Thunderbolt Net multi-host routing. Safe to enable without TBN if you use fabricd elsewhere.
+      OpenFabric daemon used with Thunderbolt Net multi-host routing. Safe without TBN if you use fabricd elsewhere.
     </blockquote>
 
     <dl>
@@ -135,7 +184,7 @@ $tbn = !empty($st['thunderboltnet_present']);
         <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
       </dd>
     </dl>
-    <blockquote class="inline_help">Default No. Only enable what you use — more daemons = more attack/ops surface.</blockquote>
+    <blockquote class="inline_help">Default No. Only enable what you use.</blockquote>
 
     <dl>
       <dt>Start/restart FRR on Apply:</dt>
@@ -152,11 +201,4 @@ $tbn = !empty($st['thunderboltnet_present']);
       <input type="button" value="Done" onclick="done()">
     </p>
   </form>
-
-  <p class="tbn-muted" style="margin-top:1.5em;font-size:0.9em">
-    Companion for multi-host Thunderbolt fabrics:
-    <a href="https://github.com/ibigsnet/ThunderboltNet" target="_blank" rel="noopener">Thunderbolt Net</a>
-    (optional). Integration notes:
-    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/integration-thunderboltnet.md" target="_blank" rel="noopener">docs/integration-thunderboltnet.md</a>
-  </p>
 </div>

@@ -1,53 +1,21 @@
-# FRR packages for Unraid
+# Package catalog (maintainer / automation)
 
-Drop Slackware-compatible FRR package files here on the **flash**:
+**End users do not place packages here manually.**
 
-```text
-/boot/config/plugins/UnraidFRR/packages/
-```
+UnraidFRR downloads the matching bundle from `manifest.json` into the flash cache automatically (Nvidia Driver–style).
 
-The plugin copies or reads from that path at array start (see `scripts/frr-install-packages`).
+## Files
 
-## Expected layout (on flash after install)
+| File | Role |
+|------|------|
+| `manifest.json` | Public catalog: channels, Unraid version ranges, package URLs + sha256 |
+| GitHub Releases `pkg-*` | Hosts large `.txz` binaries referenced by the manifest |
 
-```text
-/boot/config/plugins/UnraidFRR/packages/
-  frr-*.txz          # or .tgz — exact names depend on the build
-  (optional deps)
-  MANIFEST.txt       # optional: one package file name per line, install order
-```
+## Maintainer workflow
 
-## Status of official builds
+1. Build FRR (+ deps) for a target Unraid major line and arch  
+2. Upload `.txz` to a GitHub Release  
+3. Add a `bundles[]` entry in `manifest.json` with `url` + `sha256`  
+4. Users get it on next **Apply** / array start  
 
-Unraid does **not** ship FRR. Community or project-maintained builds must match:
-
-- Unraid major line (e.g. 6.12 / 7.x) userspace  
-- x86_64  
-- Libraries expected by that FRR build  
-
-Until **ibigsnet/UnraidFRR** GitHub Releases host tested `.txz` files:
-
-1. Build FRR for Slackware/Unraid yourself, or  
-2. Use a known-good third-party package **at your own risk**, or  
-3. Leave this folder empty — the plugin stays idle (safe).
-
-When releases exist, optional `package_base_url` in UnraidFRR.cfg may download into this directory (default **off** until URLs are trusted).
-
-## MANIFEST.txt example
-
-```text
-# install order
-libyang-2.x.txz
-frr-10.x.txz
-```
-
-If missing, the install script installs every `*.txz` / `*.tgz` in name sort order.
-
-## Verify after install
-
-```bash
-vtysh -v
-pgrep -a zebra
-pgrep -a fabricd
-ls /etc/frr
-```
+See [docs/automation-design.md](../docs/automation-design.md).
