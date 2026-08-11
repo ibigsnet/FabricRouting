@@ -57,9 +57,11 @@ Reverse order is OK: Thunderbolt Net stays in static/degraded mode until FRR app
 
 | Remove | Expected |
 |--------|----------|
-| UnraidFRR only | FRR may disappear on next boot (RAM root); TBN shows FRR missing; static TB still works |
-| Thunderbolt Net only | FRR keeps running; user keeps full FRR for other uses |
-| Both | Clean separation; no cross-require fatals |
+| **UnraidFRR only** | Plugin remove **stops FRR**, `removepkg`s managed packages, clears emhttp + flash config. TBN stays installed; OpenFabric degrades to static underlay. No broken Unraid Network Settings. |
+| **Thunderbolt Net only** | FRR keeps running if UnraidFRR remains; TBN removes its TB hooks/config (see TBN remove script). |
+| **Both** | Order does not matter; neither PHP-requires the other. No leftover cross-plugin hooks. |
+
+Full UnraidFRR removal steps: [DOCS.md — Uninstall](../DOCS.md#uninstall-clean-removal).
 
 ## Mixed Proxmox / Debian + Unraid fabrics
 
