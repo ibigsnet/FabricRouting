@@ -23,15 +23,15 @@ Follows the same release discipline as StorageGuard / Thunderbolt Net (`YYYY.MM.
 
 ## Lab checklist (when you re-hook devices)
 
-Flagship fabric: **Proxmox A/B/C + Unraid D/E** — see Thunderbolt Net `docs/fabric-proxmox-unraid.md`.
+Mixed fabric testing (any node count): see Thunderbolt Net `docs/fabric-proxmox-unraid.md`.
 
-- [ ] Install UnraidFRR alone on Unraid — Settings page loads; idle with empty packages  
-- [ ] br0 DHCP/static still works; Docker still works  
+- [ ] Install UnraidFRR alone — Settings page loads; idle with empty packages  
+- [ ] br0 still works; Docker still works  
 - [ ] Drop packages → Apply → `vtysh -v`  
-- [ ] No unexpected routes on `ip route` for LAN  
-- [ ] Install Thunderbolt Net → OpenFabric status sees FRR  
-- [ ] **L2/L3:** Proxmox ↔ Unraid static TB, then OpenFabric adjacency  
-- [ ] **L5:** full five-node ring failover (with TBN)  
+- [ ] No unexpected LAN routes on `ip route`  
+- [ ] Thunderbolt Net sees FRR for OpenFabric  
+- [ ] **L2/L3:** Linux/Proxmox ↔ Unraid static TB, then OpenFabric  
+- [ ] **L5:** multi-node failover when an alternate path exists  
 
 ## Versioning / ship
 

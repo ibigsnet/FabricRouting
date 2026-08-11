@@ -61,18 +61,11 @@ Reverse order is OK: Thunderbolt Net stays in static/degraded mode until FRR app
 | Thunderbolt Net only | FRR keeps running; user keeps full FRR for other uses |
 | Both | Clean separation; no cross-require fatals |
 
-## Proxmox + Unraid multi-node fabric
+## Mixed Proxmox / Debian + Unraid fabrics
 
-Long-term lab/product goal (operator’s plan):
+Many sites run OpenFabric between **Unraid** and **Proxmox (or other Debian/Linux)** over TB. UnraidFRR only supplies FRR on Unraid; peers use distro packages (`apt install frr`, etc.). Same area/metrics/loopback plan on every node.
 
-| Nodes | Platform | FRR source |
-|-------|----------|------------|
-| **A, B, C** | Proxmox | `apt install frr`, fabricd enabled |
-| **D, E** | Unraid | **UnraidFRR** packages + Thunderbolt Net OpenFabric |
-
-Same OpenFabric area/metrics/loopback plan on all five. UnraidFRR’s job is only to make Unraid’s FRR as capable as Proxmox’s apt FRR — not to talk to Proxmox APIs.
-
-Full topology, address plan sketch, lab phases:  
+General reference (example multi-node ring, not a fixed site layout):  
 [Thunderbolt Net — fabric-proxmox-unraid.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md)
 
 ## Non-goals for the pair
