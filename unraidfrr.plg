@@ -6,7 +6,7 @@
   Versioning — Unraid plugin updates use strcmp() (lexicographic).
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
 -->
-<!ENTITY version "2026.08.11">
+<!ENTITY version "2026.08.11aa">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -28,6 +28,9 @@
 
 <CHANGES>
 ###&version;
+- README: short Unraid Plugins-list blurb (same format as Storage Guard / Thunderbolt Net); long docs stay in DOCS.md.
+
+###2026.08.11
 - Initial public release: standalone FRR package install hooks, daemon toggles (zebra/fabricd default on), Settings → FRR UI, array-start install, companion marker for Thunderbolt Net.
 - Docs: detailed what-it-does guide, scope/safety (host-wide routing, not TB-only), LAN-safe defaults, Thunderbolt Net integration.
 - Idle and safe when packages/ is empty. Does not require Thunderbolt Net. CA listing via ibigsnet/unraid-templates.
