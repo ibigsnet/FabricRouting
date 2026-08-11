@@ -26,6 +26,19 @@ $arch = htmlspecialchars($det['arch'] ?? frr_arch());
 ?>
 <div class="frr-wrap" style="max-width:52em">
   <h3>FRR (FRRouting) for Unraid</h3>
+  <div style="margin:0.5em 0 1em;padding:0.55em 0.75em;border-left:3px solid #e68a2e;background:rgba(200,140,40,0.08);font-size:0.92em;line-height:1.4">
+    <strong>Companions</strong> —
+<?php if ($tbn): ?>
+    Thunderbolt Net is installed: OpenFabric <em>policy</em> lives under
+    <a href="/Settings/ThunderboltNet">Network Settings → Thunderbolt</a>
+    (Advanced: multi-hop routing). This page installs <strong>packages/daemons</strong> only.
+<?php else: ?>
+    Optional: <a href="https://github.com/ibigsnet/ThunderboltNet" target="_blank" rel="noopener">Thunderbolt Net</a>
+    for TB underlay + OpenFabric policy. Not required for plain FRR use.
+<?php endif; ?>
+    <br>
+    <span style="opacity:0.8">UnraidFRR never provides <code>thunderbolt_stream</code> / USB4STREAM — that is a Linux ~7.2+ <em>kernel</em> module, not an FRR package.</span>
+  </div>
   <p>
     Fully automated install and management of
     <a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>
