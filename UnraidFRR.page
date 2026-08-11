@@ -1,0 +1,156 @@
+Menu="Settings:50"
+Title="FRR (FRRouting)"
+Tag="project-diagram"
+Icon="project-diagram"
+Markdown="false"
+---
+<?php
+/**
+ * Standalone FRR package manager. Must not require ThunderboltNet.
+ */
+require_once '/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php';
+
+$plugin = 'UnraidFRR';
+$cfg = function_exists('parse_plugin_cfg') ? parse_plugin_cfg($plugin) : [];
+if (!is_array($cfg)) {
+  $cfg = [];
+}
+$cfg = array_merge(frr_load_cfg(), $cfg);
+$st = frr_status();
+$det = $st['detect'];
+$ver = htmlspecialchars($st['plugin_version'] ?? 'dev');
+$tbn = !empty($st['thunderboltnet_present']);
+?>
+<div class="frr-wrap" style="max-width:52em">
+  <h3>FRR (FRRouting) for Unraid</h3>
+  <p>
+    Optional package + daemon manager for
+    <a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>
+    (zebra, OpenFabric <code>fabricd</code>, and friends).
+    <strong>Standalone</strong> — Thunderbolt Net is not required.
+  </p>
+
+  <table class="tablesorter shift" style="width:100%">
+    <tr><td style="width:12em">Plugin version</td><td><code><?= $ver ?></code></td></tr>
+    <tr><td>Status</td><td><?= htmlspecialchars($det['note'] ?? '') ?></td></tr>
+    <tr><td>vtysh</td><td><code><?= htmlspecialchars($det['vtysh'] ?: '—') ?></code>
+      <?= $det['version'] !== '' ? ' · ' . htmlspecialchars($det['version']) : '' ?></td></tr>
+    <tr><td>zebra / fabricd</td>
+      <td><?= !empty($det['running_zebra']) ? 'zebra running' : 'zebra not running' ?>
+        · <?= !empty($det['running_fabricd']) ? 'fabricd running' : 'fabricd not running' ?></td></tr>
+    <tr><td>Packages on flash</td>
+      <td><?php
+        if (empty($det['packages_on_flash'])) {
+          echo '<em>none</em> — place <code>.txz</code> under <code>' . htmlspecialchars($det['packages_dir']) . '</code>';
+        } else {
+          echo '<code>' . htmlspecialchars(implode('</code>, <code>', $det['packages_on_flash'])) . '</code>';
+        }
+      ?></td></tr>
+    <tr><td>Thunderbolt Net</td>
+      <td><?= $tbn
+        ? 'Installed — can use FRR for OpenFabric when enabled there'
+        : 'Not installed (OK — this plugin does not need it)' ?></td></tr>
+  </table>
+
+  <blockquote class="inline_help">
+    <strong>Invasive by design:</strong> this plugin can run <code>installpkg</code> and start routing daemons.
+    It is separate from Thunderbolt Net so you can opt in. Empty <code>packages/</code> = idle, no damage.<br><br>
+    Package notes:
+    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/packages/README.md" target="_blank" rel="noopener">packages/README.md</a>
+    · Docs:
+    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS.md</a>
+  </blockquote>
+
+  <form method="POST" action="/update.php" target="progressFrame">
+    <input type="hidden" name="#file" value="UnraidFRR/UnraidFRR.cfg">
+    <input type="hidden" name="#include" value="/plugins/UnraidFRR/include/frr-update.php">
+    <input type="hidden" name="auto_download" value="<?= htmlspecialchars($cfg['auto_download'] ?? 'no') ?>">
+    <input type="hidden" name="package_base_url" value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>">
+
+    <dl>
+      <dt>Install packages on array start:</dt>
+      <dd>
+        <select name="install_on_start">
+          <?= mk_option($cfg['install_on_start'] ?? 'yes', 'yes', 'Yes') ?>
+          <?= mk_option($cfg['install_on_start'] ?? 'yes', 'no', 'No') ?>
+        </select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">
+      When Yes, runs <code>installpkg</code> for files in the flash packages directory if present.
+    </blockquote>
+
+    <dl>
+      <dt>Enable zebra:</dt>
+      <dd>
+        <select name="enable_zebra">
+          <?= mk_option($cfg['enable_zebra'] ?? 'yes', 'yes', 'Yes (required for routing)') ?>
+          <?= mk_option($cfg['enable_zebra'] ?? 'yes', 'no', 'No') ?>
+        </select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">zebra talks to the kernel RIB/FIB. Leave Yes for almost all uses.</blockquote>
+
+    <dl>
+      <dt>Enable fabricd (OpenFabric):</dt>
+      <dd>
+        <select name="enable_fabricd">
+          <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'yes', 'Yes (default — TB mesh / fabric)') ?>
+          <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'no', 'No') ?>
+        </select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">
+      OpenFabric daemon used by Thunderbolt Net multi-host routing. Safe to enable without TBN if you use fabricd elsewhere.
+    </blockquote>
+
+    <dl>
+      <dt>Enable staticd:</dt>
+      <dd>
+        <select name="enable_staticd">
+          <?= mk_option($cfg['enable_staticd'] ?? 'yes', 'yes', 'Yes') ?>
+          <?= mk_option($cfg['enable_staticd'] ?? 'yes', 'no', 'No') ?>
+        </select>
+      </dd>
+    </dl>
+
+    <dl>
+      <dt>Enable bgpd / ospfd / ospf6d / isisd / bfdd:</dt>
+      <dd>
+        bgpd
+        <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>
+        ospfd
+        <select name="enable_ospfd"><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'yes', 'Yes') ?></select>
+        ospf6d
+        <select name="enable_ospf6d"><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'yes', 'Yes') ?></select>
+        isisd
+        <select name="enable_isisd"><?= mk_option($cfg['enable_isisd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_isisd'] ?? 'no', 'yes', 'Yes') ?></select>
+        bfdd
+        <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
+      </dd>
+    </dl>
+    <blockquote class="inline_help">Default No. Only enable what you use — more daemons = more attack/ops surface.</blockquote>
+
+    <dl>
+      <dt>Start/restart FRR on Apply:</dt>
+      <dd>
+        <select name="start_frr">
+          <?= mk_option($cfg['start_frr'] ?? 'yes', 'yes', 'Yes') ?>
+          <?= mk_option($cfg['start_frr'] ?? 'yes', 'no', 'No') ?>
+        </select>
+      </dd>
+    </dl>
+
+    <p>
+      <input type="submit" name="#apply" value="Apply">
+      <input type="button" value="Done" onclick="done()">
+    </p>
+  </form>
+
+  <p class="tbn-muted" style="margin-top:1.5em;font-size:0.9em">
+    Companion for multi-host Thunderbolt fabrics:
+    <a href="https://github.com/ibigsnet/ThunderboltNet" target="_blank" rel="noopener">Thunderbolt Net</a>
+    (optional). Integration notes:
+    <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/integration-thunderboltnet.md" target="_blank" rel="noopener">docs/integration-thunderboltnet.md</a>
+  </p>
+</div>

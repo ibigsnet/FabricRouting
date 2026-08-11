@@ -1,0 +1,16 @@
+#!/bin/bash
+# Array start: optional package install + daemon enable (no Thunderbolt Net dependency).
+SCRIPT=/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-install-packages
+CFG=/boot/config/plugins/UnraidFRR/UnraidFRR.cfg
+
+want_install=yes
+if [ -f "$CFG" ] && grep -q 'install_on_start="no"' "$CFG" 2>/dev/null; then
+  want_install=no
+fi
+
+if [ "$want_install" = "yes" ] && [ -x "$SCRIPT" ]; then
+  "$SCRIPT" || true
+fi
+
+# Full apply (daemons + start) via PHP when available
+php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_apply();' 2>/dev/null || true

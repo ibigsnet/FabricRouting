@@ -1,0 +1,12 @@
+.grok-notes/
+*.local.md
+NOTES.local.md
+.private/
+*~
+*.swp
+.DS_Store
+# Do not commit large binary packages by default
+packages/*.txz
+packages/*.tgz
+packages/*.tar.gz
+!packages/README.md

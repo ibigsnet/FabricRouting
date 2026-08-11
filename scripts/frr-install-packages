@@ -1,0 +1,53 @@
+#!/bin/bash
+# Install FRR packages from flash into Unraid RAM root.
+# Safe no-op if packages/ is empty. Does not require Thunderbolt Net.
+set -euo pipefail
+
+PKGDIR="/boot/config/plugins/UnraidFRR/packages"
+LOG="/var/log/unraidfrr.log"
+log() { echo "$(date -Iseconds) $*" | tee -a "$LOG" 2>/dev/null || echo "$(date -Iseconds) $*"; }
+
+if [ ! -d "$PKGDIR" ]; then
+  log "packages dir missing: $PKGDIR (idle)"
+  exit 0
+fi
+
+# Optional ordered list
+LIST=()
+if [ -f "$PKGDIR/MANIFEST.txt" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%%#*}"
+    line="$(echo "$line" | tr -d '\r' | xargs)"
+    [ -z "$line" ] && continue
+    LIST+=("$line")
+  done < "$PKGDIR/MANIFEST.txt"
+else
+  # shellcheck disable=SC2012
+  while IFS= read -r f; do
+    LIST+=("$(basename "$f")")
+  done < <(ls -1 "$PKGDIR"/*.{txz,tgz} 2>/dev/null || true)
+fi
+
+if [ "${#LIST[@]}" -eq 0 ]; then
+  log "no packages in $PKGDIR (idle)"
+  exit 0
+fi
+
+if ! command -v installpkg >/dev/null 2>&1; then
+  log "ERROR: installpkg not found"
+  exit 1
+fi
+
+for name in "${LIST[@]}"; do
+  path="$PKGDIR/$name"
+  if [ ! -f "$path" ]; then
+    log "WARN: missing $path"
+    continue
+  fi
+  log "installpkg $name"
+  # installpkg is generally safe to re-run; ignore already-installed noise
+  installpkg "$path" >>"$LOG" 2>&1 || log "WARN: installpkg returned $? for $name"
+done
+
+log "package pass complete"
+exit 0
