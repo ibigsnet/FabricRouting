@@ -33,7 +33,7 @@ Example:
 }
 ```
 
-Thunderbolt Net may show “Install UnraidFRR for packaged FRR” when OpenFabric is On and FRR is missing — using this marker or simple “plugin dir exists” checks. Absence of the marker is fine; `vtysh` detection is enough for apply paths.
+Thunderbolt Net may show **needs FRR packages** / companion card when OpenFabric is On and FRR is missing — pointing at **Network Settings → Fabric Routing**. Absence of the marker is fine; `vtysh` detection is enough for apply paths.
 
 ## Config ownership
 
@@ -48,8 +48,8 @@ Thunderbolt Net must only rewrite its **marked** blocks (already the design). Un
 
 ## Install order (recommended)
 
-1. UnraidFRR → packages → Apply / reboot if needed → `vtysh -v` works  
-2. Thunderbolt Net → OpenFabric On → Apply → conf generated + fabric reload  
+1. **Network Settings → Fabric Routing** → packages → Apply / reboot if needed → `vtysh -v` works  
+2. **Network Settings → Thunderbolt** → OpenFabric On → Apply → conf generated + fabric reload  
 
 Reverse order is OK: Thunderbolt Net stays in static/degraded mode until FRR appears, then Apply again.
 

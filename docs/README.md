@@ -1,6 +1,9 @@
-# FRR (FRRouting) — topic index
+# Fabric Routing (FRR) — topic index
 
 Full product intro: [../DOCS.md](../DOCS.md).
+
+**UI:** Settings → Network Settings → **Fabric Routing**  
+**Plugin id / install:** UnraidFRR · `unraidfrr.plg`
 
 ## How the pieces fit
 
@@ -15,6 +18,7 @@ User options (channel, daemons)
 | You want… | Start here |
 |-----------|------------|
 | Install (CA or raw URL) / uninstall | [../DOCS.md](../DOCS.md) · [../RELEASES.md](../RELEASES.md) |
+| When to install vs skip | [../DOCS.md](../DOCS.md#when-do-i-need-this) |
 | Automation design (Nvidia-style) | [automation-design.md](automation-design.md) |
 | Ethernet / host-wide safety | [scope-and-safety.md](scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [integration-thunderboltnet.md](integration-thunderboltnet.md) |
