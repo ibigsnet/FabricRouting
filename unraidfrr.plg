@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.11ak">
+<!ENTITY version "2026.08.11al">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,7 @@
 
 <CHANGES>
 ###&version;
+- Docs: Contents/TOC on DOCS.md.
 - UI: collapsible About; tighter companion strip (less wall of text).
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.
 

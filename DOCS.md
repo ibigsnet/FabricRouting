@@ -18,6 +18,16 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 
 ---
 
+## Contents
+
+- [When do I need this?](#when-do-i-need-this)
+- [What it does](#what-it-does)
+- [Install / update](#install-update)
+- [Uninstall (clean removal)](#uninstall-clean-removal)
+- [With Thunderbolt Net](#with-thunderbolt-net)
+- [Documentation map](#documentation-map)
+- [Related](#related)
+
 ## When do I need this?
 
 | Your setup | Install UnraidFRR? |
