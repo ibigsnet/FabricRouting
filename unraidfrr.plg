@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.11af">
+<!ENTITY version "2026.08.11ag">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,10 @@
 
 <CHANGES>
 ###&version;
+- Network Settings tab **Fabric routing** (with Routing Table / Interface Rules), not System Settings tile.
+- Title explains FRR packages vs stock Routing Table; plugin id stays UnraidFRR.
+
+###2026.08.11af
 - Fix Settings placement: **System Settings tile** (`Menu="OtherSettings"`), not embedded section on /Settings (`Settings:50` was wrong).
 - Uninstall: also remove any stray UnraidFRR/FRR .page copies under webGui/dynamix; clear /tmp plugin remnants.
 
@@ -141,7 +145,7 @@ fi
 # Automated apply: catalog download + install when a bundle exists (no-op if catalog empty)
 php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_write_companion_marker(); frr_apply();' 2>/dev/null || true
 echo "UnraidFRR: install complete."
-echo "UnraidFRR: Settings → FRR (FRRouting) → Apply (auto-download on by default)."
+echo "UnraidFRR: Settings → Network Settings → Fabric routing → Apply (auto-download on by default)."
 echo "UnraidFRR: Hard-refresh the browser (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
@@ -183,18 +187,39 @@ else
   fi
 fi
 
-# 3) Remove emhttp plugin tree (case variants — avoid leftover pages)
+# 3) Remove emhttp plugin tree (case variants — avoid leftover Settings pages)
 rm -rf /usr/local/emhttp/plugins/UnraidFRR
 rm -rf /usr/local/emhttp/plugins/unraidfrr
 rm -rf /usr/local/emhttp/plugins/Unraidfrr
 
+# 3b) Stray .page copies (wrong Menu= or manual drops) — never leave FRR on /Settings
+rm -f /usr/local/emhttp/webGui/UnraidFRR*.page \
+      /usr/local/emhttp/webGui/*FRR*.page \
+      /usr/local/emhttp/plugins/dynamix/UnraidFRR*.page \
+      /usr/local/emhttp/plugins/dynamix/*UnraidFRR*.page 2>/dev/null || true
+# Do NOT delete stock dynamix pages; only names matching this plugin
+find /usr/local/emhttp/webGui /usr/local/emhttp/plugins/dynamix -maxdepth 1 -type f \
+  \( -name 'UnraidFRR.page' -o -name 'UnraidFRR-*.page' -o -name 'unraidfrr.page' \) \
+  -delete 2>/dev/null || true
+
 # 4) Remove flash state (cfg, package cache, marker) — clean reinstall
 rm -rf /boot/config/plugins/UnraidFRR
 rm -rf /boot/config/plugins/unraidfrr
+rm -rf /boot/config/plugins/Unraidfrr
 
-# 5) Temp install copies
-rm -f /tmp/plugins/unraidfrr.plg /tmp/plugins/UnraidFRR* 2>/dev/null || true
-rm -f /tmp/inline*-unraidfrr.sh 2>/dev/null || true
+# 5) Temp install copies + cached plg text
+rm -f /tmp/plugins/unraidfrr.plg /tmp/plugins/unraidfrr.txt 2>/dev/null || true
+rm -f /tmp/plugins/UnraidFRR* /tmp/inline*-unraidfrr.sh 2>/dev/null || true
+
+# 6) Sanity: no Menu=Settings UnraidFRR leftovers anywhere under plugins
+if find /usr/local/emhttp/plugins /usr/local/emhttp/webGui -name '*.page' 2>/dev/null \
+    | xargs grep -l 'UnraidFRR\|FRR (FRRouting)' 2>/dev/null | grep -q .; then
+  echo "UnraidFRR: WARNING — leftover .page still references FRR:"
+  find /usr/local/emhttp/plugins /usr/local/emhttp/webGui -name '*.page' 2>/dev/null \
+    | xargs grep -l 'UnraidFRR\|FRR (FRRouting)' 2>/dev/null || true
+else
+  echo "UnraidFRR: no leftover FRR .page under emhttp"
+fi
 
 if [ -e /usr/local/emhttp/plugins/UnraidFRR ] || [ -e /usr/local/emhttp/plugins/unraidfrr ]; then
   echo "UnraidFRR: WARNING — emhttp plugin path still present"
@@ -204,7 +229,7 @@ fi
 
 echo "UnraidFRR: removed."
 echo "UnraidFRR: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
-echo "UnraidFRR: hard-refresh the browser; reboot if any FRR process still shows in ps."
+echo "UnraidFRR: hard-refresh the browser (Ctrl+Shift+R); reboot only if FRR processes linger."
 ]]></INLINE>
 </FILE>
 

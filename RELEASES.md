@@ -10,7 +10,7 @@ You can get the plugin in **either** of these ways. Both install the same Unraid
 2. Search for **FRR** or **UnraidFRR**.  
 3. Open the app and click **Install** (or **Update** if already installed).  
 4. Hard-refresh the browser (**Ctrl+Shift+R** / **Cmd+Shift+R**).  
-5. Open **Settings → System Settings → FRR (FRRouting)** → **Apply** (auto-download on by default).
+5. Open **Settings → Network Settings → Fabric routing** → **Apply** (auto-download on by default).
 
 **Support in CA:** use the app’s **Support** / **Project** menu — Support currently goes to [GitHub Issues](https://github.com/ibigsnet/UnraidFRR/issues); Project goes to [GitHub](https://github.com/ibigsnet/UnraidFRR). (Unraid forum thread can replace Support when published, same pattern as Storage Guard / Thunderbolt Net.)
 
@@ -21,7 +21,7 @@ CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templat
 1. On Unraid: **Plugins → Install Plugin**.  
 2. Paste a **raw** `.plg` URL (must end in `.plg` — not a GitHub “blob” page).  
 3. Click **Install**.  
-4. Hard-refresh the browser, then open **Settings → System Settings → FRR (FRRouting)**.
+4. Hard-refresh the browser, then open **Settings → Network Settings → Fabric routing**.
 
 | Track | When to use | URL |
 |-------|-------------|-----|

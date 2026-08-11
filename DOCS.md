@@ -45,7 +45,7 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 | **Install** | `installpkg` into the live system; **array start** rehydrates RAM after reboot |
 | **Daemons** | Enables selected entries in `/etc/frr/daemons` (zebra, fabricd, …) |
 | **Start** | Best-effort start/restart of the FRR service |
-| **UI** | **Settings → System Settings → FRR (FRRouting)** tile — status, channel, daemons |
+| **UI** | **Settings → Network Settings → Fabric routing** tab (with Routing Table) — status, channel, daemons |
 | **Companion marker** | `companion.json` so Thunderbolt Net can detect UnraidFRR |
 
 You choose **options** only (channel, which daemons, auto-download). You do **not** manually copy packages (same idea as the Nvidia Driver plugin).
@@ -85,7 +85,7 @@ Same pattern as Storage Guard and Thunderbolt Net—**two equivalent ways** to g
 1. **Apps** tab → search **FRR** or **UnraidFRR**.  
 2. **Install** or **Update**.  
 3. Hard-refresh the browser (**Ctrl+Shift+R**).  
-4. Open **Settings → System Settings → FRR (FRRouting)** (own tile — not embedded on the Settings overview).  
+4. Open **Settings → Network Settings → Fabric routing** (tab with eth / Routing Table / Thunderbolt).  
 5. Leave automation defaults (or adjust daemons) → **Apply**.
 
 CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) (`plugins/unraidfrr.xml`). Updates may lag a short time after GitHub.
@@ -94,7 +94,7 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) 
 
 1. **Plugins → Install Plugin**.  
 2. Paste a **raw** `.plg` URL (must end in `.plg`—not a GitHub blob page).  
-3. **Install** → hard-refresh → **Settings → FRR**.
+3. **Install** → hard-refresh → **Settings → Network Settings → Fabric routing**.
 
 | Track | URL |
 |-------|-----|
