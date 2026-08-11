@@ -85,7 +85,7 @@ Unraid plugin updates use **lexicographic `strcmp()`**, not PHP `version_compare
 
 | Tag | Plugin version | Notes |
 |-----|----------------|--------|
-| `main` (Latest) | **2026.08.11ab+** | Automated package pipeline; catalog may be empty until builds publish |
+| `main` (Latest) | **2026.08.11ad** | Automated package pipeline; UI version labels; catalog may be empty until builds publish |
 
 ---
 

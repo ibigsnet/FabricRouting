@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.11ac">
+<!ENTITY version "2026.08.11ad">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,10 @@
 
 <CHANGES>
 ###&version;
+- UI: status labels distinguish plugin version / Unraid product / FRR package set; USB4STREAM is kernel (not Unraid 7.2 product); companion strip wording.
+- Catalog matching uses Unraid product version + arch only (not uname -r).
+
+###2026.08.11ac
 - Docs: DOCS/RELEASES/docs index aligned with Storage Guard + Thunderbolt Net (CA + raw install, uninstall).
 - Uninstall: stop FRR, removepkg managed packages, clear emhttp + flash config — no leftover hooks; does not touch network.cfg or Thunderbolt Net.
 - Install finish message: automated Apply path (no manual package drop).
@@ -80,7 +84,7 @@ echo "UnraidFRR: directories ready."
 <![CDATA[
 **FRR (FRRouting)**
 
-Optional FRRouting suite for Unraid — fully automated install (like the Nvidia Driver plugin): the plugin downloads, verifies, and installs FRR for your Unraid version. Choose daemons under Settings → FRR. Standalone: Thunderbolt Net is not required. Does not edit eth0/br0 or Unraid Network Settings by default. Pair with Thunderbolt Net for TB multi-host OpenFabric.
+Optional FRRouting suite for Unraid — fully automated install (like the Nvidia Driver plugin): downloads and installs FRR packages matched to your Unraid product version + arch. Choose daemons under Settings → FRR. Standalone: Thunderbolt Net is not required. Does not edit eth0/br0 by default. Pair with Thunderbolt Net for TB multi-host OpenFabric.
 ]]>
 </INLINE>
 </FILE>

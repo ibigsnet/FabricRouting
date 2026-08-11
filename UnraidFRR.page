@@ -37,7 +37,9 @@ $arch = htmlspecialchars($det['arch'] ?? frr_arch());
     for TB underlay + OpenFabric policy. Not required for plain FRR use.
 <?php endif; ?>
     <br>
-    <span style="opacity:0.8">UnraidFRR never provides <code>thunderbolt_stream</code> / USB4STREAM — that is a Linux ~7.2+ <em>kernel</em> module, not an FRR package.</span>
+    <span style="opacity:0.8">UnraidFRR never provides <code>thunderbolt_stream</code> / USB4STREAM.
+    That is a <strong>Linux kernel module</strong> (feature landed in mainline kernel ~7.2 — <code>uname -r</code>,
+    <em>not</em> Unraid product 7.2.x). Package catalog matching uses <strong>Unraid product version</strong> only.</span>
   </div>
   <p>
     Fully automated install and management of
@@ -54,19 +56,23 @@ $arch = htmlspecialchars($det['arch'] ?? frr_arch());
   </p>
 
   <table class="tablesorter shift" style="width:100%">
-    <tr><td style="width:14em">Plugin version</td><td><code><?= $ver ?></code></td></tr>
-    <tr><td>Unraid / arch</td><td><code><?= $uver ?></code> · <code><?= $arch ?></code></td></tr>
+    <tr><td style="width:16em">Plugin version</td>
+      <td><code><?= $ver ?></code>
+        <span style="opacity:0.75;font-size:0.9em"> — this Unraid plugin (Plugins tab updates)</span></td></tr>
+    <tr><td>This Unraid (product)</td>
+      <td><code><?= $uver ?></code> · <code><?= $arch ?></code>
+        <span style="opacity:0.75;font-size:0.9em"> — used to pick FRR package bundles (not kernel version)</span></td></tr>
     <tr><td>Status</td><td><?= htmlspecialchars($det['note'] ?? '') ?></td></tr>
-    <tr><td>Automated bundle</td>
+    <tr><td>FRR package set (catalog)</td>
       <td><?php
         if (!empty($bundle['ok'])) {
-          echo 'FRR <code>' . htmlspecialchars($bundle['frr_version'] ?? '') . '</code> · channel <code>'
+          echo 'FRR software <code>' . htmlspecialchars($bundle['frr_version'] ?? '') . '</code> · channel <code>'
             . htmlspecialchars($bundle['channel'] ?? '') . '</code>';
         } else {
           echo '<em>' . htmlspecialchars($bundle['error'] ?? 'resolving…') . '</em>';
         }
       ?></td></tr>
-    <tr><td>vtysh</td><td><code><?= htmlspecialchars($det['vtysh'] ?: '—') ?></code>
+    <tr><td>vtysh (live FRR)</td><td><code><?= htmlspecialchars($det['vtysh'] ?: '—') ?></code>
       <?= !empty($det['version']) ? ' · ' . htmlspecialchars($det['version']) : '' ?></td></tr>
     <tr><td>zebra / fabricd</td>
       <td><?= !empty($det['running_zebra']) ? 'zebra running' : 'zebra not running' ?>
@@ -76,19 +82,21 @@ $arch = htmlspecialchars($det['arch'] ?? frr_arch());
         $pk = $det['packages_on_flash'] ?? [];
         echo $pk
           ? count($pk) . ' file(s) managed under flash cache'
-          : '<em>empty — Apply will auto-download when a bundle exists</em>';
+          : '<em>empty — Apply will auto-download when a bundle exists for this Unraid product version</em>';
       ?></td></tr>
     <tr><td>Thunderbolt Net</td>
       <td><?= $tbn
-        ? 'Installed — can use FRR for OpenFabric when enabled there'
+        ? 'Installed — OpenFabric <em>policy</em> on Network Settings → Thunderbolt (not package install)'
         : 'Not installed (OK)' ?></td></tr>
   </table>
 
   <blockquote class="inline_help">
     <strong>Fully automated:</strong> you do not download or copy <code>.txz</code> files yourself.
-    Apply (or array start) fetches the catalog, downloads the matching package set for this Unraid version,
+    Apply (or array start) fetches the catalog, downloads the matching package set for
+    <strong>this Unraid product version + arch</strong> (e.g. 7.3.x — not “Linux kernel 7.x”),
     verifies checksums, runs <code>installpkg</code>, enables daemons, and starts FRR — same idea as the Nvidia Driver plugin.<br><br>
-    Until a build is published for your Unraid version, status explains that clearly; the system stays safe.
+    Until a build is published for your Unraid product version, status explains that clearly; the system stays safe.
+    USB4STREAM / <code>thunderbolt_stream</code> is unrelated — that tracks the <em>running kernel</em> (<code>uname -r</code>), not this catalog.
     Docs:
     <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS.md</a>
   </blockquote>

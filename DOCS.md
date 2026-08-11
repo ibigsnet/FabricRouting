@@ -24,7 +24,7 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 
 | Area | Behavior |
 |------|----------|
-| **Catalog** | Reads `packages/manifest.json` (or your catalog URL) for builds matching this Unraid version + arch |
+| **Catalog** | Reads `packages/manifest.json` (or your catalog URL) for builds matching this **Unraid product version** + arch (not Linux kernel version) |
 | **Download** | Fetches `.txz` packages over HTTPS, verifies **sha256**, caches under flash |
 | **Install** | `installpkg` into the live system; **array start** rehydrates RAM after reboot |
 | **Daemons** | Enables selected entries in `/etc/frr/daemons` (zebra, fabricd, …) |
