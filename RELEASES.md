@@ -1,4 +1,4 @@
-# FRR (FRRouting) releases
+# Fabric Routing (FRR) — releases
 
 ## How to install or update
 
@@ -10,7 +10,7 @@ You can get the plugin in **either** of these ways. Both install the same Unraid
 2. Search for **FRR** or **UnraidFRR**.  
 3. Open the app and click **Install** (or **Update** if already installed).  
 4. Hard-refresh the browser (**Ctrl+Shift+R** / **Cmd+Shift+R**).  
-5. Open **Settings → Network Settings → Fabric routing** → **Apply** (auto-download on by default).
+5. Open **Settings → Network Settings → Fabric Routing** → **Apply** (auto-download on by default).
 
 **Support in CA:** use the app’s **Support** / **Project** menu — Support currently goes to [GitHub Issues](https://github.com/ibigsnet/UnraidFRR/issues); Project goes to [GitHub](https://github.com/ibigsnet/UnraidFRR). (Unraid forum thread can replace Support when published, same pattern as Storage Guard / Thunderbolt Net.)
 
@@ -21,7 +21,7 @@ CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templat
 1. On Unraid: **Plugins → Install Plugin**.  
 2. Paste a **raw** `.plg` URL (must end in `.plg` — not a GitHub “blob” page).  
 3. Click **Install**.  
-4. Hard-refresh the browser, then open **Settings → Network Settings → Fabric routing**.
+4. Hard-refresh the browser, then open **Settings → Network Settings → Fabric Routing**.
 
 | Track | When to use | URL |
 |-------|-------------|-----|
@@ -39,7 +39,7 @@ After install, confirm the version under **Plugins**.
 
 ### Uninstall
 
-**Plugins → FRR (FRRouting) → Remove** (or remove via CA).
+**Plugins → Fabric Routing (FRR) → Remove** (or remove via CA).
 
 Removal stops FRR, removes packages we installed (when known via MANIFEST), clears emhttp plugin paths and flash config under `/boot/config/plugins/UnraidFRR`. Does not touch Unraid Network Settings or Thunderbolt Net. Hard-refresh after remove. See [DOCS.md — Uninstall](DOCS.md#uninstall-clean-removal).
 

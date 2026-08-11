@@ -1,4 +1,4 @@
-# FRR (FRRouting) — Documentation
+# Fabric Routing (FRR) — Documentation
 
 How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite on Unraid—**fully automated** package download/install (Nvidia Driver–style), daemon selection, and safe defaults for the rest of the network stack.
 
@@ -45,7 +45,7 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 | **Install** | `installpkg` into the live system; **array start** rehydrates RAM after reboot |
 | **Daemons** | Enables selected entries in `/etc/frr/daemons` (zebra, fabricd, …) |
 | **Start** | Best-effort start/restart of the FRR service |
-| **UI** | **Settings → Network Settings → Fabric routing** tab (with Routing Table) — status, channel, daemons |
+| **UI** | **Settings → Network Settings → Fabric Routing** tab (with Routing Table) — status, channel, daemons |
 | **Companion marker** | `companion.json` so Thunderbolt Net can detect UnraidFRR |
 
 You choose **options** only (channel, which daemons, auto-download). You do **not** manually copy packages (same idea as the Nvidia Driver plugin).
@@ -85,7 +85,7 @@ Same pattern as Storage Guard and Thunderbolt Net—**two equivalent ways** to g
 1. **Apps** tab → search **FRR** or **UnraidFRR**.  
 2. **Install** or **Update**.  
 3. Hard-refresh the browser (**Ctrl+Shift+R**).  
-4. Open **Settings → Network Settings → Fabric routing** (tab with eth / Routing Table / Thunderbolt).  
+4. Open **Settings → Network Settings → Fabric Routing** (tab with eth / Routing Table / Thunderbolt).  
 5. Leave automation defaults (or adjust daemons) → **Apply**.
 
 CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) (`plugins/unraidfrr.xml`). Updates may lag a short time after GitHub.
@@ -94,7 +94,7 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) 
 
 1. **Plugins → Install Plugin**.  
 2. Paste a **raw** `.plg` URL (must end in `.plg`—not a GitHub blob page).  
-3. **Install** → hard-refresh → **Settings → Network Settings → Fabric routing**.
+3. **Install** → hard-refresh → **Settings → Network Settings → Fabric Routing**.
 
 | Track | URL |
 |-------|-----|
@@ -119,7 +119,7 @@ Details and versioning rules: [RELEASES.md](RELEASES.md).
 
 ## Uninstall (clean removal)
 
-Use **Plugins → FRR (FRRouting) → Remove** (or remove via CA). The plugin **Method=remove** script is designed to avoid leaving Unraid in a broken state (same discipline as Storage Guard / Thunderbolt Net):
+Use **Plugins → Fabric Routing (FRR) → Remove** (or remove via CA). The plugin **Method=remove** script is designed to avoid leaving Unraid in a broken state (same discipline as Storage Guard / Thunderbolt Net):
 
 1. **Stop FRR** (service + common daemon processes) so nothing holds package files.  
 2. **`removepkg`** packages listed in the plugin’s managed `MANIFEST.txt` when present (undoes what we installed into the live system).  

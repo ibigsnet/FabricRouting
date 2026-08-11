@@ -5,7 +5,7 @@
 Users **never** manually download or copy FRR packages. Like the **Nvidia Driver** plugin:
 
 1. Install UnraidFRR from CA / raw `.plg`  
-2. Choose options in **Network Settings → Fabric routing** (daemons, channel)  
+2. Choose options in **Network Settings → Fabric Routing** (daemons, channel)  
 3. Plugin **downloads**, **verifies**, **installs**, and **starts** FRR  
 4. On **array start** / reboot, plugin **reinstalls into RAM** as needed  
 
