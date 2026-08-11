@@ -18,6 +18,22 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 
 ---
 
+## When do I need this?
+
+| Your setup | Install UnraidFRR? |
+|------------|--------------------|
+| Two hosts, **one** TB cable, static IPs, file copy / SMB | **No** — Thunderbolt Net underlay is enough |
+| **Ring / mesh / multi-hop** (reach a host through a neighbor) | **Yes** — packages here; OpenFabric policy on Thunderbolt Net |
+| **Unraid + Proxmox** (or other Linux FRR) multi-node fabric | **Yes** — same OpenFabric idea as apt FRR on Proxmox |
+| Want OSPF/BGP/etc. on Unraid for non-TB reasons | **Yes** — standalone FRR manager; enable daemons you need |
+| Curious about USB4STREAM / `thunderbolt_stream` | **Wrong plugin** — that is a **Linux kernel** feature, not FRR |
+
+**Roles:** UnraidFRR = **packages + daemons**. Thunderbolt Net = **tbn IPs + OpenFabric conf/metrics**. Neither installs the other.
+
+On Thunderbolt Net, the orange chip **needs FRR packages** jumps to the Multi-hop companion card that points here.
+
+---
+
 ## What it does
 
 Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
