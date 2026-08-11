@@ -63,7 +63,19 @@ Details: [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md
 - May run `installpkg` into the Unraid RAM root (re-done each boot if needed)
 - Touches `/etc/frr/daemons` and may restart `frr` services
 - Does **not** by design rewrite Unraid `network.cfg` or br0
+- **Not Thunderbolt-only** — FRR is a general routing stack; misconfiguration *can* affect LAN if you enroll eth interfaces into OSPF/BGP/etc. Defaults do not do that.
 
+## Ethernet / LAN impact
+
+| Concern | Default behavior |
+|---------|------------------|
+| br0 / eth0 Unraid UI | Untouched |
+| Docker / VMs | Untouched |
+| OpenFabric on LAN bridges | **Not** auto-configured |
+| TB OpenFabric (via Thunderbolt Net) | Only `thunderbolt*` + loopback in TBN’s marked conf |
+| IP forwarding | UnraidFRR does **not** enable it |
+
+Full write-up: [docs/scope-and-safety.md](docs/scope-and-safety.md).
 ## Packages
 
 See [packages/README.md](packages/README.md). Building FRR for each Unraid/Slackware userspace is the hard part; this plugin is the **lifecycle and UX** shell first.

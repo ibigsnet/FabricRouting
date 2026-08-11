@@ -312,6 +312,12 @@ function frr_apply() {
     $result['actions'][] = $ins['ok'] ? 'packages installed/checked' : 'package install failed or skipped';
   }
 
+  // Safety: never touch Unraid network.cfg; never sysctl ip_forward here.
+  // Baseline conf must not auto-enroll eth*/br*.
+  $base = frr_ensure_baseline_conf();
+  $result['baseline_conf'] = $base;
+  $result['actions'][] = !empty($base['ok']) ? 'frr.conf baseline checked' : ('frr.conf: ' . ($base['error'] ?? 'skip'));
+
   $dae = frr_apply_daemons_file($cfg);
   $result['daemons'] = $dae;
   $result['actions'][] = !empty($dae['ok']) ? 'daemons file updated' : ('daemons: ' . ($dae['error'] ?? 'skip'));
