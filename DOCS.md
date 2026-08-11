@@ -98,13 +98,15 @@ If the catalog has no build for your Unraid version yet, status says so clearly;
 
 | Setting | Default | Meaning |
 |---------|---------|---------|
-| Install packages on array start | **Yes** | Re-run `installpkg` from flash packages when needed |
-| Enable zebra | **Yes** | Kernel RIB/FIB interface — needed for almost all FRR use |
-| Enable fabricd (OpenFabric) | **Yes** | OpenFabric daemon — Thunderbolt multi-host fabric happy path |
-| Enable staticd | **Yes** | Static routes via FRR (optional but common) |
-| Enable bgpd / ospfd / ospf6d / isisd / bfdd | **No** | Opt-in; more surface area |
-| Start/restart FRR on Apply | **Yes** | Best-effort service start after config |
-| Auto-download packages | **No** | Reserved until trusted package URLs exist |
+| Package channel | **latest** | Catalog channel to auto-download |
+| Auto-download packages | **Yes** | Fetch catalog + packages automatically |
+| Install on array start | **Yes** | Reinstall into RAM after reboot |
+| Enable zebra | **Yes** | Kernel RIB/FIB interface |
+| Enable fabricd (OpenFabric) | **Yes** | OpenFabric for multi-host TB fabric path |
+| Enable staticd | **Yes** | Common |
+| Enable bgpd / ospfd / ospf6d / isisd / bfdd | **No** | Opt-in surface area |
+| Start/restart FRR on Apply | **Yes** | Bring daemons up |
+| Catalog URL | (official) | Advanced mirror override |
 
 ---
 
@@ -113,17 +115,17 @@ If the catalog has no build for your Unraid version yet, status says so clearly;
 ### Standalone (no Thunderbolt Net)
 
 1. Plugin installs → Settings page works.  
-2. Empty packages, no system FRR → **idle**.  
-3. Packages present → install → enable daemons → start FRR.  
-4. You own `/etc/frr/frr.conf` (or any tool you use). UnraidFRR may create a **minimal baseline** conf that does **not** add eth/br interfaces, and will not wipe existing conf.  
-5. Uninstalling UnraidFRR does not require Thunderbolt Net.
+2. Apply with auto-download **Yes** → catalog → download → installpkg → daemons → start (when a bundle exists).  
+3. If catalog has no match for this Unraid version → safe wait message (no manual package hunt).  
+4. You may still edit `/etc/frr/frr.conf` for advanced use; plugin baseline does not enroll eth/br.  
+5. Uninstall does not require Thunderbolt Net.
 
 ### With Thunderbolt Net
 
-1. Install **UnraidFRR** and get FRR packages live.  
-2. Install **Thunderbolt Net**; leave OpenFabric **On** if you want multi-hop.  
-3. Thunderbolt Net detects `vtysh`/`fabricd`, writes marked OpenFabric snippets for **TB ifaces + loopback**, reloads FRR.  
-4. Remove UnraidFRR later → Thunderbolt Net degrades to **static underlay** (existing design).
+1. Install **UnraidFRR** → Apply (auto FRR when catalog has a build).  
+2. Install **Thunderbolt Net**; OpenFabric **On** for multi-hop.  
+3. TBN detects FRR, writes marked OpenFabric snippets for **TB + lo**, reloads FRR.  
+4. Remove UnraidFRR later → TBN degrades to static underlay.  
 
 Details: [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md).  
 Mixed Unraid + Proxmox/Debian fabrics: [Thunderbolt Net fabric guide](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md).
@@ -155,13 +157,17 @@ Mixed Unraid + Proxmox/Debian fabrics: [Thunderbolt Net fabric guide](https://gi
 
 ---
 
-## Packages (honest status)
+## Packages (automated)
 
-Unraid is Slackware-based. This plugin is the **installer and UX** first. Compatible FRR builds must match your Unraid userspace.
+Unraid is Slackware-based. The plugin is the **full package owner**:
 
-- Drop files under `packages/` — see [packages/README.md](packages/README.md).  
-- Project **GitHub Releases** may later host tested `.txz` bundles.  
-- Until then: empty `packages/` = idle (by design).
+1. Read `packages/manifest.json` (or your catalog URL)  
+2. Select bundle for **this** Unraid version + arch + channel  
+3. Download + sha256 verify into flash cache  
+4. `installpkg` + enable daemons + start  
+
+Maintainer builds and publishes catalog entries — see [packages/README.md](packages/README.md) and [docs/automation-design.md](docs/automation-design.md).  
+Until a matching bundle exists, the plugin **waits safely** (no user package hunting).
 
 ---
 
