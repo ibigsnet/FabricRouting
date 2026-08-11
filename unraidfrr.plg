@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.11ae">
+<!ENTITY version "2026.08.11af">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,10 @@
 
 <CHANGES>
 ###&version;
+- Fix Settings placement: **System Settings tile** (`Menu="OtherSettings"`), not embedded section on /Settings (`Settings:50` was wrong).
+- Uninstall: also remove any stray UnraidFRR/FRR .page copies under webGui/dynamix; clear /tmp plugin remnants.
+
+###2026.08.11ae
 - Docs/UI: when to install (rings, multi-hop, Proxmox+Unraid) vs skip (single static TB cable); roles vs Thunderbolt Net OpenFabric policy.
 
 ###2026.08.11ad

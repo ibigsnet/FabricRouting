@@ -1,11 +1,13 @@
-Menu="Settings:50"
+Menu="OtherSettings"
 Title="FRR (FRRouting)"
-Tag="project-diagram"
-Icon="project-diagram"
+Icon="sitemap"
+Tag="sitemap"
 Markdown="false"
 ---
 <?php
 /**
+ * Settings → System Settings → FRR tile (own button).
+ * Never Menu="Settings:N" — that embeds content on /Settings itself.
  * Fully automated FRR manager (Nvidia-plugin style). Never require ThunderboltNet.
  */
 require_once '/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php';
