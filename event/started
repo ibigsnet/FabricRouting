@@ -1,16 +1,45 @@
 #!/bin/bash
-# Array start: optional package install + daemon enable (no Thunderbolt Net dependency).
-SCRIPT=/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-install-packages
+# Array start — Unraid best practice:
+#   Rehydrate FRR packages ALREADY on flash into RAM + start daemons.
+#   NEVER download from the network here (that is Settings → Apply only).
+#   NEVER run from boot-time `plugin install` (rc.local) — only emhttp events.
+#
+# Boot plg install only deploys plugin files. See docs/boot-lifecycle.md.
+#
+set +e
 CFG=/boot/config/plugins/UnraidFRR/UnraidFRR.cfg
+LIB=/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php
+LOG=/var/log/unraidfrr.log
 
-want_install=yes
+if [ ! -f "$LIB" ]; then
+  logger -t UnraidFRR "array start: frr-lib missing, skip"
+  exit 0
+fi
+
+want=yes
 if [ -f "$CFG" ] && grep -q 'install_on_start="no"' "$CFG" 2>/dev/null; then
-  want_install=no
+  want=no
 fi
 
-if [ "$want_install" = "yes" ] && [ -x "$SCRIPT" ]; then
-  "$SCRIPT" || true
+if [ "$want" != "yes" ]; then
+  logger -t UnraidFRR "array start: install_on_start=no, skip rehydrate"
+  exit 0
 fi
 
-# Full apply (daemons + start) via PHP when available
-php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_apply();' 2>/dev/null || true
+# Detach so we never block emhttp's event chain (plugin-docs: keep event scripts fast).
+# Prefer `at now` when available; fall back to nohup.
+run_local() {
+  php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_rehydrate_local();' >>"$LOG" 2>&1
+}
+
+if command -v at >/dev/null 2>&1; then
+  echo "php -r 'require_once \"/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php\"; frr_rehydrate_local();' >>$LOG 2>&1" | at now 2>/dev/null
+  if [ $? -eq 0 ]; then
+    logger -t UnraidFRR "array start: scheduled local-only rehydrate via at"
+    exit 0
+  fi
+fi
+
+nohup bash -c 'php -r '"'"'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_rehydrate_local();'"'"' >>'"$LOG"' 2>&1' >/dev/null 2>&1 &
+logger -t UnraidFRR "array start: scheduled local-only rehydrate via nohup"
+exit 0

@@ -11,7 +11,8 @@
 |---------|------------|
 | `plugin remove` said removed, but FRR packages + emhttp + flash remained | Plugin **not registered** (`/var/log/plugins/unraidfrr.plg` missing). Unraid only runs `Method=remove` when the installed plg path is valid; orphaned files need force cleanup. |
 | “No match yet” after catalog shipped | **Stale empty** `manifest.cache.json` (1h TTL). Fixed: empty catalogs not long-cached; Apply force-refreshes. |
-| Install interrupted mid-download → half state | Finish script ran **synchronous multi-minute `frr_apply()`** before plugin manager could complete registration. Fixed: marker only + **background** apply. |
+| Install interrupted mid-download → half state | Finish script ran **`frr_apply()`** (sync or background download) during boot plg rehydrate — blocked `rc.local` / registration. Fixed **2026.08.12da**: boot = **files only**; download only on UI **Apply**. |
+| Array never auto-starts after reboot | Boot stuck on UnraidFRR package fetch inside `plugin install` (Holo 2026-08-12). Same root cause. |
 | Second Apply blocked forever | Stale **`apply.lock`** after killed process. Fixed: clear lock on prepare/remove; dead-pid detection. |
 | Progress window empty | `frr-update.php` called apply with no echo. Fixed: progress-frame lines. |
 
@@ -19,10 +20,11 @@
 
 ## Expected clean install
 
-1. `plugin install …/unraidfrr.plg` completes in seconds (plugin files + cfg).  
+1. `plugin install …/unraidfrr.plg` completes in **seconds** (plugin files + cfg only — **no** FRR package download).  
 2. Symlink `/var/log/plugins/unraidfrr.plg` → `/boot/config/plugins/unraidfrr.plg` exists.  
-3. Background (or UI **Apply**) downloads packages, `installpkg`, starts FRR.  
-4. Status: catalog **Match**, flash cache files present, `vtysh` works.
+3. User opens **Settings → Network Settings → Fabric Routing → Apply** (auto-download on) → packages on flash, `installpkg`, FRR starts.  
+4. Later reboots: boot plg stays fast; **array start** rehydrates from flash cache only.  
+5. Status: catalog **Match**, flash cache files present, `vtysh` works.
 
 ---
 

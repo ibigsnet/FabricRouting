@@ -36,4 +36,5 @@ User options (channel, daemons)
 | [scope-and-safety.md](scope-and-safety.md) | Host-wide FRR vs br0/eth safety |
 | [integration-thunderboltnet.md](integration-thunderboltnet.md) | Optional TBN companion |
 | [../RELEASES.md](../RELEASES.md) | CA + raw install URLs, versioning, tags |
+| [boot-lifecycle.md](boot-lifecycle.md) | Boot plg vs UI Apply vs array-start rehydrate |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |

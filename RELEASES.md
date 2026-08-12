@@ -71,13 +71,27 @@ Unraid plugin updates use **lexicographic `strcmp()`**, not PHP `version_compare
 | **Git tag** `vVERSION` | Pins the full tree for raw URL install/rollback |
 | **GitHub Release** | Optional human notes |
 
-### Maintainer checklist
+### Maintainer checklist (ship a release)
 
-1. Bump version + CHANGES in `unraidfrr.plg`.  
-2. Push `main`.  
-3. Tag `vVERSION` when you want a pin.  
-4. Confirm [unraid-templates](https://github.com/ibigsnet/unraid-templates) `plugins/unraidfrr.xml` PluginURL is correct (usually `main`).  
-5. Publish FRR package bundles in `packages/manifest.json` + Releases when builds are ready.
+Same discipline as Thunderbolt Net / Storage Guard:
+
+1. **Version** — set `<!ENTITY version "YYYY.MM.DDxx">` (**two-letter** after bare date; never single `a`–`z`).  
+2. **CHANGES** — `###&version;` user-facing bullets in the same ship.  
+3. **Commit** — prefer `YYYY.MM.DDxx: short description`.  
+4. **Diff check** — never push emptied `.plg` / `.page` / large PHP.  
+5. **Push `main`** — Latest raw URL serves this tree.  
+6. **Tag** — `git tag -a "vYYYY.MM.DDxx" -m "Fabric Routing YYYY.MM.DDxx"` + push tag.  
+7. **RELEASES.md** — update Stable baselines row.  
+8. **CA** — unraid-templates PluginURL usually tracks `main`; bump Overview only if story changes.  
+9. **Lab** — NIROG preferred for install/remove cycles (`docs/install-uninstall-audit.md`).
+
+### Tracks at a glance
+
+```text
+develop → bump .plg version + CHANGES → push main (= Latest)
+       → git tag vVERSION (= pin / rollback)
+       → GitHub Release + RELEASES.md row
+```
 
 ---
 
@@ -85,7 +99,8 @@ Unraid plugin updates use **lexicographic `strcmp()`**, not PHP `version_compare
 
 | Tag | Plugin version | Notes |
 |-----|----------------|--------|
-| `main` (Latest) | **2026.08.11ad** | Automated package pipeline; UI version labels; catalog may be empty until builds publish |
+| `main` / `v2026.08.12da` | **2026.08.12da** | Boot = files only; package download only on UI Apply; array start local rehydrate |
+| (historical) | 2026.08.12d | Single-letter version (non-standard); progress-frame Apply + catalog fixes |
 
 ---
 

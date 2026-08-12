@@ -36,8 +36,10 @@ function frr_default_catalog_url() {
 
 function frr_load_cfg() {
   $defaults = [
-    // Fully automated: download + install without user package drops
+    // Array start: rehydrate packages already on flash into RAM (NO network).
     'install_on_start' => 'yes',
+    // Settings → Apply only: catalog + package download when Yes.
+    // Never used during boot plg rehydrate (Unraid best practice).
     'auto_download' => 'yes',
     'package_channel' => 'latest', // latest | previous
     'package_base_url' => '', // empty = frr_default_catalog_url()
@@ -692,11 +694,17 @@ function frr_try_start() {
 }
 
 /**
- * Full Apply path from UI / array start — fully automated (Nvidia-style).
- * Downloads catalog + packages, installpkg, daemons, start. No manual file drops.
+ * Full Apply path from UI — catalog download (if enabled) + installpkg + daemons + start.
  * Prints progress lines for Unraid progressFrame (leave the popup open until Done).
+ *
+ * @param array $opts {
+ *   @type bool local_only  If true, never touch the network (array-start rehydrate).
+ * }
  */
-function frr_apply() {
+function frr_apply($opts = []) {
+  if (!is_array($opts)) {
+    $opts = [];
+  }
   $lock = frr_apply_lock(true);
   if (empty($lock['ok'])) {
     frr_progress($lock['error'] ?? 'Apply locked');
@@ -704,28 +712,46 @@ function frr_apply() {
   }
 
   try {
-    return frr_apply_inner();
+    return frr_apply_inner($opts);
   } finally {
     frr_apply_lock(false);
   }
 }
 
-function frr_apply_inner() {
+/**
+ * Array-start / boot-safe: installpkg from flash cache + start FRR. No download.
+ */
+function frr_rehydrate_local() {
+  return frr_apply(['local_only' => true]);
+}
+
+function frr_apply_inner($opts = []) {
+  if (!is_array($opts)) {
+    $opts = [];
+  }
+  $local_only = !empty($opts['local_only']);
   $cfg = frr_load_cfg();
   $result = [
     'ok' => true,
     'actions' => [],
     'detect_before' => frr_detect(),
+    'local_only' => $local_only,
   ];
 
-  frr_progress('=== Fabric Routing Apply ===');
+  frr_progress('=== Fabric Routing Apply' . ($local_only ? ' (local rehydrate)' : '') . ' ===');
   frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
-  frr_progress('Do not close this window until finished (same as plugin/Docker/Nvidia updates).');
+  if (!$local_only) {
+    frr_progress('Do not close this window until finished (same as plugin/Docker/Nvidia updates).');
+  }
 
   @mkdir(frr_packages_dir(), 0755, true);
 
-  // 1) Auto-download package bundle when enabled (default yes)
-  if (($cfg['auto_download'] ?? 'yes') === 'yes') {
+  // 1) Network download — UI Apply only. Never during boot plg or local rehydrate.
+  //    Nvidia-style: packages live on flash; boot only rehydrates cache already present.
+  if ($local_only) {
+    frr_progress('Step 1/4: local-only — skip catalog/download (flash cache only).');
+    $result['actions'][] = 'local-only: no network download';
+  } elseif (($cfg['auto_download'] ?? 'yes') === 'yes') {
     frr_progress('Step 1/4: Catalog + package download…');
     $dl = frr_download_bundle(false);
     $result['download'] = $dl;

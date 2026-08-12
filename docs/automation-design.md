@@ -4,12 +4,14 @@
 
 Users **never** manually download or copy FRR packages. Like the **Nvidia Driver** plugin:
 
-1. Install UnraidFRR from CA / raw `.plg`  
+1. Install UnraidFRR from CA / raw `.plg` (**files only** — seconds; no package download at boot)  
 2. Choose options under **Network Settings → Fabric Routing** (daemons, channel)  
-3. Plugin **downloads**, **verifies**, **installs**, and **starts** FRR  
-4. On **array start** / reboot, plugin **reinstalls into RAM** as needed  
+3. User clicks **Apply** → plugin **downloads**, **verifies**, **installs**, and **starts** FRR (Nvidia-style)  
+4. On **array start**, plugin **rehydrates from flash cache into RAM** (no network)  
 
 Manual `packages/` drops remain a **developer escape hatch only**, not the product path.
+
+See [boot-lifecycle.md](boot-lifecycle.md).
 
 ---
 
@@ -146,11 +148,13 @@ Users should not need to open this directory. Clearing cache = optional “Re-do
 
 ### Array start (`event/started`)
 
-Same as Apply for steps that restore RAM: install from flash cache (download only if missing and auto-download on).
+**Local rehydrate only:** `installpkg` from flash cache + start FRR if enabled.  
+**Never** download catalog/packages here (boot/array must not depend on GitHub).  
+If cache empty: stay idle until user **Apply**.
 
 ### Unraid OS upgrade
 
-Next Apply/start: re-resolve bundle for new Unraid version; download new packages if catalog has them.
+Next **Apply**: re-resolve bundle for new Unraid version; download new packages if catalog has them.
 
 ### Plugin remove
 
@@ -165,7 +169,7 @@ Remove UI/scripts; **keep** flash cache by default (fast reinstall). Optional fu
 | Pick driver branch/version in UI | Pick package **channel** (+ later explicit FRR version) |
 | Plugin downloads ~100MB+ package | Plugin downloads FRR + deps from catalog |
 | Installs into live system | `installpkg` into live system |
-| Reapplies on boot | Array-start reinstall from flash cache |
+| Reapplies on boot from flash | Array-start rehydrate from flash cache (no download) |
 | No manual file copy for normal users | Same |
 
 ---
