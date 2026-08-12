@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.12">
+<!ENTITY version "2026.08.12a">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,9 @@
 
 <CHANGES>
 ###&version;
+- Uninstall: stop via /usr/sbin/frrinit.sh; kill mgmtd; always removepkg-sweep frr-* and libyang-*.
+- Docs: packages/SUPPORTED.md — Unraid product version matrix (lab-proven 7.3.x x86_64).
+- Docs: product-roadmap.md — interfaces/metrics UI, CA/forum, ambitions (Proxmox, multi-node AI).
 - First FRR package set: libyang 2.1.148 + frr 10.7.0 (fabricd) for Unraid 7.x x86_64 — GitHub Release pkg-10.7.0 + manifest catalog.
 - frr_try_start: prefer /usr/sbin/frrinit.sh (our packages).
 - Docs: lab NIROG+HoloX3D; package build plan; packages/build scripts.
@@ -166,14 +169,19 @@ echo "UnraidFRR: removing plugin (full cleanup)..."
 
 # 1) Stop FRR so package removal is not blocked and daemons do not linger
 systemctl stop frr 2>/dev/null || true
+/usr/sbin/frrinit.sh stop 2>/dev/null || true
 /usr/lib/frr/frrinit.sh stop 2>/dev/null || true
 service frr stop 2>/dev/null || true
-for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr; do
+for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
   pkill -x "$p" 2>/dev/null || true
 done
 sleep 1
+# Second pass if watchfrr respawned children
+for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
+  pkill -9 -x "$p" 2>/dev/null || true
+done
 
-# 2) removepkg packages we installed (from managed MANIFEST) — undoes live installpkg
+# 2) removepkg — MANIFEST first, then glob any leftover frr/libyang we may have installed
 MAN=/boot/config/plugins/UnraidFRR/packages/MANIFEST.txt
 if [ -f "$MAN" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
@@ -188,13 +196,15 @@ if [ -f "$MAN" ]; then
       removepkg "$pkgname" 2>/dev/null || removepkg "$base" 2>/dev/null || true
     fi
   done < "$MAN"
-else
-  # Best-effort: common FRR package names if MANIFEST missing
-  if command -v removepkg >/dev/null 2>&1; then
-    for pkgname in frr libyang; do
-      ls /var/log/packages/${pkgname}-* >/dev/null 2>&1 && removepkg "$pkgname" 2>/dev/null || true
-    done
-  fi
+fi
+# Always sweep managed package names (handles missing MANIFEST or rename drift)
+if command -v removepkg >/dev/null 2>&1; then
+  for pkgpath in /var/log/packages/frr-* /var/log/packages/libyang-*; do
+    [ -e "$pkgpath" ] || continue
+    pkgname="$(basename "$pkgpath")"
+    echo "UnraidFRR: removepkg sweep $pkgname"
+    removepkg "$pkgname" 2>/dev/null || true
+  done
 fi
 
 # 3) Remove emhttp plugin tree (case variants — avoid leftover Settings pages)

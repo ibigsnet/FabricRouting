@@ -4,11 +4,14 @@
 
 UnraidFRR downloads the matching bundle from `manifest.json` into the flash cache automatically (Nvidia Driver–style).
 
+**Supported Unraid product versions:** see [SUPPORTED.md](SUPPORTED.md) (matrix + how we widen ranges).
+
 ## Files
 
 | File | Role |
 |------|------|
 | `manifest.json` | Public catalog: channels, Unraid version ranges, package URLs + sha256 |
+| `SUPPORTED.md` | Human-readable support matrix (lab-proven vs catalog-allowed) |
 | GitHub Releases `pkg-*` | Hosts large `.txz` binaries referenced by the manifest |
 
 ## Maintainer workflow
