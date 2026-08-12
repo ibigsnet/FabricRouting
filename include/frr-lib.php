@@ -584,21 +584,29 @@ function frr_run_install_packages() {
 }
 
 function frr_try_start() {
+  // Our Slackware-style packages ship tools/frrinit.sh as /usr/sbin/frrinit.sh
   $cmds = [
-    'systemctl start frr',
-    'systemctl restart frr',
+    '/usr/sbin/frrinit.sh start',
+    '/usr/sbin/frrinit.sh restart',
     '/usr/lib/frr/frrinit.sh start',
     '/usr/lib/frr/frrinit.sh restart',
+    'systemctl start frr',
+    'systemctl restart frr',
     'service frr start',
     'service frr restart',
   ];
   foreach ($cmds as $cmd) {
     $rc = 1;
+    $o = [];
     @exec($cmd . ' 2>/dev/null', $o, $rc);
     if ($rc === 0) {
       frr_log('start: ' . $cmd);
       return ['ok' => true, 'cmd' => $cmd];
     }
+  }
+  // Already running counts as success
+  if (is_file('/proc') && @file_exists('/proc') && trim((string)@shell_exec('pgrep -x zebra 2>/dev/null'))) {
+    return ['ok' => true, 'cmd' => 'already-running'];
   }
   return ['ok' => false, 'error' => 'could not start frr service (package may lack unit)'];
 }

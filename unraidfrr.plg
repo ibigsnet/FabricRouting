@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.11al">
+<!ENTITY version "2026.08.12">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,9 @@
 
 <CHANGES>
 ###&version;
+- First FRR package set: libyang 2.1.148 + frr 10.7.0 (fabricd) for Unraid 7.x x86_64 — GitHub Release pkg-10.7.0 + manifest catalog.
+- frr_try_start: prefer /usr/sbin/frrinit.sh (our packages).
+- Docs: lab NIROG+HoloX3D; package build plan; packages/build scripts.
 - Docs: Contents/TOC on DOCS.md.
 - UI: collapsible About; tighter companion strip (less wall of text).
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.

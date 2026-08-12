@@ -5,8 +5,10 @@ NOTES.local.md
 *~
 *.swp
 .DS_Store
-# Do not commit large binary packages by default
+# Do not commit large binary packages by default (use GitHub Releases)
 packages/*.txz
 packages/*.tgz
 packages/*.tar.gz
+packages/dist/
 !packages/README.md
+!packages/manifest.json
