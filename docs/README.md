@@ -38,3 +38,4 @@ User options (channel, daemons)
 | [../RELEASES.md](../RELEASES.md) | CA + raw install URLs, versioning, tags |
 | [boot-lifecycle.md](boot-lifecycle.md) | Boot plg vs UI Apply vs array-start rehydrate |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
+| [plugin-fleet-boot-audit.md](plugin-fleet-boot-audit.md) | Boot/install audit across UnraidFRR + siblings |
