@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.12b">
+<!ENTITY version "2026.08.12c">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,9 @@
 
 <CHANGES>
 ###&version;
+- Apply: progress-frame messages (do not close — same UX as Nvidia/plugin updates); single-flight lock.
+- Catalog: do not keep empty-bundle cache for a full hour (fixes stale “No match yet”).
+- Status: flash package names; no-match help + SUPPORTED link; fix plugin version detection path.
 - Docs: SUPPORTED matrix — lab-confirmed vs suggested-compatible Unraid versions.
 - Docs: frr-and-unraid-routing.md — stock Routing Table vs FRR; what Unraid can/cannot leverage.
 - Docs: scope-and-safety + DOCS cross-links for routing-table impact.

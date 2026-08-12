@@ -78,6 +78,50 @@ function frr_log($msg) {
 }
 
 /**
+ * Progress-frame / CLI line (Unraid update.php target=progressFrame).
+ * Same pattern as plugin install / Nvidia driver: user should leave the popup open.
+ */
+function frr_progress($msg) {
+  $msg = (string)$msg;
+  frr_log($msg);
+  // Plain text lines show in the Unraid progress iframe
+  echo htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
+  if (function_exists('ob_flush')) {
+    @ob_flush();
+  }
+  @flush();
+}
+
+/**
+ * Single-flight lock for Apply / download (avoid two concurrent package installs).
+ * @return array{ok:bool,error?:string,path?:string}
+ */
+function frr_apply_lock($acquire = true) {
+  $dir = frr_cfg_dir();
+  @mkdir($dir, 0755, true);
+  $path = $dir . '/apply.lock';
+  if (!$acquire) {
+    @unlink($path);
+    return ['ok' => true, 'path' => $path];
+  }
+  if (is_readable($path)) {
+    $raw = trim((string)@file_get_contents($path));
+    $pid = (int)$raw;
+    $age = time() - (int)@filemtime($path);
+    // Stale lock > 30 min or dead pid
+    if ($age < 1800 && $pid > 0 && @file_exists('/proc/' . $pid)) {
+      return [
+        'ok' => false,
+        'error' => 'Another Fabric Routing Apply/download is already running (pid ' . $pid . '). Wait for it to finish — do not start a second one.',
+        'path' => $path,
+      ];
+    }
+  }
+  @file_put_contents($path, (string)getmypid() . "\n");
+  return ['ok' => true, 'path' => $path];
+}
+
+/**
  * Detect live FRR tools (works whether installed by us or not).
  */
 function frr_detect() {
@@ -202,15 +246,27 @@ function frr_catalog_url(array $cfg = null) {
 
 /**
  * Fetch package catalog (cached briefly on flash).
+ *
+ * Empty-bundle catalogs are NOT kept for the full TTL — otherwise a cache written
+ * before packages shipped shows "No match" for up to an hour after the real catalog updates.
  */
 function frr_fetch_manifest($force = false) {
   $cfg = frr_load_cfg();
   $url = frr_catalog_url($cfg);
   $cache = frr_cfg_dir() . '/manifest.cache.json';
-  if (!$force && is_readable($cache) && (time() - filemtime($cache) < 3600)) {
+  $ttl = 3600;
+  if (!$force && is_readable($cache) && (time() - filemtime($cache) < $ttl)) {
     $j = json_decode((string)@file_get_contents($cache), true);
     if (is_array($j)) {
-      return ['ok' => true, 'manifest' => $j, 'source' => 'cache', 'url' => $url];
+      $bundles = $j['bundles'] ?? [];
+      // Re-fetch soon if catalog was empty (or invalid) when cached
+      if (is_array($bundles) && count($bundles) > 0) {
+        return ['ok' => true, 'manifest' => $j, 'source' => 'cache', 'url' => $url];
+      }
+      // empty bundles: only trust cache for 2 minutes
+      if ((time() - filemtime($cache) < 120)) {
+        return ['ok' => true, 'manifest' => $j, 'source' => 'cache-empty', 'url' => $url];
+      }
     }
   }
   // Prefer plugin-tree copy when offline / first install
@@ -218,11 +274,13 @@ function frr_fetch_manifest($force = false) {
   $installed = '/usr/local/emhttp/plugins/UnraidFRR/packages/manifest.json';
 
   $body = frr_http_get($url);
+  $source = 'download';
   if ($body === null || $body === '') {
     foreach ([$installed, $local] as $p) {
       if (is_readable($p)) {
         $body = (string)@file_get_contents($p);
         $url = $p;
+        $source = 'local';
         break;
       }
     }
@@ -236,7 +294,7 @@ function frr_fetch_manifest($force = false) {
   }
   @mkdir(frr_cfg_dir(), 0755, true);
   @file_put_contents($cache, json_encode($j, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
-  return ['ok' => true, 'manifest' => $j, 'source' => 'download', 'url' => $url];
+  return ['ok' => true, 'manifest' => $j, 'source' => $source, 'url' => $url];
 }
 
 function frr_http_get($url, $timeout = 60) {
@@ -373,11 +431,21 @@ function frr_resolve_bundle(array $cfg = null) {
  */
 function frr_download_bundle($force = false) {
   $cfg = frr_load_cfg();
+  // Always re-check live catalog on download (avoid stale empty cache)
+  $mf = frr_fetch_manifest(true);
+  if (empty($mf['ok'])) {
+    frr_progress('Catalog fetch failed: ' . ($mf['error'] ?? 'unknown'));
+  } else {
+    frr_progress('Catalog: ' . ($mf['source'] ?? '?') . ' (' . ($mf['url'] ?? '') . ')');
+  }
   $bundle = frr_resolve_bundle($cfg);
   if (empty($bundle['ok'])) {
-    frr_log('download skip: ' . ($bundle['error'] ?? 'no bundle'));
+    frr_progress('Download skip: ' . ($bundle['error'] ?? 'no bundle'));
     return $bundle + ['downloaded' => []];
   }
+
+  frr_progress('Bundle match: FRR ' . ($bundle['frr_version'] ?? '') . ' for Unraid '
+    . ($bundle['unraid_version'] ?? '') . ' / ' . ($bundle['arch'] ?? ''));
 
   $dir = frr_packages_dir();
   @mkdir($dir, 0755, true);
@@ -388,11 +456,14 @@ function frr_download_bundle($force = false) {
   $downloaded = [];
   $errors = [];
   $order = [];
+  $n = count($bundle['packages'] ?? []);
+  $i = 0;
 
   foreach ($bundle['packages'] as $pkg) {
     if (!is_array($pkg)) {
       continue;
     }
+    $i++;
     $file = basename((string)($pkg['file'] ?? ''));
     $url = trim((string)($pkg['url'] ?? ''));
     $sha = strtolower(trim((string)($pkg['sha256'] ?? '')));
@@ -414,28 +485,37 @@ function frr_download_bundle($force = false) {
       }
     }
     if (!$need) {
+      frr_progress("[$i/$n] Cached (ok): $file");
       $downloaded[] = ['file' => $file, 'status' => 'cached'];
       continue;
     }
-    frr_log('download ' . $url . ' -> ' . $dest);
+    frr_progress("[$i/$n] Downloading: $file …");
+    frr_progress('  URL: ' . $url);
     $body = frr_http_get($url, 600);
     if ($body === null || $body === '') {
       $errors[] = 'download failed: ' . $file;
+      frr_progress("  FAILED download: $file");
       continue;
     }
     if (@file_put_contents($dest, $body) === false) {
       $errors[] = 'write failed: ' . $file;
+      frr_progress("  FAILED write: $file");
       continue;
     }
+    $bytes = strlen($body);
     if ($sha !== '') {
       $have = hash_file('sha256', $dest);
       if (strtolower((string)$have) !== $sha) {
         @unlink($dest);
         $errors[] = 'sha256 mismatch: ' . $file;
+        frr_progress("  FAILED sha256: $file");
         continue;
       }
+      frr_progress('  sha256 ok · ' . frr_format_bytes($bytes));
+    } else {
+      frr_progress('  saved · ' . frr_format_bytes($bytes));
     }
-    $downloaded[] = ['file' => $file, 'status' => 'downloaded', 'bytes' => strlen($body)];
+    $downloaded[] = ['file' => $file, 'status' => 'downloaded', 'bytes' => $bytes];
   }
 
   if ($order) {
@@ -614,8 +694,23 @@ function frr_try_start() {
 /**
  * Full Apply path from UI / array start — fully automated (Nvidia-style).
  * Downloads catalog + packages, installpkg, daemons, start. No manual file drops.
+ * Prints progress lines for Unraid progressFrame (leave the popup open until Done).
  */
 function frr_apply() {
+  $lock = frr_apply_lock(true);
+  if (empty($lock['ok'])) {
+    frr_progress($lock['error'] ?? 'Apply locked');
+    return ['ok' => false, 'actions' => [$lock['error'] ?? 'locked'], 'detect' => frr_detect()];
+  }
+
+  try {
+    return frr_apply_inner();
+  } finally {
+    frr_apply_lock(false);
+  }
+}
+
+function frr_apply_inner() {
   $cfg = frr_load_cfg();
   $result = [
     'ok' => true,
@@ -623,18 +718,26 @@ function frr_apply() {
     'detect_before' => frr_detect(),
   ];
 
+  frr_progress('=== Fabric Routing Apply ===');
+  frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
+  frr_progress('Do not close this window until finished (same as plugin/Docker/Nvidia updates).');
+
   @mkdir(frr_packages_dir(), 0755, true);
 
   // 1) Auto-download package bundle when enabled (default yes)
   if (($cfg['auto_download'] ?? 'yes') === 'yes') {
+    frr_progress('Step 1/4: Catalog + package download…');
     $dl = frr_download_bundle(false);
     $result['download'] = $dl;
     if (!empty($dl['ok'])) {
       $result['actions'][] = 'package bundle ready (auto-download/cache)';
+      frr_progress('Step 1/4: package bundle ready.');
     } else {
       $result['actions'][] = 'auto-download: ' . ($dl['error'] ?? 'no bundle for this Unraid version yet');
-      // Continue if packages already cached or FRR already present
+      frr_progress('Step 1/4: ' . ($dl['error'] ?? 'no bundle yet') . ' (will use flash cache if any)');
     }
+  } else {
+    frr_progress('Step 1/4: Auto-download Off — using flash cache only.');
   }
 
   $det = frr_detect();
@@ -644,22 +747,35 @@ function frr_apply() {
   if (!$have_frr && !$have_pkgs) {
     $result['ok'] = true; // safe idle until catalog has a build
     $result['actions'][] = 'waiting for automated package set (nothing to install yet)';
+    frr_progress('Nothing to install yet (no packages on flash, FRR not present).');
+    frr_progress('See packages/SUPPORTED.md — lab-confirmed vs suggested Unraid versions.');
     frr_write_companion_marker();
     $result['detect'] = $det;
+    frr_progress('=== Apply finished (idle) ===');
     return $result;
   }
 
   // 2) installpkg into RAM root
   if (($cfg['install_on_start'] ?? 'yes') === 'yes' && $have_pkgs) {
+    frr_progress('Step 2/4: installpkg into live system…');
     $ins = frr_run_install_packages();
     $result['install'] = $ins;
     $result['actions'][] = !empty($ins['ok']) ? 'packages installed into live system' : 'package install failed or incomplete';
     if (empty($ins['ok'])) {
       $result['ok'] = false;
+      frr_progress('Step 2/4: install FAILED');
+      foreach (array_slice($ins['output'] ?? [], 0, 15) as $line) {
+        frr_progress('  ' . $line);
+      }
+    } else {
+      frr_progress('Step 2/4: packages installed.');
     }
+  } else {
+    frr_progress('Step 2/4: skip installpkg (disabled or no flash packages).');
   }
 
   // Safety: never touch Unraid network.cfg; never sysctl ip_forward here.
+  frr_progress('Step 3/4: daemons + baseline conf…');
   $base = frr_ensure_baseline_conf();
   $result['baseline_conf'] = $base;
   $result['actions'][] = !empty($base['ok']) ? 'frr.conf baseline checked' : ('frr.conf: ' . ($base['error'] ?? 'skip'));
@@ -667,25 +783,50 @@ function frr_apply() {
   $dae = frr_apply_daemons_file($cfg);
   $result['daemons'] = $dae;
   $result['actions'][] = !empty($dae['ok']) ? 'daemons file updated' : ('daemons: ' . ($dae['error'] ?? 'skip'));
+  frr_progress('Step 3/4: daemons file ' . (!empty($dae['ok']) ? 'updated' : 'skipped/failed'));
 
   if (($cfg['start_frr'] ?? 'yes') === 'yes' && (frr_detect()['present'] || !empty($dae['ok']))) {
+    frr_progress('Step 4/4: start/restart FRR…');
     $st = frr_try_start();
     $result['start'] = $st;
     $result['actions'][] = !empty($st['ok']) ? 'frr start/restart attempted' : ($st['error'] ?? 'start skipped');
+    frr_progress('Step 4/4: ' . (!empty($st['ok']) ? ('OK (' . ($st['cmd'] ?? '') . ')') : ($st['error'] ?? 'failed')));
+  } else {
+    frr_progress('Step 4/4: start FRR skipped (disabled or not present).');
   }
 
   frr_write_companion_marker();
   $result['detect'] = frr_detect();
+  $d = $result['detect'];
+  frr_progress('Result: FRR present=' . (!empty($d['present']) ? 'yes' : 'no')
+    . ' zebra=' . (!empty($d['running_zebra']) ? 'up' : 'down')
+    . ' fabricd=' . (!empty($d['running_fabricd']) ? 'up' : 'down'));
+  frr_progress('=== Apply finished ===');
+  frr_progress('You can close this window and hard-refresh the Fabric Routing page (Ctrl+Shift+R).');
   return $result;
 }
 
+function frr_format_bytes($n) {
+  $n = (float)$n;
+  if ($n < 1024) {
+    return (int)$n . ' B';
+  }
+  if ($n < 1048576) {
+    return round($n / 1024, 1) . ' KiB';
+  }
+  if ($n < 1073741824) {
+    return round($n / 1048576, 1) . ' MiB';
+  }
+  return round($n / 1073741824, 2) . ' GiB';
+}
+
 function frr_plugin_version() {
-  $plg = '/var/log/plugins/unraidfrr.plg';
-  // Prefer entity from installed plugin file
+  // Unraid installs as unraidfrr.plg (symlink under /var/log/plugins)
   foreach ([
+    '/var/log/plugins/unraidfrr.plg',
+    '/boot/config/plugins/unraidfrr.plg',
     '/boot/config/plugins/UnraidFRR.plg',
     '/var/log/plugins/UnraidFRR.plg',
-    '/usr/local/emhttp/plugins/UnraidFRR/unraidfrr.plg',
   ] as $p) {
     if (is_readable($p)) {
       $t = (string)@file_get_contents($p);

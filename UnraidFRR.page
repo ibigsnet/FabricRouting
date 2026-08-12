@@ -193,14 +193,15 @@ $bundle_ok = !empty($bundle['ok']);
 <?php else: ?>
           <span class="frr-badge frr-badge-warn">No match yet</span>
           <span class="frr-muted"><?= htmlspecialchars($bundle['error'] ?? 'resolving…') ?></span>
+          <br><span class="frr-muted">Hard-refresh (Ctrl+Shift+R) after catalog updates, then <strong>Apply</strong> to force re-fetch. See <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
 <?php endif; ?>
         </td>
       </tr>
       <tr>
         <td>Flash package cache</td>
         <td><?= $pk
-          ? count($pk) . ' managed file(s)'
-          : '<span class="frr-muted">Empty — Apply auto-downloads when available</span>' ?></td>
+          ? count($pk) . ' managed file(s) — ' . htmlspecialchars(implode(', ', $pk))
+          : '<span class="frr-muted">Empty — Apply auto-downloads when a catalog match exists</span>' ?></td>
       </tr>
       <tr>
         <td>Thunderbolt Net</td>
@@ -352,7 +353,11 @@ $bundle_ok = !empty($bundle['ok']);
     <div class="frr-actions">
       <input type="submit" name="#apply" value="Apply">
       <input type="button" value="Done" onclick="done()">
-      <span class="frr-muted" style="margin-left:0.75em">Apply = save · download if needed · install · start</span>
     </div>
+    <p class="frr-muted" style="margin:0.65em 0 0;font-size:0.9em;line-height:1.4">
+      <strong>Apply</strong> opens Unraid’s progress window (same as plugin install, Docker update, Nvidia driver download).
+      <strong>Do not close it</strong> until it shows finished — download + install can take several minutes.
+      Only one Apply runs at a time (lock). Then hard-refresh this page.
+    </p>
   </form>
 </div>
