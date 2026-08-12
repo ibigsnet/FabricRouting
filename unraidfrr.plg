@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.12c">
+<!ENTITY version "2026.08.12d">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -97,6 +97,8 @@ mkdir -p /usr/local/emhttp/plugins/UnraidFRR/scripts
 mkdir -p /usr/local/emhttp/plugins/UnraidFRR/event
 mkdir -p /usr/local/emhttp/plugins/UnraidFRR/packages
 mkdir -p /boot/config/plugins/UnraidFRR/packages
+# Never block a new install on a stale Apply lock from a killed session
+rm -f /boot/config/plugins/UnraidFRR/apply.lock
 echo "UnraidFRR: directories ready."
 ]]></INLINE>
 </FILE>
@@ -143,6 +145,10 @@ Optional FRRouting packages for Unraid — fully automated install (like the Nvi
 <URL>&raw;/scripts/frr-download?v=&version;</URL>
 </FILE>
 
+<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-force-cleanup">
+<URL>&raw;/scripts/frr-force-cleanup?v=&version;</URL>
+</FILE>
+
 <FILE Name="/usr/local/emhttp/plugins/UnraidFRR/event/started">
 <URL>&raw;/event/started?v=&version;</URL>
 </FILE>
@@ -153,18 +159,24 @@ echo "UnraidFRR: finishing install..."
 chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-install-packages 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-apply 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-download 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-force-cleanup 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/UnraidFRR/event/started 2>/dev/null || true
 mkdir -p /boot/config/plugins/UnraidFRR/packages
+rm -f /boot/config/plugins/UnraidFRR/apply.lock
 if [ ! -f /boot/config/plugins/UnraidFRR/UnraidFRR.cfg ]; then
   if [ -f /usr/local/emhttp/plugins/UnraidFRR/default.cfg ]; then
     cp -a /usr/local/emhttp/plugins/UnraidFRR/default.cfg /boot/config/plugins/UnraidFRR/UnraidFRR.cfg
     echo "UnraidFRR: created default UnraidFRR.cfg"
   fi
 fi
-# Automated apply: catalog download + install when a bundle exists (no-op if catalog empty)
-php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_write_companion_marker(); frr_apply();' 2>/dev/null || true
-echo "UnraidFRR: install complete."
-echo "UnraidFRR: Settings → Network Settings → Fabric Routing → Apply (auto-download on by default)."
+# Companion marker only here — do NOT run multi-minute frr_apply in-line.
+# Blocking download here has left broken installs (no /var/log/plugins symlink) when interrupted.
+php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_write_companion_marker();' 2>/dev/null || true
+# Background first-package fetch/install after plugin manager can register the plg
+nohup bash -c 'sleep 3; php -r '\''require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_apply();'\'' >>/var/log/unraidfrr.log 2>&1' >/dev/null 2>&1 &
+echo "UnraidFRR: install complete (plugin registered)."
+echo "UnraidFRR: package download/install continues in background (~1–2 min) — log: /var/log/unraidfrr.log"
+echo "UnraidFRR: Or open Settings → Network Settings → Fabric Routing → Apply (leave progress window open)."
 echo "UnraidFRR: Hard-refresh the browser (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
@@ -172,6 +184,10 @@ echo "UnraidFRR: Hard-refresh the browser (Ctrl+Shift+R)."
 <FILE Run="/bin/bash" Method="remove">
 <INLINE><![CDATA[
 echo "UnraidFRR: removing plugin (full cleanup)..."
+
+# 0) Stop any in-flight Apply / background install
+rm -f /boot/config/plugins/UnraidFRR/apply.lock
+pkill -f 'frr_apply|UnraidFRR/include/frr-lib' 2>/dev/null || true
 
 # 1) Stop FRR so package removal is not blocked and daemons do not linger
 systemctl stop frr 2>/dev/null || true
@@ -182,7 +198,6 @@ for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
   pkill -x "$p" 2>/dev/null || true
 done
 sleep 1
-# Second pass if watchfrr respawned children
 for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
   pkill -9 -x "$p" 2>/dev/null || true
 done
@@ -195,7 +210,6 @@ if [ -f "$MAN" ]; then
     line="$(echo "$line" | tr -d '\r' | xargs)"
     [ -z "$line" ] && continue
     base="$(basename "$line")"
-    # Package name as Slackware/Unraid records it (strip .txz/.tgz)
     pkgname="$(echo "$base" | sed -E 's/\.(t[gx]z|tar\.gz)$//')"
     if command -v removepkg >/dev/null 2>&1; then
       echo "UnraidFRR: removepkg $pkgname"
@@ -203,7 +217,6 @@ if [ -f "$MAN" ]; then
     fi
   done < "$MAN"
 fi
-# Always sweep managed package names (handles missing MANIFEST or rename drift)
 if command -v removepkg >/dev/null 2>&1; then
   for pkgpath in /var/log/packages/frr-* /var/log/packages/libyang-*; do
     [ -e "$pkgpath" ] || continue
@@ -213,49 +226,56 @@ if command -v removepkg >/dev/null 2>&1; then
   done
 fi
 
-# 3) Remove emhttp plugin tree (case variants — avoid leftover Settings pages)
+# 3) Runtime state left by FRR packages
+rm -rf /var/run/frr /run/frr 2>/dev/null || true
+# Keep /etc/frr and /var/lib/frr? Clean removal = wipe runtime config we created
+rm -rf /etc/frr /var/lib/frr 2>/dev/null || true
+rm -f /var/log/unraidfrr.log 2>/dev/null || true
+
+# 4) Remove emhttp plugin tree (case variants — avoid leftover Settings pages)
 rm -rf /usr/local/emhttp/plugins/UnraidFRR
 rm -rf /usr/local/emhttp/plugins/unraidfrr
 rm -rf /usr/local/emhttp/plugins/Unraidfrr
 
-# 3b) Stray .page copies (wrong Menu= or manual drops) — never leave FRR on /Settings
-rm -f /usr/local/emhttp/webGui/UnraidFRR*.page \
-      /usr/local/emhttp/webGui/*FRR*.page \
-      /usr/local/emhttp/plugins/dynamix/UnraidFRR*.page \
-      /usr/local/emhttp/plugins/dynamix/*UnraidFRR*.page 2>/dev/null || true
-# Do NOT delete stock dynamix pages; only names matching this plugin
 find /usr/local/emhttp/webGui /usr/local/emhttp/plugins/dynamix -maxdepth 1 -type f \
   \( -name 'UnraidFRR.page' -o -name 'UnraidFRR-*.page' -o -name 'unraidfrr.page' \) \
   -delete 2>/dev/null || true
 
-# 4) Remove flash state (cfg, package cache, marker) — clean reinstall
+# 5) Flash state (cfg, package cache, marker, locks)
 rm -rf /boot/config/plugins/UnraidFRR
 rm -rf /boot/config/plugins/unraidfrr
 rm -rf /boot/config/plugins/Unraidfrr
 
-# 5) Temp install copies + cached plg text
+# 6) Temp + log plugins remnants
 rm -f /tmp/plugins/unraidfrr.plg /tmp/plugins/unraidfrr.txt 2>/dev/null || true
 rm -f /tmp/plugins/UnraidFRR* /tmp/inline*-unraidfrr.sh 2>/dev/null || true
+rm -f /var/log/plugins/unraidfrr.plg /var/log/plugins/UnraidFRR.plg 2>/dev/null || true
 
-# 6) Sanity: no Menu=Settings UnraidFRR leftovers anywhere under plugins
-if find /usr/local/emhttp/plugins /usr/local/emhttp/webGui -name '*.page' 2>/dev/null \
-    | xargs grep -l 'UnraidFRR\|FRR (FRRouting)' 2>/dev/null | grep -q .; then
-  echo "UnraidFRR: WARNING — leftover .page still references FRR:"
-  find /usr/local/emhttp/plugins /usr/local/emhttp/webGui -name '*.page' 2>/dev/null \
-    | xargs grep -l 'UnraidFRR\|FRR (FRRouting)' 2>/dev/null || true
-else
-  echo "UnraidFRR: no leftover FRR .page under emhttp"
+# 7) Sanity
+FAIL=0
+if which vtysh >/dev/null 2>&1; then
+  echo "UnraidFRR: WARNING — vtysh still on PATH (foreign FRR install?)"
+  FAIL=1
 fi
-
-if [ -e /usr/local/emhttp/plugins/UnraidFRR ] || [ -e /usr/local/emhttp/plugins/unraidfrr ]; then
-  echo "UnraidFRR: WARNING — emhttp plugin path still present"
-else
-  echo "UnraidFRR: emhttp plugin paths clear"
+if ls /var/log/packages/frr-* /var/log/packages/libyang-* >/dev/null 2>&1; then
+  echo "UnraidFRR: WARNING — package records still present under /var/log/packages"
+  FAIL=1
+fi
+if [ -e /usr/local/emhttp/plugins/UnraidFRR ] || [ -e /boot/config/plugins/UnraidFRR ]; then
+  echo "UnraidFRR: WARNING — plugin paths still present"
+  FAIL=1
+fi
+if pgrep -x zebra >/dev/null 2>&1 || pgrep -x fabricd >/dev/null 2>&1; then
+  echo "UnraidFRR: WARNING — FRR processes still running"
+  FAIL=1
+fi
+if [ "$FAIL" = "0" ]; then
+  echo "UnraidFRR: cleanup verified clean."
 fi
 
 echo "UnraidFRR: removed."
 echo "UnraidFRR: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
-echo "UnraidFRR: hard-refresh the browser (Ctrl+Shift+R); reboot only if FRR processes linger."
+echo "UnraidFRR: hard-refresh the browser (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
 
