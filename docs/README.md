@@ -23,7 +23,9 @@ User options (channel, daemons)
 | Ethernet / host-wide safety | [scope-and-safety.md](scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [integration-thunderboltnet.md](integration-thunderboltnet.md) |
 | Maintainer package catalog | [../packages/README.md](../packages/README.md) |
-| Supported Unraid versions | [../packages/SUPPORTED.md](../packages/SUPPORTED.md) |
+| Supported Unraid versions (lab vs suggested) | [../packages/SUPPORTED.md](../packages/SUPPORTED.md) |
+| FRR vs stock Routing Table / what Unraid can leverage | [frr-and-unraid-routing.md](frr-and-unraid-routing.md) |
+| Scope & LAN safety | [scope-and-safety.md](scope-and-safety.md) |
 | Product roadmap / ambitions | [product-roadmap.md](product-roadmap.md) |
 
 ## All topics

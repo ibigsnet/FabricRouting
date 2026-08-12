@@ -1,73 +1,92 @@
-# Scope and safety — does UnraidFRR break Ethernet?
+# Scope and safety — does Fabric Routing break Ethernet?
 
 ## Short answer
 
 | Question | Answer |
 |----------|--------|
-| Is UnraidFRR **Thunderbolt-only**? | **No.** It installs a **host-wide** routing suite (FRRouting). |
-| Does it reconfigure Unraid **eth0 / br0** by default? | **No.** It does not edit Unraid Network Settings, `network.cfg`, bonds, or Docker networks. |
-| Can FRR *ever* affect LAN traffic? | **Yes, if you (or another tool) put LAN interfaces into a routing protocol or install routes that compete with Unraid’s.** Defaults aim to avoid that. |
-| Needed for Thunderbolt OpenFabric? | **Optional supplier of FRR.** Thunderbolt Net can use any FRR; UnraidFRR is the packaged path. |
+| Is this **Thunderbolt-only**? | **No.** It installs a **host-wide** routing suite (FRRouting). |
+| Does it reconfigure Unraid **eth0 / br0 / Wi‑Fi** by default? | **No.** It does not edit Unraid Network Settings or `network.cfg`. |
+| Does it replace the stock **Routing Table** tab? | **No.** That tab is Unraid/kernel static-oriented. FRR is the **Fabric Routing** tab + `vtysh`. |
+| Can FRR affect the normal routing table? | **Yes** — `zebra` can install/withdraw **kernel** routes when protocols or FRR statics are configured. Defaults aim to leave management alone. |
+| Needed for Thunderbolt OpenFabric? | **Optional package supplier.** Thunderbolt Net can use any FRR; this plugin is the packaged path. |
+
+Deeper “what can Unraid do with FRR?”: [frr-and-unraid-routing.md](frr-and-unraid-routing.md).
+
+---
 
 ## Scope (what this plugin owns)
 
 ```text
 IN SCOPE
-  · Install FRR packages from flash (installpkg) when you provide them
+  · Download/install FRR packages (catalog → flash → installpkg)
   · Enable/disable FRR daemons (zebra, fabricd, optional bgpd/ospfd/…)
-  · Start/stop FRR service best-effort
+  · Start/stop FRR best-effort (frrinit)
   · Status UI + companion marker for other plugins
   · Standalone use (no Thunderbolt Net required)
 
 OUT OF SCOPE (by design)
   · Thunderbolt discovery, tbn IPs, cable UX  →  Thunderbolt Net
-  · Unraid eth0/br0/bond0 UI or network.cfg
+  · Unraid eth0/br0/bond0 / Wi‑Fi / network.cfg
   · Docker / VM libvirt networks
-  · Enabling net.ipv4.ip_forward (Thunderbolt Net may do that only when OpenFabric + FRR)
-  · Putting br0/eth* into OpenFabric/OSPF/BGP automatically
+  · Stock Routing Table UI replacement
+  · Enabling net.ipv4.ip_forward (Thunderbolt Net may when OpenFabric + FRR)
+  · Auto-enrolling br0/wlan/eth* into OpenFabric/OSPF/BGP
 ```
+
+---
 
 ## Why FRR is not “TB-only”
 
-FRRouting is a **general** Linux routing stack (same class of tool as running FRR on Proxmox/Debian). Once `zebra` is running it *can* install routes into the kernel. Protocol daemons only advertise/learn on interfaces **you configure** in `/etc/frr/frr.conf` (or that Thunderbolt Net adds inside its marked block for `thunderbolt*` / `lo`).
+FRRouting is a **general** Linux routing stack (same class of tool as FRR on Proxmox/Debian). Once `zebra` is running it *can* install routes into the kernel. Protocol daemons only speak on interfaces **you configure** in `/etc/frr/frr.conf` (or that Thunderbolt Net adds inside its marked block for `thunderbolt*` / `lo`).
 
 So:
 
-- **Empty / minimal conf + fabricd with no interfaces** → little or no effect on Ethernet forwarding.  
-- **Thunderbolt Net OpenFabric** → configures **TB underlay + loopback**, not br0 (product default).  
-- **You enable ospfd and add `interface br0`** → then yes, LAN is in scope of that protocol — expert opt-in.
+- **Minimal conf + no LAN ifaces in protocols** → little effect on Ethernet/Wi‑Fi management.  
+- **Thunderbolt Net OpenFabric** → TB underlay + loopback by product default, not br0.  
+- **You enable ospfd and add `interface br0`** → LAN is in that protocol — expert opt-in.
+
+---
 
 ## Default safety posture
 
 | Control | Default | Why |
 |---------|---------|-----|
-| Packages missing | **Idle** (no installpkg, no start) | Empty `packages/` cannot break LAN |
-| zebra | On (when FRR live) | Needed for any FRR use |
-| fabricd | On (when FRR live) | OpenFabric for optional TB mesh |
+| No catalog match | **Idle** download | Wrong Unraid version does not get a random binary |
+| zebra / fabricd / staticd | On when packages live | Ready for fabric; still need policy |
 | bgpd / ospfd / isisd / … | **Off** | Avoid surprise LAN protocols |
 | IP forwarding | **Not set by UnraidFRR** | Unraid LAN behavior stays Unraid’s |
-| Auto-add eth*/br* to protocols | **Never** | Hard rule |
+| Auto-add br0 / wlan / docker0 | **Never** | Hard rule |
+
+---
 
 ## What can still go wrong (honest)
 
-1. **Bad or incompatible `.txz`** — library conflicts, failed boot services (rare; pick builds for your Unraid line).  
-2. **Hand-edited `frr.conf`** that redistributes or defaults into the LAN.  
-3. **Another tool** writing FRR config for eth interfaces.  
-4. **Enabling OSPF/BGP** in this UI and then adding LAN interfaces yourself.  
-5. **Thunderbolt Net OpenFabric** with forwarding on — host routes TB prefixes; still should not steal default route via br0 unless you set that on a tbn tab.
+1. **Incompatible package** for an untested Unraid build — see [SUPPORTED.md](../packages/SUPPORTED.md) (lab-confirmed vs suggested).  
+2. **Hand-edited `frr.conf`** that redistributes or defaults into the LAN/Wi‑Fi.  
+3. **Another tool** putting eth/br0 into FRR protocols.  
+4. **Enabling OSPF/BGP** here and then adding management interfaces yourself.  
+5. **Thunderbolt Net OpenFabric** with forwarding — TB prefixes route; still should not steal default via br0 unless you configure that.
 
-## Interaction with normal Unraid Ethernet
+---
+
+## Interaction with normal Unraid Ethernet / Wi‑Fi
 
 Unraid continues to manage:
 
-- br0 / eth bonds / VLANs via **Settings → Network Settings**  
+- br0 / eth bonds / VLANs / Wi‑Fi via **Network Settings**  
 - Docker macvlan/ipvlan  
-- WireGuard Unraid plugin, etc.
+- WireGuard / Tailscale plugins, etc.
 
-UnraidFRR does not replace those. Think of it as installing “Cisco IOS on a stick” software that stays **quiet** until a conf puts interfaces into a protocol.
+Fabric Routing does not replace those. Think: optional routing software that stays **quiet** on management paths until a conf puts interfaces into a protocol.
+
+**Lab pattern:** management default route on **wlan0** or **br0**; fabric on **private eth0 / thunderbolt\*** only.
+
+---
 
 ## Related
 
+- [frr-and-unraid-routing.md](frr-and-unraid-routing.md) — can/cannot leverage FRR  
 - [DOCS.md](../DOCS.md)  
 - [integration-thunderboltnet.md](integration-thunderboltnet.md)  
-- Thunderbolt Net path cost / rings: [routing-openfabric.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/routing-openfabric.md)  
+- [packages/SUPPORTED.md](../packages/SUPPORTED.md)  
+- Thunderbolt Net: [routing-openfabric.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/routing-openfabric.md)  

@@ -22,6 +22,8 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 
 - [When do I need this?](#when-do-i-need-this)
 - [What it does](#what-it-does)
+- [FRR vs Unraid Routing Table](#frr-vs-unraid-routing-table)
+- [Supported Unraid versions](#supported-unraid-versions)
 - [Install / update](#install-update)
 - [Uninstall (clean removal)](#uninstall-clean-removal)
 - [With Thunderbolt Net](#with-thunderbolt-net)
@@ -61,7 +63,8 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 You choose **options** only (channel, which daemons, auto-download). You do **not** manually copy packages (same idea as the Nvidia Driver plugin).
 
 Deep design: [docs/automation-design.md](docs/automation-design.md).  
-LAN safety: [docs/scope-and-safety.md](docs/scope-and-safety.md).
+LAN safety: [docs/scope-and-safety.md](docs/scope-and-safety.md).  
+FRR vs stock routing: [docs/frr-and-unraid-routing.md](docs/frr-and-unraid-routing.md).
 
 ### Product defaults
 
@@ -83,6 +86,37 @@ LAN safety: [docs/scope-and-safety.md](docs/scope-and-safety.md).
 | Unraid eth0/br0 / `network.cfg` | Unraid Network Settings |
 | Auto-enroll br0 into OSPF/BGP/OpenFabric | **Never** by default |
 | Instant FRR for every Unraid version before a catalog build exists | Maintainer publishes bundles; UI waits safely |
+| Replace stock Routing Table / Network Settings | Still Unraid’s job for IPs and simple statics |
+
+---
+
+## FRR vs Unraid Routing Table
+
+| | Stock **Routing Table** | **Fabric Routing** (this plugin) |
+|--|-------------------------|----------------------------------|
+| Purpose | Unraid/kernel simple routes | FRR packages + dynamic/multipath routing |
+| Multi-hop mesh / OpenFabric | Not the tool | **Yes** (with conf / Thunderbolt Net policy) |
+| Configures br0 / Wi‑Fi IPs | Network Settings | **No** |
+| Writes kernel routes | Unraid stack | **zebra** when protocols/statics are active |
+
+**Can leverage:** multi-hop private fabrics, metrics (prefer fast paths), Proxmox/Linux FRR peers, AI multi-node underlays, inspect with `vtysh`.  
+**Cannot expect:** FRR to replace shares, Docker networking, Tailscale, or auto-mesh your LAN.
+
+Full write-up: [docs/frr-and-unraid-routing.md](docs/frr-and-unraid-routing.md).
+
+---
+
+## Supported Unraid versions
+
+Packages are selected by **Unraid product version + arch**, not kernel.
+
+| Status | Meaning |
+|--------|---------|
+| **Lab-confirmed** | Tested on real hardware (today: **7.3.2 x86_64**) |
+| **Suggested** | Same catalog range; expected compatible (other **7.x x86_64**) |
+| **Not in catalog** | No auto-download (e.g. 6.12, aarch64 until built) |
+
+Matrix: [packages/SUPPORTED.md](packages/SUPPORTED.md).
 
 ---
 

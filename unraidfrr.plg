@@ -7,7 +7,7 @@
   YYYY.MM.DD then aa, ab, … same day. No hyphens.
   Same rules as StorageGuard / ThunderboltNet.
 -->
-<!ENTITY version "2026.08.12a">
+<!ENTITY version "2026.08.12b">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -29,6 +29,9 @@
 
 <CHANGES>
 ###&version;
+- Docs: SUPPORTED matrix — lab-confirmed vs suggested-compatible Unraid versions.
+- Docs: frr-and-unraid-routing.md — stock Routing Table vs FRR; what Unraid can/cannot leverage.
+- Docs: scope-and-safety + DOCS cross-links for routing-table impact.
 - Uninstall: stop via /usr/sbin/frrinit.sh; kill mgmtd; always removepkg-sweep frr-* and libyang-*.
 - Docs: packages/SUPPORTED.md — Unraid product version matrix (lab-proven 7.3.x x86_64).
 - Docs: product-roadmap.md — interfaces/metrics UI, CA/forum, ambitions (Proxmox, multi-node AI).
