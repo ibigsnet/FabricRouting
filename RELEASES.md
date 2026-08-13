@@ -61,6 +61,18 @@ Unraid plugin updates use **lexicographic `strcmp()`**, not PHP `version_compare
 - Bump only `<!ENTITY version "…">` in `unraidfrr.plg`; asset URLs use `?v=&version;`.  
 - Add a `###&version;` block under `<CHANGES>` in the same ship.
 
+### Cross-plugin UI links (fleet standard)
+
+Same rules as Thunderbolt Net / NBD Export:
+
+| Do | Don’t |
+|----|--------|
+| `/Settings/NetworkSettings` + `ibigsGotoNetTab('Thunderbolt')` | `/Settings/ThunderboltNet` |
+| `/Settings/NetworkSettings` + `ibigsGotoNetTab('Fabric Routing')` | `/Settings/UnraidFRR` |
+
+Canonical JS: **`ibigsGotoNetTab(needle, event)`** (aliases: `tbnGotoNetTab`, `frrGotoNetTab`, `nbdGotoNetTab`).  
+Storage: `sessionStorage.ibigsWantTab` (+ legacy `tbnWantTab`).
+
 ---
 
 ## Git tags and GitHub Releases

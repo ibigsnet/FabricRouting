@@ -6,16 +6,17 @@
   Versioning — Unraid plugin updates use strcmp() (lexicographic), NOT version_compare.
   No hyphens. Bump only this entity; asset ?v= uses it.
 
-  Rules (same as StorageGuard / Thunderbolt Net):
+  Rules (ibigsnet fleet — StorageGuard / Thunderbolt Net / UnraidFRR / NBD Export):
     YYYY.MM.DD       first release that calendar day
     YYYY.MM.DDaa     2nd same day, then ab, ac, ... az, ba, bb, ...
-  Two-letter only after the bare date — never single a–z on new days
-  (avoids strcmp treating "aa" as older than "z").
+  Two-letter only after the bare date — never single a–z
+  (strcmp treats "aa" as older than "z").
+  Historical 2026.08.12a–g used single letters — do not mint more.
 
-  Historical 2026.08.12a–g used single-letter suffixes; do not add more
-  single letters. Next ships use YYYY.MM.DD then aa, ab, … (two-letter only).
+  UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
+  /Settings/ThunderboltNet or /Settings/UnraidFRR (standalone CA pages).
 -->
-<!ENTITY version "2026.08.13">
+<!ENTITY version "2026.08.13aa">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -37,8 +38,12 @@
 
 <CHANGES>
 ###&version;
-- UI: companion “Network Settings → Thunderbolt” opens the **Thunderbolt** tab under `/Settings/NetworkSettings` (sibling strip), not standalone `/Settings/ThunderboltNet`.
-- Versioning: resume two-letter day suffixes after historical single-letter 12a–g (this ship is bare `2026.08.13`).
+- Fleet standard: companion links use **`ibigsGotoNetTab`** (aliases `frrGotoNetTab` / …); apply-on-load for `ibigsWantTab`; never deep-link standalone CA paths.
+- Docs: RELEASES cross-plugin UI link table.
+
+###2026.08.13
+- UI: companion “Network Settings → Thunderbolt” under strip, not `/Settings/ThunderboltNet`.
+- Versioning: bare `2026.08.13` after historical single-letter 12a–g.
 
 ###2026.08.12g
 - Docs: first-time-setup.md — need/skip, settings guide, first Apply checklist; linked from DOCS + UI.

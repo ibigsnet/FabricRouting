@@ -132,7 +132,7 @@ $bundle_ok = !empty($bundle['ok']);
     <strong>Skip:</strong> single static Thunderbolt or Ethernet cable ·
 <?php if ($tbn): ?>
     <strong>Thunderbolt Net:</strong> cable underlay + OpenFabric <em>policy</em> on
-    <a href="/Settings/NetworkSettings" onclick="return frrGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
+    <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
     (this tab only installs packages / daemons)
 <?php else: ?>
     <strong>Thunderbolt Net:</strong> optional companion for TB host-net
@@ -388,10 +388,14 @@ $bundle_ok = !empty($bundle['ok']);
   </form>
 </div>
 <script>
-/* Stay on Network Settings strip (eth0 / Thunderbolt / tbn…). Never deep-link
-   /Settings/ThunderboltNet — that is the standalone CA launch page without siblings. */
-(function () {
-  function frrFindTabButton(needle) {
+/* Fleet standard: Network Settings sibling tabs (ibigsGotoNetTab).
+   Never deep-link /Settings/ThunderboltNet or /Settings/UnraidFRR (standalone CA). */
+(function (global) {
+  'use strict';
+  var WANT = 'ibigsWantTab';
+  var WANT_LEGACY = 'tbnWantTab';
+  var NET = '/Settings/NetworkSettings';
+  function findTab(needle) {
     var tabs = document.querySelectorAll('.tabs [role="tab"], .tabs a, #menu a, .nav-item');
     var want = (needle || '').toLowerCase();
     if (!want) return null;
@@ -401,20 +405,49 @@ $bundle_ok = !empty($bundle['ok']);
     }
     return null;
   }
-  window.frrGotoNetTab = function (needle, evt) {
-    if (typeof window.tbnGotoNetTab === 'function') {
-      return window.tbnGotoNetTab(needle, evt);
-    }
+  function setWant(n) {
+    try { sessionStorage.setItem(WANT, n); sessionStorage.setItem(WANT_LEGACY, n); } catch (e) {}
+  }
+  function getWant() {
+    try { return sessionStorage.getItem(WANT) || sessionStorage.getItem(WANT_LEGACY); } catch (e) { return null; }
+  }
+  function clearWant() {
+    try { sessionStorage.removeItem(WANT); sessionStorage.removeItem(WANT_LEGACY); } catch (e) {}
+  }
+  function gotoNetTab(needle, evt) {
     if (evt && evt.preventDefault) evt.preventDefault();
-    var tab = frrFindTabButton(needle);
+    var tab = findTab(needle);
     if (tab) {
       tab.click();
       try { tab.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
       return false;
     }
-    try { sessionStorage.setItem('tbnWantTab', needle); } catch (e2) {}
-    window.location.href = '/Settings/NetworkSettings';
+    setWant(needle);
+    global.location.href = NET;
     return false;
-  };
-})();
+  }
+  function applyWanted() {
+    var want = getWant();
+    if (!want) return;
+    var tab = findTab(want);
+    if (!tab) return;
+    clearWant();
+    setTimeout(function () { tab.click(); }, 50);
+  }
+  if (typeof global.ibigsGotoNetTab !== 'function') {
+    global.ibigsGotoNetTab = gotoNetTab;
+  }
+  global.frrGotoNetTab = function (n, e) { return global.ibigsGotoNetTab(n, e); };
+  if (typeof global.tbnGotoNetTab !== 'function') {
+    global.tbnGotoNetTab = function (n, e) { return global.ibigsGotoNetTab(n, e); };
+  }
+  if (typeof global.nbdGotoNetTab !== 'function') {
+    global.nbdGotoNetTab = function (n, e) { return global.ibigsGotoNetTab(n, e); };
+  }
+  function onReady() { applyWanted(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
+  else onReady();
+  setTimeout(applyWanted, 200);
+  setTimeout(applyWanted, 600);
+})(window);
 </script>
