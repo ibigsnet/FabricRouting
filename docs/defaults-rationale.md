@@ -29,7 +29,7 @@ Why each default is what it is, what happens if you change it, and what we chang
 | Setting | Default | Why | If you flip it |
 |---------|---------|-----|----------------|
 | **zebra** | **Yes** | Core FRR process; without it nothing installs kernel routes. | **No** — fabricd/staticd largely useless. |
-| **fabricd** | **Yes** | OpenFabric is the main reason labs install this plugin (TB rings, multi-hop, Proxmox peers). | **No** — packages still install; multi-hop fabric protocol off. |
+| **fabricd** | **Yes** | OpenFabric is the main reason labs install this plugin (Thunderbolt rings, multi-hop, Proxmox peers). | **No** — packages still install; multi-hop fabric protocol off. |
 | **staticd** | **Yes** | Cheap; useful if FRR-managed statics appear later. Does not rewrite Unraid Network Settings. | **No** — fine if you only use fabricd + Unraid statics. |
 | **bgpd / ospfd / ospf6d / isisd / bfdd** | **No** | LAN-safe: no surprise dynamic protocols on br0/Wi‑Fi. | **Yes** — you must configure them; never auto-enrolls LAN ifaces. |
 | **Start FRR on Apply** | **Yes** | After install/rehydrate, bring daemons up so Status is meaningful. | **No** — packages sit idle until you start FRR yourself. |
@@ -40,7 +40,7 @@ Why each default is what it is, what happens if you change it, and what we chang
 
 | Setting | Old default | **New default** | Why |
 |---------|-------------|-----------------|-----|
-| **OpenFabric metric reference** | 100000 (100 G) | **20000 (~20 G)** | Linux TB host-net often trains ~20 G each way, not 100 G. Auto metric = ref÷trained; floor 1. With 20 G ref, typical TB hops get metric **1**; faster DACs also floor at **1** (do not auto-steal). Prefer **manual** metric if a 100 G DAC must win over 20 G TB. |
+| **OpenFabric metric reference** | 100000 (100 G) | **20000 (~20 G)** | Linux Thunderbolt host-net often trains ~20 G each way, not 100 G. Auto metric = ref÷trained; floor 1. With 20 G ref, typical Thunderbolt hops get metric **1**; faster DACs also floor at **1** (do not auto-steal). Prefer **manual** metric if a 100 G DAC must win over 20 G Thunderbolt. |
 
 See Thunderbolt Net `docs/routing-openfabric.md`.
 

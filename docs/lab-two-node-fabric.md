@@ -11,7 +11,7 @@ Generic reference for a **two-node** Fabric Routing / OpenFabric lab. Use your o
 
 Both in lab: Unraid **7.3.2**, **x86_64** (see [SUPPORTED.md](../packages/SUPPORTED.md)).
 
-Optional later underlay: **Thunderbolt host-net** (e.g. 1-lane train ≈ **~20 Gbit/s** each way on TB4-class links) between Machine A ↔ Machine B — not required for the first FRR package set.
+Optional later underlay: **Thunderbolt host-net** (e.g. 1-lane train ≈ **~20 Gbit/s** each way on Thunderbolt 4-class links) between Machine A ↔ Machine B — not required for the first FRR package set.
 
 ## Hard rules (keep mgmt separate)
 

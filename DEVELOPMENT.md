@@ -30,7 +30,7 @@ Mixed fabric testing (any node count): see Thunderbolt Net `docs/fabric-proxmox-
 - [ ] Drop packages → Apply → `vtysh -v`  
 - [ ] No unexpected LAN routes on `ip route`  
 - [ ] Thunderbolt Net sees FRR for OpenFabric  
-- [ ] **L2/L3:** Linux/Proxmox ↔ Unraid static TB, then OpenFabric  
+- [ ] **L2/L3:** Linux/Proxmox ↔ Unraid static Thunderbolt, then OpenFabric  
 - [ ] **L5:** multi-node failover when an alternate path exists  
 
 ## Versioning / ship

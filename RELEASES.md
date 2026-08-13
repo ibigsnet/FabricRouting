@@ -34,7 +34,7 @@ After install, confirm the version under **Plugins**.
 
 - Leave **Auto-download = Yes** and click **Apply** so the plugin can fetch FRR when a catalog bundle matches your Unraid version.  
 - No manual package copy is required.  
-- Optional companion: [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) for TB OpenFabric policy.  
+- Optional companion: [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) for Thunderbolt OpenFabric policy.  
 - Read [DOCS.md](DOCS.md).
 
 ### Uninstall

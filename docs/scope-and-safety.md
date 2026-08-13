@@ -35,14 +35,14 @@ OUT OF SCOPE (by design)
 
 ---
 
-## Why FRR is not “TB-only”
+## Why FRR is not “Thunderbolt-only”
 
 FRRouting is a **general** Linux routing stack (same class of tool as FRR on Proxmox/Debian). Once `zebra` is running it *can* install routes into the kernel. Protocol daemons only speak on interfaces **you configure** in `/etc/frr/frr.conf` (or that Thunderbolt Net adds inside its marked block for `thunderbolt*` / `lo`).
 
 So:
 
 - **Minimal conf + no LAN ifaces in protocols** → little effect on Ethernet/Wi‑Fi management.  
-- **Thunderbolt Net OpenFabric** → TB underlay + loopback by product default, not br0.  
+- **Thunderbolt Net OpenFabric** → Thunderbolt underlay + loopback by product default, not br0.  
 - **You enable ospfd and add `interface br0`** → LAN is in that protocol — expert opt-in.
 
 ---
@@ -65,7 +65,7 @@ So:
 2. **Hand-edited `frr.conf`** that redistributes or defaults into the LAN/Wi‑Fi.  
 3. **Another tool** putting eth/br0 into FRR protocols.  
 4. **Enabling OSPF/BGP** here and then adding management interfaces yourself.  
-5. **Thunderbolt Net OpenFabric** with forwarding — TB prefixes route; still should not steal default via br0 unless you configure that.
+5. **Thunderbolt Net OpenFabric** with forwarding — Thunderbolt prefixes route; still should not steal default via br0 unless you configure that.
 
 ---
 

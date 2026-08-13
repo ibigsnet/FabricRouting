@@ -42,7 +42,7 @@ Thunderbolt Net may show **needs FRR packages** / companion card when OpenFabric
 | FRR packages, FabricRouting.cfg, install scripts | **FabricRouting** |
 | `/etc/frr/daemons` enable flags | **FabricRouting** (primary) |
 | OpenFabric interface/router stanzas | **Thunderbolt Net** (marked `BEGIN/END ThunderboltNet OpenFabric`) |
-| Hand-edited FRR for non-TB use | **User** |
+| Hand-edited FRR for non-Thunderbolt use | **User** |
 
 Thunderbolt Net must only rewrite its **marked** blocks (already the design). FabricRouting must not wipe `frr.conf` wholesale on every boot if a marked TBN block exists — prefer enabling daemons + package install only.
 
@@ -58,14 +58,14 @@ Reverse order is OK: Thunderbolt Net stays in static/degraded mode until FRR app
 | Remove | Expected |
 |--------|----------|
 | **FabricRouting only** | Plugin remove **stops FRR**, `removepkg`s managed packages, clears emhttp + flash config. TBN stays installed; OpenFabric degrades to static underlay. No broken Unraid Network Settings. |
-| **Thunderbolt Net only** | FRR keeps running if FabricRouting remains; TBN removes its TB hooks/config (see TBN remove script). |
+| **Thunderbolt Net only** | FRR keeps running if FabricRouting remains; TBN removes its Thunderbolt hooks/config (see TBN remove script). |
 | **Both** | Order does not matter; neither PHP-requires the other. No leftover cross-plugin hooks. |
 
 Full FabricRouting removal steps: [DOCS.md — Uninstall](../DOCS.md#uninstall-clean-removal).
 
 ## Mixed Proxmox / Debian + Unraid fabrics
 
-Many sites run OpenFabric between **Unraid** and **Proxmox (or other Debian/Linux)** over TB. FabricRouting only supplies FRR on Unraid; peers use distro packages (`apt install frr`, etc.). Same area/metrics/loopback plan on every node.
+Many sites run OpenFabric between **Unraid** and **Proxmox (or other Debian/Linux)** over Thunderbolt. FabricRouting only supplies FRR on Unraid; peers use distro packages (`apt install frr`, etc.). Same area/metrics/loopback plan on every node.
 
 General reference (example multi-node ring, not a fixed site layout):  
 [Thunderbolt Net — fabric-proxmox-unraid.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md)

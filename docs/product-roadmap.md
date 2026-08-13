@@ -35,12 +35,12 @@ Meanwhile the rest of the homelab world already runs:
 - **Multi-path Thunderbolt / 10G / multi-homed** fabrics between mini-PCs and storage  
 - **AI/inference boxes** (Strix Halo–class, DGX Spark–class, multi-GPU peers) that need **fast, multi-hop, multipath L3** next to a roomy Unraid array  
 
-**Ambition:** bring **modern Linux networking quality-of-life** to Unraid **without** waiting for official product support for FRR, OpenFabric, TB host-net policy, or multi-node fabric UX.
+**Ambition:** bring **modern Linux networking quality-of-life** to Unraid **without** waiting for official product support for FRR, OpenFabric, Thunderbolt host-net policy, or multi-node fabric UX.
 
 | Theme | Outcome |
 |-------|---------|
 | **Adjacent Proxmox** | Same OpenFabric / static underlay ideas as Debian FRR; Unraid is a first-class fabric member, not a dumb SMB island |
-| **Multi-node LLM / inference** | Fast private paths between Unraid storage and several AI peers (TB, 10G, multi-homed) with **metrics** that prefer the fat path |
+| **Multi-node LLM / inference** | Fast private paths between Unraid storage and several AI peers (Thunderbolt, 10G, multi-homed) with **metrics** that prefer the fat path |
 | **Homelab rings** | Multi-hop reachability when a cable is missing; failover when an alternate path exists |
 | **Operator UX** | Optional catalog download + flash cache; policy in the Unraid UI, not only hand-edited `frr.conf` |
 | **Respect Unraid** | Defaults **never** hijack `br0` / Wi‑Fi management; LAN-safe unless the user opts in |
@@ -56,7 +56,7 @@ This is **not** “replace Unraid networking.” It is **optional power tooling*
 | Unraid + **Proxmox** cluster | Shared L3 fabric; storage on Unraid, VMs/LXC on Proxmox |
 | **Multi-node AI** (Strix Halo, Spark-class, GPU boxes) | High-bandwidth private underlay; optional multi-hop; block/file jobs (NBD/SMB) over the right path |
 | Thunderbolt **rings / multi-host** | Host-net underlay (TBN) + FRR OpenFabric when one hop is not enough |
-| Advanced homelab | 10G + 2.5G + TB metrics, clear “which iface is in the fabric” |
+| Advanced homelab | 10G + 2.5G + Thunderbolt metrics, clear “which iface is in the fabric” |
 | Everyday media NAS only | **Can ignore** — leave plugins uninstalled |
 
 ---
@@ -67,8 +67,8 @@ Keep the split **clear forever** (docs, UI, forum, CA blurbs):
 
 | Plugin | Owns | Does **not** own |
 |--------|------|------------------|
-| **Fabric Routing (FabricRouting)** | FRR **packages**, install/rehydrate, daemon on/off, **global** fabric policy surface over time, status | TB discovery, cable UX, tbn IP assignment |
-| **Thunderbolt Net** | TB host-net underlay, peers, tbn IPs, **per-TB-iface** OpenFabric participate/metric (today), OpenFabric conf **marked blocks** for `thunderbolt*` | Shipping FRR `.txz` |
+| **Fabric Routing (FabricRouting)** | FRR **packages**, install/rehydrate, daemon on/off, **global** fabric policy surface over time, status | Thunderbolt discovery, cable UX, tbn IP assignment |
+| **Thunderbolt Net** | Thunderbolt host-net underlay, peers, tbn IPs, **per-TB-iface** OpenFabric participate/metric (today), OpenFabric conf **marked blocks** for `thunderbolt*` | Shipping FRR `.txz` |
 | **NBD Export** | Block device over network (imaging, remote disk) | Routing protocols |
 | **Stock Unraid** | br0, Wi‑Fi, GUI mgmt, array, Docker | FRR |
 
@@ -104,12 +104,12 @@ Today **(1)** is Fabric Routing; **(2)(3)** for **Thunderbolt only** are Thunder
 
 Without it, only Thunderbolt paths get guided policy. Real fabrics mix:
 
-- TB4 host-net  
+- Thunderbolt 4 host-net  
 - 10G / 2.5G Ethernet  
 - Occasional USB NIC lab links  
 - Explicit **exclude** of `wlan0` / `br0` / Docker bridges  
 
-Metrics matter: a 40G TB path should beat 2.5G for multi-hop preference (auto: `reference_mbps / trained_mbps`, or manual integer).
+Metrics matter: a 40G Thunderbolt path should beat 2.5G for multi-hop preference (auto: `reference_mbps / trained_mbps`, or manual integer).
 
 ### Proposed model (Fabric Routing **Interfaces** section or tab)
 
@@ -129,7 +129,7 @@ Metrics matter: a 40G TB path should beat 2.5G for multi-hop preference (auto: `
 | Field | Default idea |
 |-------|----------------|
 | OpenFabric area / net / system-id | Safe generators; override optional |
-| Metric reference Mb/s | e.g. 100000 (100G ref) or 40000 (TB4-class) |
+| Metric reference Mb/s | e.g. 100000 (100G ref) or 40000 (Thunderbolt 4-class) |
 | Never-touch list | `wlan0`, `br0`, `docker0`, `virbr0`, `tailscale*`, `wg*` unless user unlocks |
 | Apply policy | Writes marked block in `/etc/frr/frr.conf` (same discipline as TBN) |
 
@@ -137,16 +137,16 @@ Metrics matter: a 40G TB path should beat 2.5G for multi-hop preference (auto: `
 
 | Option | Recommendation |
 |--------|----------------|
-| **A — TBN keeps TB-only policy; FRR UI does eth/general** | Clear ownership; risk of two writers if both touch same iface |
+| **A — TBN keeps Thunderbolt-only policy; FRR UI does eth/general** | Clear ownership; risk of two writers if both touch same iface |
 | **B — FRR becomes single “fabric policy” writer; TBN only underlay** | Cleaner long-term; bigger TBN migration |
 | **C — Shared marked-conf convention; last Apply wins with banner** | Pragmatic mid-term |
 
-**Recommended path:** **C short-term**, migrate toward **B** for non-TB ifaces, keep TBN as the **best TB underlay + per-port TB OpenFabric** UX (already built). Document: “TB metrics: Thunderbolt tab; Ethernet/other: Fabric Routing Interfaces (when shipped).”
+**Recommended path:** **C short-term**, migrate toward **B** for non-Thunderbolt interfaces, keep TBN as the **best Thunderbolt underlay + per-port Thunderbolt OpenFabric** UX (already built). Document: “Thunderbolt metrics: Thunderbolt tab; Ethernet/other: Fabric Routing Interfaces (when shipped).”
 
 ### Implementation sketch (phases)
 
 1. **Read-only Interfaces table** on Fabric Routing: live ifaces, speed, whether currently in `frr.conf` / TBN participate list, zebra/fabricd up.  
-2. **Editable policy** for non-TB ifaces → generate marked conf block `! BEGIN FabricRouting Fabric Policy` …  
+2. **Editable policy** for non-Thunderbolt interfaces → generate marked conf block `! BEGIN FabricRouting Fabric Policy` …  
 3. **Metric auto** from `ethtool` / sysfs speed (and TBN trained Mbps when iface is thunderbolt*).  
 4. **Conflict UI** if TBN and FRR both claim the same iface.  
 5. Optional: import TBN participate rows into the FRR table as read-only “managed by Thunderbolt Net”.
@@ -200,7 +200,7 @@ Run **several deliberate passes** (not one giant rewrite). Public tone only — 
 |------|--------|-------|
 | **1 — Ambition & map** | Why / who / roles / non-goals | `README.md`, `DOCS.md` opener, this roadmap |
 | **2 — Install truth** | Catalog works; uninstall/reinstall; version labels | `DOCS.md`, `RELEASES.md`, `packages/README.md` |
-| **3 — Operator day-2** | Status meanings, neighbors, when to use eth vs TB | new `docs/day-two-ops.md`, how-to style |
+| **3 — Operator day-2** | Status meanings, neighbors, when to use eth vs Thunderbolt | new `docs/day-two-ops.md`, how-to style |
 | **4 — Interfaces & metrics** | When UI ships; until then manual eth OpenFabric recipe | `docs/interfaces-and-metrics.md` |
 | **5 — Integration** | TBN, Proxmox, NBD, AI peers | `integration-*.md`, TBN fabric docs cross-links |
 | **6 — Safety** | LAN-safe defaults; never-touch Wi‑Fi story | `scope-and-safety.md` |
@@ -225,7 +225,7 @@ Each pass: fix TOC, kill awkward tables, align names (**Fabric Routing** public 
 
 ### Thunderbolt tab (keep)
 
-- Underlay + per-TB OpenFabric participate/metric (already the right place for TB).  
+- Underlay + per-Thunderbolt OpenFabric participate/metric (already the right place for Thunderbolt).  
 - Companion chip → Fabric Routing when FRR missing.
 
 ### What users can do “further”
@@ -233,10 +233,10 @@ Each pass: fix TOC, kill awkward tables, align names (**Fabric Routing** public 
 | Skill | Path |
 |-------|------|
 | Just packages | Install FRR, leave policy to TBN or static |
-| TB multi-hop | TBN OpenFabric On + FRR packages |
+| Thunderbolt multi-hop | TBN OpenFabric On + FRR packages |
 | Eth/10G fabric | Interfaces UI (P4) or documented vtysh recipe |
 | Proxmox mix | Shared OpenFabric nets / underlay guide |
-| Imaging over fabric | NBD Export on private IP (not Wi‑Fi for multi-TB) |
+| Imaging over fabric | NBD Export on private IP (not Wi‑Fi for multi-terabyte) |
 
 ---
 
@@ -260,8 +260,8 @@ CA lag after GitHub push is normal; template accuracy matters more than hourly s
 
 | Approach | Pros | Cons |
 |----------|------|------|
-| **New thread: “Fabric Routing (FRR) for Unraid”** | Clear scope; package/install/uninstall noise does not bury TB cable help; CA users land on the right topic | Slightly more discovery work |
-| Extend TBN thread only | One place for “TB multi-hop” | FRR packaging, eth fabrics, Proxmox, AI nodes **drown** TB underlay support |
+| **New thread: “Fabric Routing (FRR) for Unraid”** | Clear scope; package/install/uninstall noise does not bury Thunderbolt cable help; CA users land on the right topic | Slightly more discovery work |
+| Extend TBN thread only | One place for “Thunderbolt multi-hop” | FRR packaging, eth fabrics, Proxmox, AI nodes **drown** Thunderbolt underlay support |
 
 **Do both lightly:**
 
@@ -276,7 +276,7 @@ CA lag after GitHub push is normal; template accuracy matters more than hourly s
 3. **Requirements** (Unraid 7.x x86_64 for v1 packages; private links).  
 4. **Install** (CA when live / raw URL).  
 5. **Safe defaults** (no auto br0).  
-6. **Lab status** (honest: first bundle, eth OpenFabric proven, TB policy in TBN).  
+6. **Lab status** (honest: first bundle, eth OpenFabric proven, Thunderbolt policy in TBN).  
 7. **Roadmap** (Interfaces UI, metrics, Proxmox guide).  
 8. **Support** (GitHub issues; attach diagnostics).  
 
@@ -288,7 +288,7 @@ CA lag after GitHub push is normal; template accuracy matters more than hourly s
 
 **Do say:**
 
-- Unraid is a great NAS OS; **advanced multipath / FRR / TB host-net policy** are still DIY or missing.  
+- Unraid is a great NAS OS; **advanced multipath / FRR / Thunderbolt host-net policy** are still DIY or missing.  
 - We package **upstream Linux capabilities** (FRR, OpenFabric) with **Unraid-native install and UI**.  
 - You get **Proxmox-adjacent** routing patterns without abandoning the Unraid array/UI.  
 - Defaults protect the **management path**; power is opt-in.  
@@ -333,6 +333,6 @@ CA lag after GitHub push is normal; template accuracy matters more than hourly s
 | Date | Decision |
 |------|----------|
 | 2026-08-12 | First packages + OpenFabric eth0 lab proven |
-| 2026-08-12 | Interface/metric UI is a first-class roadmap item (not “TB only forever”) |
+| 2026-08-12 | Interface/metric UI is a first-class roadmap item (not “Thunderbolt only forever”) |
 | 2026-08-12 | Forum: **new FRR thread** + link from TBN; do not only extend TBN thread |
 | 2026-08-12 | Ambition framing: Proxmox-adjacent + multi-node AI + modern Linux networking QoL on Unraid |

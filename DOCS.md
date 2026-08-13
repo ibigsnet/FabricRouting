@@ -14,7 +14,7 @@ How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) s
 
 `README.md` is only the short Unraid Plugins-list blurb (`**Name**` + one paragraph). Unraid runs it through Markdown for the Plugins description—keep it tiny. This file is the full documentation.
 
-**Related plugin:** [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) — TB host-net underlay and OpenFabric *policy* when FRR is present. FabricRouting does **not** require it.
+**Related plugin:** [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) — Thunderbolt host-net underlay and OpenFabric *policy* when FRR is present. FabricRouting does **not** require it.
 
 ---
 
@@ -41,10 +41,10 @@ How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) s
 
 | Your setup | Install FabricRouting? |
 |------------|--------------------|
-| Two hosts, **one** TB cable, static IPs, file copy / SMB | **No** — Thunderbolt Net underlay is enough |
+| Two hosts, **one** Thunderbolt cable, static IPs, file copy / SMB | **No** — Thunderbolt Net underlay is enough |
 | **Ring / mesh / multi-hop** (reach a host through a neighbor) | **Yes** — packages here; OpenFabric policy on Thunderbolt Net |
 | **Unraid + Proxmox** (or other Linux FRR) multi-node fabric | **Yes** — same OpenFabric idea as apt FRR on Proxmox |
-| Want OSPF/BGP/etc. on Unraid for non-TB reasons | **Yes** — standalone FRR manager; enable daemons you need |
+| Want OSPF/BGP/etc. on Unraid for non-Thunderbolt reasons | **Yes** — standalone FRR manager; enable daemons you need |
 | Curious about USB4STREAM / `thunderbolt_stream` | **Wrong plugin** — that is a **Linux kernel** feature, not FRR |
 
 **Roles:** FabricRouting = **packages + daemons**. Thunderbolt Net = **tbn IPs + OpenFabric conf/metrics**. Neither installs the other.
@@ -160,7 +160,7 @@ After install, confirm the version under **Plugins**.
 
 1. **Apply** with auto-download **Yes** so the plugin can fetch a matching package set when one exists in the catalog.  
 2. Confirm status / `vtysh -v` when a build is available for your Unraid version.  
-3. Optional: install **Thunderbolt Net** and enable OpenFabric for TB multi-hop.
+3. Optional: install **Thunderbolt Net** and enable OpenFabric for Thunderbolt multi-hop.
 
 If the catalog has no bundle for your Unraid version yet, status says so—leave auto-download on; no manual package hunt.
 
@@ -191,8 +191,8 @@ Use **Plugins → Fabric Routing (FRR) → Remove** (or remove via CA). The plug
 |------|--------|
 | 1 | Install FabricRouting → Apply (FRR present when catalog matches) |
 | 2 | Install Thunderbolt Net → OpenFabric **On** if you want multi-hop |
-| 3 | TBN writes marked OpenFabric conf for TB ifaces + lo; reloads FRR |
-| 4 | Remove FabricRouting alone → TBN degrades to static TB; no UI breakage |
+| 3 | TBN writes marked OpenFabric conf for Thunderbolt interfaces + lo; reloads FRR |
+| 4 | Remove FabricRouting alone → TBN degrades to static Thunderbolt; no UI breakage |
 
 Integration notes: [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md).  
 Mixed Unraid + Proxmox/Debian fabrics: [TBN fabric guide](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md).

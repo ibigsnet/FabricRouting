@@ -135,7 +135,7 @@ $bundle_ok = !empty($bundle['ok']);
     <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
     (this tab only installs packages / daemons)
 <?php else: ?>
-    <strong>Thunderbolt Net:</strong> optional companion for TB host-net
+    <strong>Thunderbolt Net:</strong> optional companion for Thunderbolt host-net
 <?php endif; ?>
   </div>
   <details class="frr-about">
@@ -321,7 +321,7 @@ $bundle_ok = !empty($bundle['ok']);
       <blockquote class="inline_help">
         Multi-hop fabric protocol (used with Thunderbolt rings / mixed Linux peers).
         Does not by itself put your LAN bridge into a mesh — policy is separate
-        (Thunderbolt Net for TB links; advanced <code>frr.conf</code> for others).
+        (Thunderbolt Net for Thunderbolt links; advanced <code>frr.conf</code> for others).
       </blockquote>
 
       <dl>
@@ -340,7 +340,7 @@ $bundle_ok = !empty($bundle['ok']);
 
     <div class="frr-section">
       <h3>Optional protocols</h3>
-      <p class="frr-section-lead">Default all No — enable only what you use (not needed for OpenFabric/TB alone).</p>
+      <p class="frr-section-lead">Default all No — enable only what you use (not needed for OpenFabric/Thunderbolt alone).</p>
       <div class="frr-daemon-grid">
         <label>bgpd
           <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>

@@ -37,7 +37,7 @@
 | Rootfs | Enough free RAM/tmp for `installpkg` |
 | Docker / build vehicle | Available for Slackware-style toolchain builds |
 | Production data | Array/cache pools — **do not wipe**; use `/tmp` or dedicated scratch |
-| NICs | Management path (Wi‑Fi or LAN) separate from fabric underlay (e.g. 2.5G eth, later TB/10G) |
+| NICs | Management path (Wi‑Fi or LAN) separate from fabric underlay (e.g. 2.5G eth, later Thunderbolt/10G) |
 
 **Implication:** Package **build + installpkg** can run over the management path. Multi-hop / OpenFabric / high-speed underlay validation needs **physical wiring** on a private subnet (see Phase 6 and [lab-two-node-fabric.md](lab-two-node-fabric.md)).
 
@@ -292,7 +292,7 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 | Array stop/start or reboot | `install_on_start` rehydrates FRR |
 | Destructive: disable auto-download | No re-fetch; still uses cache |
 | Uninstall FabricRouting | `removepkg` via MANIFEST; no leftover daemons |
-| Thunderbolt Net OpenFabric | Chip / status sees FRR; policy can write conf when TB links exist |
+| Thunderbolt Net OpenFabric | Chip / status sees FRR; policy can write conf when Thunderbolt links exist |
 | LAN-safe | No OSPF/BGP on br0/wlan unless user enables + conf (defaults off) |
 
 **Exit:** Stage 2–3 of `DEVELOPMENT.md` checked off for single-node.
@@ -308,17 +308,17 @@ Package correctness **does not** require wires. Fabric **behavior** does.
 | Mgmt | Wi‑Fi or LAN | Up | Keep for SSH/GUI — do not put in fabric |
 | 1G-class | Intel I225-V | PCI present, **no iface up** | Cable to switch/peer; assign eth in Unraid |
 | 10G | Aquantia AQC113 | PCI present, **no iface up** | 10G DAC/fiber/copper to peer |
-| TB4 | Maple Ridge dual | Domain present | TB cable + Thunderbolt Net host-net |
+| Thunderbolt 4 | Maple Ridge dual | Domain present | Thunderbolt cable + Thunderbolt Net host-net |
 | USB NIC | Optional | — | Extra underlay / isolation tests |
 
 **Suggested order after packages work:**
 
 1. Bring **I225** or **10G** up on a private subnet (not wiping cache).  
 2. Static L3 to a second Linux/Proxmox box.  
-3. Install Thunderbolt Net; TB peer; OpenFabric On.  
+3. Install Thunderbolt Net; Thunderbolt peer; OpenFabric On.  
 4. Multi-hop only when ≥2 paths or ≥3 nodes exist.
 
-**You handle:** physical TB/Ethernet cables, second endpoint.  
+**You handle:** physical Thunderbolt/Ethernet cables, second endpoint.  
 **We handle:** packages, plugin, conf templates, remote SSH tests once links show in `ip`.
 
 ---
@@ -368,4 +368,4 @@ Package correctness **does not** require wires. Fabric **behavior** does.
 5. **Phase 4:** Release + manifest (public automation).  
 6. **Phase 5–6:** E2E + wiring when you’re ready.
 
-**Blocked on you only when:** physical Ethernet/TB/USB NIC testing (Phase 6). Everything through Phase 5 can proceed over current Wi‑Fi management path.
+**Blocked on you only when:** physical Ethernet/Thunderbolt/USB NIC testing (Phase 6). Everything through Phase 5 can proceed over current Wi‑Fi management path.

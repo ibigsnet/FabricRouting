@@ -59,7 +59,7 @@ if still present, or the same steps from the remove script manually.
 | Daemon toggles | **Works** |
 | Status / catalog match UI | **Works** (refresh after Apply) |
 | Interfaces / metrics UI | **Missing** (roadmap) |
-| OpenFabric eth wizard | **Missing** (manual/`vtysh`/TBN for TB) |
+| OpenFabric eth wizard | **Missing** (manual/`vtysh`/TBN for Thunderbolt) |
 | Neighbor status on page | **Missing** (roadmap P2) |
 | Concurrent Apply safety | Lock only; no queue |
 | Keep user `frr.conf` on remove | **No** — clean wipe (document) |

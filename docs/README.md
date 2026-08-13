@@ -12,7 +12,7 @@ User options (channel, daemons)
     → FabricRouting catalog (manifest.json)
     → auto-download + sha256 + installpkg
     → FRR daemons (zebra, fabricd, …)
-    → optional Thunderbolt Net OpenFabric policy on TB ifaces
+    → optional Thunderbolt Net OpenFabric policy on Thunderbolt interfaces
 ```
 
 | You want… | Start here |

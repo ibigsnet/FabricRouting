@@ -27,7 +27,7 @@ See [boot-lifecycle.md](boot-lifecycle.md).
 | `installpkg` into live system | Plugin |
 | Enable daemons + start FRR | Plugin |
 | UI options (which daemons, channel) | User |
-| FRR *routing policy* on TB links | Thunderbolt Net (optional) |
+| FRR *routing policy* on Thunderbolt links | Thunderbolt Net (optional) |
 
 ---
 

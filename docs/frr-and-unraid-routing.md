@@ -46,7 +46,7 @@ Without this plugin, Unraid is strong at:
 - Static routes and the **Routing Table** view for simple “send this subnet via that gateway” cases  
 - Management access (GUI/SSH) on the interfaces you configure  
 
-It is **not** a full multipath fabric OS out of the box: no packaged **OpenFabric/IS-IS**, no guided multi-hop TB/10G mesh, no packaged FRR lifecycle on stock Unraid.
+It is **not** a full multipath fabric OS out of the box: no packaged **OpenFabric/IS-IS**, no guided multi-hop Thunderbolt/10G mesh, no packaged FRR lifecycle on stock Unraid.
 
 ---
 
@@ -57,7 +57,7 @@ Once packages are installed and daemons run:
 | Piece | Role |
 |-------|------|
 | **zebra** | FRR’s RIB ↔ **Linux kernel** route install/withdraw |
-| **fabricd** | **OpenFabric** (IS-IS based) — multi-hop / multipath fabrics (TB rings, eth lab links, mixed peers) |
+| **fabricd** | **OpenFabric** (IS-IS based) — multi-hop / multipath fabrics (Thunderbolt rings, eth lab links, mixed peers) |
 | **staticd** | FRR-managed static routes (optional; Unraid can still own simple statics) |
 | **bgpd / ospfd / …** | Classic dynamic routing — **off by default** in this plugin |
 | **vtysh** | CLI to inspect neighbors, topology, routes |
@@ -71,7 +71,7 @@ Thunderbolt Net (optional) writes **policy** (which `thunderbolt*` ifaces, metri
 | Use | How |
 |-----|-----|
 | **Multi-hop private fabric** | OpenFabric (or OSPF) so host A reaches C via B when a direct cable is down |
-| **Multipath / metric preference** | Prefer TB or 10G over 2.5G/Wi‑Fi for fabric prefixes (metrics; TBN auto metric on TB) |
+| **Multipath / metric preference** | Prefer Thunderbolt or 10G over 2.5G/Wi‑Fi for fabric prefixes (metrics; TBN auto metric on Thunderbolt) |
 | **Proxmox / Linux peers** | Same FRR/OpenFabric ideas as Debian — Unraid is a **peer**, not only an SMB server |
 | **AI / multi-node lab** | Keep model/storage traffic on fast private underlays; Unraid holds array/cache data |
 | **Inspectability** | `vtysh`: neighbors, topology, routes FRR owns |

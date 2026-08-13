@@ -24,11 +24,11 @@ Use this page the first time you install the plugin. It answers **do I need this
 | Your setup | Install this plugin? |
 |------------|----------------------|
 | One Unraid, normal LAN, SMB/NFS only | **No** |
-| Two machines, **one** cable (Thunderbolt or Ethernet), static IPs, file copy | **No** — underlay is enough (Thunderbolt Net for TB; Unraid Network Settings for eth) |
+| Two machines, **one** cable (Thunderbolt or Ethernet), static IPs, file copy | **No** — underlay is enough (Thunderbolt Net for Thunderbolt; Unraid Network Settings for eth) |
 | **Multi-hop** (A reaches C through B), ring/mesh, alternate path when a link drops | **Yes** |
 | Unraid + **Proxmox** / other Linux FRR peers on a private fabric | **Yes** |
 | Multi-node lab / AI boxes that need real multipath L3 next to Unraid storage | **Yes** (packages here; path design is yours) |
-| “I want USB4STREAM / raw TB stream” | **Wrong tool** — that is a **kernel** feature; see [Thunderbolt Net — USB4STREAM](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/usb4stream.md) |
+| “I want USB4STREAM / raw Thunderbolt stream” | **Wrong tool** — that is a **kernel** feature; see [Thunderbolt Net — USB4STREAM](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/usb4stream.md) |
 
 If every row you care about says **No**, stop here. You do not need FRR.
 
@@ -40,7 +40,7 @@ If every row you care about says **No**, stop here. You do not need FRR.
 |-------|----------------|-------------------------|
 | **Stock Unraid** (eth / br0 / Wi‑Fi / Routing Table) | IPs, bridges, simple static routes, shares | OpenFabric / multipath fabric daemons |
 | **Fabric Routing (this plugin)** | Install **FRR packages**, choose daemons, start FRR | Assign Thunderbolt IPs; draw cables |
-| **Thunderbolt Net** (optional) | TB host-net underlay, peers, OpenFabric **policy** (metrics, participate) | Ship FRR `.txz` packages |
+| **Thunderbolt Net** (optional) | Thunderbolt host-net underlay, peers, OpenFabric **policy** (metrics, participate) | Ship FRR `.txz` packages |
 | **NBD Export** (optional) | Whole-disk over the network | Routing protocols |
 
 ```text
@@ -151,7 +151,7 @@ Why these defaults: [defaults-rationale.md](defaults-rationale.md).
 | Goal | What to do |
 |------|------------|
 | Thunderbolt multi-hop / rings | Install [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) → underlay working → Advanced **OpenFabric** (metrics, participate). Packages stay on this tab. |
-| Proxmox peer | Same OpenFabric idea on Debian/Proxmox FRR; see Thunderbolt Net mixed-fabric guide when using TB |
+| Proxmox peer | Same OpenFabric idea on Debian/Proxmox FRR; see Thunderbolt Net mixed-fabric guide when using Thunderbolt |
 | Ethernet-only fabric lab | Packages here + careful `frr.conf` / future Interfaces UI — do **not** put management Wi‑Fi/br0 into the fabric |
 | Only needed packages once | Auto-download Yes → Apply → Auto-download No |
 
