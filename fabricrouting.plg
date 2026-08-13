@@ -16,11 +16,11 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.13ad">
+<!ENTITY version "2026.08.14aa">
 <!ENTITY launch "Settings/FabricRouting">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
-<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main">
+<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/FabricRouting">
 <!ENTITY configdir "/boot/config/plugins/FabricRouting">
 ]>
@@ -34,13 +34,18 @@
   min="6.12.0"
   support="https://github.com/&github;/issues"
   project="https://github.com/&github;"
-  readme="https://raw.githubusercontent.com/&github;/main/README.md">
+  readme="https://raw.githubusercontent.com/&github;/stable/README.md">
 
 <CHANGES>
 ###&version;
 - Wording: spell out **Thunderbolt** (not ambiguous “TB”, which can mean terabyte).
 - **Rename:** product id **FabricRouting** (public **Fabric Routing**). No “Unraid” in the product name (trademark). Legacy UnraidFRR paths migrated on install.
 - Install URL: `fabricrouting.plg` on `ibigsnet/FabricRouting`.
+
+###2026.08.14aa
+- **License:** GNU GPLv3 or later (copyright ibigs, LLC; Author: RifleJock).
+- **Release channel:** PluginURL, raw FILE sources, and package catalog pin to branch `stable`.
+- SECURITY.md: idle install, no eth0/br0, packages only on Apply, uninstall scope.
 
 ###2026.08.13ab
 - Docs: public sanitization — SUPPORTED matrix and lab notes use **Machine A/B** patterns (no personal hostnames/IPs); [lab-two-node-fabric.md](docs/lab-two-node-fabric.md).

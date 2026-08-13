@@ -70,7 +70,7 @@ if still present, or the same steps from the remove script manually.
 
 ```bash
 # Clean install
-plugin install https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg
+plugin install https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg
 ls -la /var/log/plugins/fabricrouting.plg   # must exist
 # wait ~2 min or Apply in UI
 vtysh -c 'show version'

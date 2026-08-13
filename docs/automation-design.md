@@ -36,7 +36,7 @@ See [boot-lifecycle.md](boot-lifecycle.md).
 ### Location (default)
 
 ```text
-https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json
+https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/packages/manifest.json
 ```
 
 Large binaries may live on **GitHub Releases**; manifest entries carry full `url` + `sha256`.

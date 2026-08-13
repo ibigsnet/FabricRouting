@@ -31,7 +31,7 @@ function frr_log_path() {
  * Official package catalog URL (GitHub raw manifest).
  */
 function frr_default_catalog_url() {
-  return 'https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json';
+  return 'https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/packages/manifest.json';
 }
 
 function frr_load_cfg() {

@@ -25,7 +25,7 @@ CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templat
 
 | Track | When to use | URL |
 |-------|-------------|-----|
-| **Latest (`main`)** | Always get the newest published tree | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
+| **Production (`stable`)** | CA / end-user channel | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg` |
 | **Recommended freeze** | Known-good FabricRouting line | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.13ad/fabricrouting.plg` |
 | **Pinned tag** | Install/rollback to a fixed version | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg` |
 

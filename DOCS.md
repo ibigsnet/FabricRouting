@@ -5,7 +5,7 @@ How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) s
 **Install (recommended):** Apps (Community Applications) → search **FRR** or **FabricRouting** → Install.
 
 **Manual install:** Plugins → Install Plugin →  
-`https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg`
+`https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg`
 
 **Support:** [GitHub Issues](https://github.com/ibigsnet/FabricRouting/issues)  
 **Source / project:** [github.com/ibigsnet/FabricRouting](https://github.com/ibigsnet/FabricRouting)  
@@ -149,7 +149,7 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) 
 
 | Track | URL |
 |-------|-----|
-| **Latest (`main`)** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
+| **Production (`stable`)** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg` |
 
 Pinned tags (when published):  
 `https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg`
