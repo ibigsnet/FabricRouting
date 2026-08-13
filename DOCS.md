@@ -203,6 +203,7 @@ Mixed Unraid + Proxmox/Debian fabrics: [TBN fabric guide](https://github.com/ibi
 
 | Topic | Doc |
 |-------|-----|
+| **First-time setup** | [docs/first-time-setup.md](docs/first-time-setup.md) |
 | Automation / catalog / flash cache flow | [docs/automation-design.md](docs/automation-design.md) |
 | Host-wide FRR vs Ethernet safety | [docs/scope-and-safety.md](docs/scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md) |
