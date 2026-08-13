@@ -132,7 +132,7 @@ $bundle_ok = !empty($bundle['ok']);
     <strong>Skip:</strong> single static Thunderbolt or Ethernet cable ·
 <?php if ($tbn): ?>
     <strong>Thunderbolt Net:</strong> cable underlay + OpenFabric <em>policy</em> on
-    <a href="/Settings/NetworkSettings">Network Settings → Thunderbolt</a>
+    <a href="/Settings/ThunderboltNet">Network Settings → Thunderbolt</a>
     (this tab only installs packages / daemons)
 <?php else: ?>
     <strong>Thunderbolt Net:</strong> optional companion for TB host-net
