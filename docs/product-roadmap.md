@@ -42,7 +42,7 @@ Meanwhile the rest of the homelab world already runs:
 | **Adjacent Proxmox** | Same OpenFabric / static underlay ideas as Debian FRR; Unraid is a first-class fabric member, not a dumb SMB island |
 | **Multi-node LLM / inference** | Fast private paths between Unraid storage and several AI peers (TB, 10G, multi-homed) with **metrics** that prefer the fat path |
 | **Homelab rings** | Multi-hop reachability when a cable is missing; failover when an alternate path exists |
-| **Operator UX** | Packages auto-download (Nvidia-plugin style); policy in the Unraid UI, not only hand-edited `frr.conf` |
+| **Operator UX** | Optional catalog download + flash cache; policy in the Unraid UI, not only hand-edited `frr.conf` |
 | **Respect Unraid** | Defaults **never** hijack `br0` / Wi‑Fi management; LAN-safe unless the user opts in |
 
 This is **not** “replace Unraid networking.” It is **optional power tooling** for people who already outgrew a single static cable.

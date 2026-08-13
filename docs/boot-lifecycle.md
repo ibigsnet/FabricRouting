@@ -16,9 +16,9 @@ Authors must keep that path **fast, offline-capable after first success, and non
 | **Settings → Apply** | Full `frr_apply()` — catalog + packages (if auto_download) + installpkg + daemons + start | Yes, when downloading | User leaves progress window open |
 | **Array `event/started`** | `frr_rehydrate_local()` — installpkg from **flash cache only** + start | **No** | Detached (`at` / `nohup`) so emhttp events stay free |
 
-## Nvidia-style comparison (corrected)
+## Boot vs Apply (corrected)
 
-| Nvidia Driver | UnraidFRR (correct) |
+| External driver plugins (often) | UnraidFRR (this plugin) |
 |---------------|---------------------|
 | UI picks / Apply downloads large driver to flash | UI **Apply** downloads FRR `.txz` to flash |
 | Boot rehydrates from **flash cache** | Array start rehydrates from **flash cache** |

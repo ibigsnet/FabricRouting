@@ -2,7 +2,7 @@
 
 **End users do not place packages here manually.**
 
-UnraidFRR downloads the matching bundle from `manifest.json` into the flash cache automatically (Nvidia Driver–style).
+UnraidFRR can download the matching bundle from `manifest.json` into the flash cache when **Auto-download** is Yes and you click **Apply**.
 
 **Supported Unraid product versions:** see [SUPPORTED.md](SUPPORTED.md) (matrix + how we widen ranges).
 

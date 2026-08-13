@@ -1,12 +1,12 @@
-# UnraidFRR automation design (Nvidia-plugin style)
+# UnraidFRR automation design (catalog + flash cache)
 
 ## Goal
 
-Users **never** manually download or copy FRR packages. Like the **Nvidia Driver** plugin:
+Users **never** manually download or copy FRR packages. Product flow:
 
 1. Install UnraidFRR from CA / raw `.plg` (**files only** — seconds; no package download at boot)  
 2. Choose options under **Network Settings → Fabric Routing** (daemons, channel)  
-3. User clicks **Apply** → plugin **downloads**, **verifies**, **installs**, and **starts** FRR (Nvidia-style)  
+3. User clicks **Apply** → plugin **downloads**, **verifies**, **installs**, and **starts** FRR (catalog)  
 4. On **array start**, plugin **rehydrates from flash cache into RAM** (no network)  
 
 Manual `packages/` drops remain a **developer escape hatch only**, not the product path.
@@ -162,9 +162,9 @@ Remove UI/scripts; **keep** flash cache by default (fast reinstall). Optional fu
 
 ---
 
-## Comparison: Nvidia Driver plugin
+## Lifecycle summary
 
-| Nvidia | UnraidFRR (this design) |
+| Phase | UnraidFRR |
 |--------|-------------------------|
 | Pick driver branch/version in UI | Pick package **channel** (+ later explicit FRR version) |
 | Plugin downloads ~100MB+ package | Plugin downloads FRR + deps from catalog |

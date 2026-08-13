@@ -1,6 +1,6 @@
 # Fabric Routing (FRR) — Documentation
 
-How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite on Unraid—**fully automated** package download/install (Nvidia Driver–style), daemon selection, and safe defaults for the rest of the network stack.
+How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite on Unraid—package catalog download on **Apply** (when Auto-download is Yes), daemon selection, and safe defaults for the rest of the network stack.
 
 **Install (recommended):** Apps (Community Applications) → search **FRR** or **UnraidFRR** → Install.
 
@@ -60,7 +60,7 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 | **UI** | **Settings → Network Settings → Fabric Routing** tab (with Routing Table) — status, channel, daemons |
 | **Companion marker** | `companion.json` so Thunderbolt Net can detect UnraidFRR |
 
-You choose **options** only (channel, which daemons, auto-download). You do **not** manually copy packages (same idea as the Nvidia Driver plugin).
+You choose **options** only (channel, which daemons, auto-download). You do **not** need to manually copy packages once Auto-download has populated the flash cache.
 
 Deep design: [docs/automation-design.md](docs/automation-design.md).  
 LAN safety: [docs/scope-and-safety.md](docs/scope-and-safety.md).  
@@ -130,7 +130,7 @@ Same pattern as Storage Guard and Thunderbolt Net—**two equivalent ways** to g
 2. **Install** or **Update**.  
 3. Hard-refresh the browser (**Ctrl+Shift+R**).  
 4. Open **Settings → Network Settings → Fabric Routing** (tab with eth / Routing Table / Thunderbolt).  
-5. Leave automation defaults (or adjust daemons) → **Apply**.
+5. First time: Auto-download **Yes** → **Apply** (leave progress open). Later: Auto-download can stay **No**.
 
 CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) (`plugins/unraidfrr.xml`). Updates may lag a short time after GitHub.
 
@@ -196,7 +196,7 @@ Mixed Unraid + Proxmox/Debian fabrics: [TBN fabric guide](https://github.com/ibi
 
 | Topic | Doc |
 |-------|-----|
-| Automation / catalog / Nvidia-style flow | [docs/automation-design.md](docs/automation-design.md) |
+| Automation / catalog / flash cache flow | [docs/automation-design.md](docs/automation-design.md) |
 | Host-wide FRR vs Ethernet safety | [docs/scope-and-safety.md](docs/scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md) |
 | Maintainer package catalog | [packages/README.md](packages/README.md) |

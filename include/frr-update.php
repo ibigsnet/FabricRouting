@@ -2,7 +2,7 @@
 /**
  * #include after writing UnraidFRR.cfg
  * Output goes to Unraid progressFrame — leave that window open until finished
- * (same UX as plugin install, Docker update, Nvidia driver download).
+ * (Unraid progressFrame — leave open until finished).
  */
 @ini_set('zlib.output_compression', '0');
 @ini_set('output_buffering', '0');

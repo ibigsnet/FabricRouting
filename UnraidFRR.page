@@ -121,30 +121,43 @@ $bundle_ok = !empty($bundle['ok']);
 
 <div class="frr-wrap">
   <p class="frr-lead">
-    <strong>FRRouting packages</strong> for this host — install/start daemons
-    (<code>zebra</code>, OpenFabric <code>fabricd</code>, …).
-    Not the stock <strong>Routing Table</strong> tab (kernel routes only).
+    Optional <strong>routing software</strong> for this Unraid host
+    (<a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>).
+    Use it when you need multi-hop / multipath fabrics — not for ordinary SMB on one LAN cable.
+    Different from the stock <strong>Routing Table</strong> tab (simple kernel routes only).
   </p>
 
   <div class="frr-companion">
-    <strong>When:</strong> rings / multi-hop / Proxmox fabrics ·
-    <strong>Skip:</strong> single static TB cable ·
+    <strong>Need this?</strong> Rings, multi-hop, Proxmox/Linux FRR peers, multi-node AI underlays ·
+    <strong>Skip:</strong> single static Thunderbolt or Ethernet cable ·
 <?php if ($tbn): ?>
-    <strong>TBN:</strong> policy on <a href="/Settings/NetworkSettings">Thunderbolt</a> (this tab = packages)
+    <strong>Thunderbolt Net:</strong> cable underlay + OpenFabric <em>policy</em> on
+    <a href="/Settings/NetworkSettings">Network Settings → Thunderbolt</a>
+    (this tab only installs packages / daemons)
 <?php else: ?>
-    <strong>TBN:</strong> optional companion
+    <strong>Thunderbolt Net:</strong> optional companion for TB host-net
 <?php endif; ?>
   </div>
   <details class="frr-about">
-    <summary>About Fabric Routing / FRR (details)</summary>
+    <summary>What is FRR? (start here if new)</summary>
     <div class="frr-about-body">
-      Installs <a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>
-      like the Nvidia Driver plugin (catalog → download → <code>installpkg</code> → daemons).
-      OpenFabric is <code>fabricd</code> here; Thunderbolt Net owns TB underlay + OpenFabric <em>policy</em>.
-      Defaults do not enroll eth0/br0. Not USB4STREAM (<code>uname -r</code> kernel feature).
-      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/scope-and-safety.md" target="_blank" rel="noopener">Scope ↗</a>
-      ·
-      <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">DOCS ↗</a>
+      <p><strong>FRR</strong> is open-source routing software used on many Linux routers and Proxmox hosts.
+      Unraid does not ship it. This plugin installs FRR packages onto your flash/RAM OS, then starts daemons you choose.</p>
+      <p><strong>First-time path:</strong>
+        set <em>Auto-download packages = Yes</em> → <strong>Apply</strong> (leave progress window open) →
+        wait until finished → hard-refresh. After packages are cached, you can set Auto-download back to
+        <em>No</em>; reboots still rehydrate from flash if <em>Install on array start</em> is Yes.</p>
+      <p><strong>OpenFabric</strong> is the multi-hop fabric protocol (daemon <code>fabricd</code>).
+        Thunderbolt metrics/participate live under Thunderbolt Net, not here.</p>
+      <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
+        BGP/OSPF stay Off until you enable them.</p>
+      <p>
+        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR vs Unraid routing ↗</a>
+        ·
+        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/defaults-rationale.md" target="_blank" rel="noopener">Why these defaults ↗</a>
+        ·
+        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">Full docs ↗</a>
+      </p>
     </div>
   </details>
 
@@ -237,13 +250,15 @@ $bundle_ok = !empty($bundle['ok']);
         <dt>Auto-download packages:</dt>
         <dd>
           <select name="auto_download">
-            <?= mk_option($cfg['auto_download'] ?? 'yes', 'yes', 'Yes (default — fully automatic)') ?>
-            <?= mk_option($cfg['auto_download'] ?? 'yes', 'no', 'No — use flash cache only') ?>
+            <?= mk_option($cfg['auto_download'] ?? 'no', 'no', 'No (default — flash cache only)') ?>
+            <?= mk_option($cfg['auto_download'] ?? 'no', 'yes', 'Yes — fetch from catalog on Apply') ?>
           </select>
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>Yes:</strong> fetch catalog + packages when missing or outdated. No manual <code>.txz</code> steps.
+        <strong>Default No:</strong> Apply will not hit the network for large package files.
+        <strong>First install:</strong> set <strong>Yes</strong>, click Apply, wait for the progress window to finish,
+        then you may set No again. Later reboots use packages already on flash (see Install on array start).
       </blockquote>
 
       <dl>
@@ -256,7 +271,8 @@ $bundle_ok = !empty($bundle['ok']);
         </dd>
       </dl>
       <blockquote class="inline_help">
-        Reinstall into the live (RAM) system after reboot — Unraid does not keep packages across boot.
+        After reboot, reinstall packages <em>already on the flash</em> into the live (RAM) system — <strong>no download</strong>.
+        Unraid’s root filesystem does not keep <code>installpkg</code> results across boot.
       </blockquote>
 
       <dl>
@@ -274,7 +290,9 @@ $bundle_ok = !empty($bundle['ok']);
 
     <div class="frr-section">
       <h3>Core daemons</h3>
-      <p class="frr-section-lead">Leave Yes for typical fabric / OpenFabric use with Thunderbolt Net.</p>
+      <p class="frr-section-lead">
+        These start with FRR. Leave Yes for OpenFabric multi-hop; leave optional protocols Off unless you know you need them.
+      </p>
 
       <dl>
         <dt>Enable zebra:</dt>
@@ -285,19 +303,23 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">Kernel RIB/FIB. Leave Yes for almost all uses.</blockquote>
+      <blockquote class="inline_help">
+        FRR’s core process — talks to the Linux kernel routing table. Almost always Yes if you use this plugin at all.
+      </blockquote>
 
       <dl>
         <dt>Enable fabricd (OpenFabric):</dt>
         <dd>
           <select name="enable_fabricd">
-            <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'yes', 'Yes (default — multi-hop fabric)') ?>
+            <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'yes', 'Yes (multi-hop fabric)') ?>
             <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'no', 'No') ?>
           </select>
         </dd>
       </dl>
       <blockquote class="inline_help">
-        OpenFabric daemon for multi-host mesh/ring. Policy/metrics still configured on Thunderbolt Net when using TB.
+        Multi-hop fabric protocol (used with Thunderbolt rings / mixed Linux peers).
+        Does not by itself put your LAN bridge into a mesh — policy is separate
+        (Thunderbolt Net for TB links; advanced <code>frr.conf</code> for others).
       </blockquote>
 
       <dl>
@@ -309,7 +331,9 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">Static route helper in FRR. Safe default Yes.</blockquote>
+      <blockquote class="inline_help">
+        Lets FRR manage static routes (optional). Unraid can still own simple statics on the stock Routing Table.
+      </blockquote>
     </div>
 
     <div class="frr-section">
@@ -355,9 +379,9 @@ $bundle_ok = !empty($bundle['ok']);
       <input type="button" value="Done" onclick="done()">
     </div>
     <p class="frr-muted" style="margin:0.65em 0 0;font-size:0.9em;line-height:1.4">
-      <strong>Apply</strong> opens Unraid’s progress window (same as plugin install, Docker update, Nvidia driver download).
-      <strong>Do not close it</strong> until it shows finished — download + install can take several minutes.
-      Only one Apply runs at a time (lock). Then hard-refresh this page.
+      <strong>Apply</strong> opens Unraid’s progress window (like other Settings saves).
+      <strong>Do not close it</strong> until it shows finished — especially if Auto-download is Yes (large packages).
+      Only one Apply runs at a time. Then hard-refresh this page (Ctrl+Shift+R).
     </p>
   </form>
 </div>

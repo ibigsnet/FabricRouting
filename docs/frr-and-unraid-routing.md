@@ -46,7 +46,7 @@ Without this plugin, Unraid is strong at:
 - Static routes and the **Routing Table** view for simple “send this subnet via that gateway” cases  
 - Management access (GUI/SSH) on the interfaces you configure  
 
-It is **not** a full multipath fabric OS out of the box: no packaged **OpenFabric/IS-IS**, no guided multi-hop TB/10G mesh, no Nvidia-style FRR package lifecycle.
+It is **not** a full multipath fabric OS out of the box: no packaged **OpenFabric/IS-IS**, no guided multi-hop TB/10G mesh, no packaged FRR lifecycle on stock Unraid.
 
 ---
 

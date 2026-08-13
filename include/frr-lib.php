@@ -28,7 +28,7 @@ function frr_log_path() {
 }
 
 /**
- * Default catalog (Nvidia-style automated package source).
+ * Official package catalog URL (GitHub raw manifest).
  */
 function frr_default_catalog_url() {
   return 'https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/packages/manifest.json';
@@ -38,9 +38,9 @@ function frr_load_cfg() {
   $defaults = [
     // Array start: rehydrate packages already on flash into RAM (NO network).
     'install_on_start' => 'yes',
-    // Settings → Apply only: catalog + package download when Yes.
-    // Never used during boot plg rehydrate (Unraid best practice).
-    'auto_download' => 'yes',
+    // Settings → Apply: catalog + package download only when Yes.
+    // Default No = no surprise multi‑MB network fetch; first time set Yes once.
+    'auto_download' => 'no',
     'package_channel' => 'latest', // latest | previous
     'package_base_url' => '', // empty = frr_default_catalog_url()
     'enable_zebra' => 'yes',
@@ -81,7 +81,7 @@ function frr_log($msg) {
 
 /**
  * Progress-frame / CLI line (Unraid update.php target=progressFrame).
- * Same pattern as plugin install / Nvidia driver: user should leave the popup open.
+ * Progress-frame line — leave the Unraid popup open until finished.
  */
 function frr_progress($msg) {
   $msg = (string)$msg;
@@ -741,17 +741,17 @@ function frr_apply_inner($opts = []) {
   frr_progress('=== Fabric Routing Apply' . ($local_only ? ' (local rehydrate)' : '') . ' ===');
   frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
   if (!$local_only) {
-    frr_progress('Do not close this window until finished (same as plugin/Docker/Nvidia updates).');
+    frr_progress('Do not close this window until finished (Unraid progress dialog).');
   }
 
   @mkdir(frr_packages_dir(), 0755, true);
 
   // 1) Network download — UI Apply only. Never during boot plg or local rehydrate.
-  //    Nvidia-style: packages live on flash; boot only rehydrates cache already present.
+  //    Flash cache is the durable store; array start rehydrates without network.
   if ($local_only) {
     frr_progress('Step 1/4: local-only — skip catalog/download (flash cache only).');
     $result['actions'][] = 'local-only: no network download';
-  } elseif (($cfg['auto_download'] ?? 'yes') === 'yes') {
+  } elseif (($cfg['auto_download'] ?? 'no') === 'yes') {
     frr_progress('Step 1/4: Catalog + package download…');
     $dl = frr_download_bundle(false);
     $result['download'] = $dl;

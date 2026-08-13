@@ -19,7 +19,7 @@ User options (channel, daemons)
 |-----------|------------|
 | Install (CA or raw URL) / uninstall | [../DOCS.md](../DOCS.md) · [../RELEASES.md](../RELEASES.md) |
 | When to install vs skip | [../DOCS.md](../DOCS.md#when-do-i-need-this) |
-| Automation design (Nvidia-style) | [automation-design.md](automation-design.md) |
+| Automation design (catalog / flash cache) | [automation-design.md](automation-design.md) |
 | Ethernet / host-wide safety | [scope-and-safety.md](scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [integration-thunderboltnet.md](integration-thunderboltnet.md) |
 | Maintainer package catalog | [../packages/README.md](../packages/README.md) |
@@ -27,6 +27,7 @@ User options (channel, daemons)
 | FRR vs stock Routing Table / what Unraid can leverage | [frr-and-unraid-routing.md](frr-and-unraid-routing.md) |
 | Scope & LAN safety | [scope-and-safety.md](scope-and-safety.md) |
 | Product roadmap / ambitions | [product-roadmap.md](product-roadmap.md) |
+| Defaults rationale | [defaults-rationale.md](defaults-rationale.md) |
 
 ## All topics
 
