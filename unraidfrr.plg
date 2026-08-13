@@ -12,10 +12,10 @@
   Two-letter only after the bare date — never single a–z on new days
   (avoids strcmp treating "aa" as older than "z").
 
-  Historical 2026.08.12a–d used single-letter suffixes; do not add more
-  single letters. Next after 12d is 12da (two-letter, still strcmp-newer).
+  Historical 2026.08.12a–g used single-letter suffixes; do not add more
+  single letters. Next ships use YYYY.MM.DD then aa, ab, … (two-letter only).
 -->
-<!ENTITY version "2026.08.12g">
+<!ENTITY version "2026.08.13">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -37,8 +37,12 @@
 
 <CHANGES>
 ###&version;
+- UI: companion “Network Settings → Thunderbolt” opens the **Thunderbolt** tab under `/Settings/NetworkSettings` (sibling strip), not standalone `/Settings/ThunderboltNet`.
+- Versioning: resume two-letter day suffixes after historical single-letter 12a–g (this ship is bare `2026.08.13`).
+
+###2026.08.12g
 - Docs: first-time-setup.md — need/skip, settings guide, first Apply checklist; linked from DOCS + UI.
-- UI: companion link goes to /Settings/ThunderboltNet (Thunderbolt tab), not bare Network Settings.
+- UI: companion link (buggy) pointed at /Settings/ThunderboltNet; fixed in 2026.08.13.
 - Defaults: Auto-download **No** (opt-in network fetch); first-time Yes → Apply still works.
 - UI: beginner “What is FRR?” section; clearer package/daemon help; no public Nvidia branding.
 - Docs: defaults-rationale.md; sanitize Nvidia comparisons in public docs.

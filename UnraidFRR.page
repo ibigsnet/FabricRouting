@@ -132,7 +132,7 @@ $bundle_ok = !empty($bundle['ok']);
     <strong>Skip:</strong> single static Thunderbolt or Ethernet cable ·
 <?php if ($tbn): ?>
     <strong>Thunderbolt Net:</strong> cable underlay + OpenFabric <em>policy</em> on
-    <a href="/Settings/ThunderboltNet">Network Settings → Thunderbolt</a>
+    <a href="/Settings/NetworkSettings" onclick="return frrGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
     (this tab only installs packages / daemons)
 <?php else: ?>
     <strong>Thunderbolt Net:</strong> optional companion for TB host-net
@@ -387,3 +387,34 @@ $bundle_ok = !empty($bundle['ok']);
     </p>
   </form>
 </div>
+<script>
+/* Stay on Network Settings strip (eth0 / Thunderbolt / tbn…). Never deep-link
+   /Settings/ThunderboltNet — that is the standalone CA launch page without siblings. */
+(function () {
+  function frrFindTabButton(needle) {
+    var tabs = document.querySelectorAll('.tabs [role="tab"], .tabs a, #menu a, .nav-item');
+    var want = (needle || '').toLowerCase();
+    if (!want) return null;
+    for (var i = 0; i < tabs.length; i++) {
+      var t = (tabs[i].textContent || tabs[i].innerText || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      if (t.indexOf(want) !== -1) return tabs[i];
+    }
+    return null;
+  }
+  window.frrGotoNetTab = function (needle, evt) {
+    if (typeof window.tbnGotoNetTab === 'function') {
+      return window.tbnGotoNetTab(needle, evt);
+    }
+    if (evt && evt.preventDefault) evt.preventDefault();
+    var tab = frrFindTabButton(needle);
+    if (tab) {
+      tab.click();
+      try { tab.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+      return false;
+    }
+    try { sessionStorage.setItem('tbnWantTab', needle); } catch (e2) {}
+    window.location.href = '/Settings/NetworkSettings';
+    return false;
+  };
+})();
+</script>
