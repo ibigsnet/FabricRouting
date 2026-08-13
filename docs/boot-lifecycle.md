@@ -8,7 +8,7 @@ That is **normal and required**. It is **not** “first-time CA install only.”
 
 Authors must keep that path **fast, offline-capable after first success, and non-blocking**.
 
-## What UnraidFRR does (2026.08.12da+)
+## What FabricRouting does (2026.08.12da+)
 
 | Phase | What runs | Network? | Blocks boot/emhttp? |
 |-------|-----------|----------|---------------------|
@@ -18,7 +18,7 @@ Authors must keep that path **fast, offline-capable after first success, and non
 
 ## Boot vs Apply (corrected)
 
-| External driver plugins (often) | UnraidFRR (this plugin) |
+| External driver plugins (often) | FabricRouting (this plugin) |
 |---------------|---------------------|
 | UI picks / Apply downloads large driver to flash | UI **Apply** downloads FRR `.txz` to flash |
 | Boot rehydrates from **flash cache** | Array start rehydrates from **flash cache** |

@@ -4,7 +4,7 @@
 # Invoked by PHP (frr_download_bundle) or CLI.
 set -euo pipefail
 
-PLUGIN_PHP=/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php
+PLUGIN_PHP=/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php
 if [ ! -f "$PLUGIN_PHP" ]; then
   PLUGIN_PHP="$(cd "$(dirname "$0")/.." && pwd)/include/frr-lib.php"
 fi

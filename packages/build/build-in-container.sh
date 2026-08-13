@@ -161,17 +161,17 @@ frr: frr (FRRouting suite)
 frr:
 frr: FRRouting is a free routing protocol suite for Linux.
 frr: Unraid package with fabricd (OpenFabric) enabled.
-frr: Managed by UnraidFRR / Fabric Routing plugin.
+frr: Managed by FabricRouting / Fabric Routing plugin.
 frr:
 EOF
   # doinst: do not enable ip_forward or touch network.cfg
   cat > "$stage/install/doinst.sh" <<'EOF'
 #!/bin/sh
-# UnraidFRR-managed package — no automatic sysctl or network.cfg changes.
+# FabricRouting-managed package — no automatic sysctl or network.cfg changes.
 if [ ! -e etc/frr/frr.conf ]; then
   mkdir -p etc/frr
   cat > etc/frr/frr.conf <<'CONF'
-! UnraidFRR baseline — policy comes from Fabric Routing / Thunderbolt Net
+! FabricRouting baseline — policy comes from Fabric Routing / Thunderbolt Net
 frr defaults traditional
 hostname unraid
 log syslog informational

@@ -1,12 +1,12 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name "UnraidFRR">
+<!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
 <!--
   Versioning — Unraid plugin updates use strcmp() (lexicographic), NOT version_compare.
   No hyphens. Bump only this entity; asset ?v= uses it.
 
-  Rules (ibigsnet fleet — StorageGuard / Thunderbolt Net / UnraidFRR / NBD Export):
+  Rules (ibigsnet fleet — StorageGuard / Thunderbolt Net / FabricRouting / NBD Export):
     YYYY.MM.DD       first release that calendar day
     YYYY.MM.DDaa     2nd same day, then ab, ac, ... az, ba, bb, ...
   Two-letter only after the bare date — never single a–z
@@ -14,15 +14,15 @@
   Historical 2026.08.12a–g used single letters — do not mint more.
 
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
-  /Settings/ThunderboltNet or /Settings/UnraidFRR (standalone CA pages).
+  /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.13ab">
-<!ENTITY launch "Settings/UnraidFRR">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
-<!ENTITY github "ibigsnet/UnraidFRR">
-<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main">
-<!ENTITY plugdir "/usr/local/emhttp/plugins/UnraidFRR">
-<!ENTITY configdir "/boot/config/plugins/UnraidFRR">
+<!ENTITY version "2026.08.13ac">
+<!ENTITY launch "Settings/FabricRouting">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
+<!ENTITY github "ibigsnet/FabricRouting">
+<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main">
+<!ENTITY plugdir "/usr/local/emhttp/plugins/FabricRouting">
+<!ENTITY configdir "/boot/config/plugins/FabricRouting">
 ]>
 
 <PLUGIN name="&name;"
@@ -38,6 +38,10 @@
 
 <CHANGES>
 ###&version;
+- **Rename:** product id **FabricRouting** (public **Fabric Routing**). No “Unraid” in the product name (trademark). Legacy UnraidFRR paths migrated on install.
+- Install URL: `fabricrouting.plg` on `ibigsnet/FabricRouting`.
+
+###2026.08.13ab
 - Docs: public sanitization — SUPPORTED matrix and lab notes use **Machine A/B** patterns (no personal hostnames/IPs); [lab-two-node-fabric.md](docs/lab-two-node-fabric.md).
 
 ###2026.08.13aa
@@ -76,16 +80,16 @@
 - Docs: Contents/TOC on DOCS.md.
 - UI: collapsible About; tighter companion strip (less wall of text).
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.
-- Public name: **Fabric Routing** (Network Settings tab) · **Fabric Routing (FRR)** (CA / Plugins blurb). Plugin id UnraidFRR.
+- Public name: **Fabric Routing** (Network Settings tab) · **Fabric Routing (FRR)** (CA / Plugins blurb). Plugin id FabricRouting.
 - Note: single-letter 12d was non-standard; use two-letter suffixes going forward.
 
 ###2026.08.11ag
 - Network Settings tab **Fabric Routing** (with Routing Table / Interface Rules), not System Settings tile.
-- Title explains FRR packages vs stock Routing Table; plugin id stays UnraidFRR.
+- Title explains FRR packages vs stock Routing Table; plugin id stays FabricRouting.
 
 ###2026.08.11af
 - Fix Settings placement: **System Settings tile** (`Menu="OtherSettings"`), not embedded section on /Settings (`Settings:50` was wrong).
-- Uninstall: also remove any stray UnraidFRR/FRR .page copies under webGui/dynamix; clear /tmp plugin remnants.
+- Uninstall: also remove any stray FabricRouting/FRR .page copies under webGui/dynamix; clear /tmp plugin remnants.
 
 ###2026.08.11ae
 - Docs/UI: when to install (rings, multi-hop, Proxmox+Unraid) vs skip (single static TB cable); roles vs Thunderbolt Net OpenFabric policy.
@@ -114,36 +118,55 @@
 </CHANGES>
 
 <!--
-  UnraidFRR is intentionally separate from ThunderboltNet:
+  FabricRouting is intentionally separate from ThunderboltNet:
   package install is invasive; users opt in. No PHP requires across plugins.
   Removal must not leave broken Unraid UI (StorageGuard/ThunderboltNet discipline).
 -->
 
 <FILE Run="/bin/bash">
 <INLINE><![CDATA[
-echo "UnraidFRR: preparing directories..."
-rm -rf /usr/local/emhttp/plugins/UnraidFRR
-rm -rf /usr/local/emhttp/plugins/unraidfrr
-mkdir -p /usr/local/emhttp/plugins/UnraidFRR/include
-mkdir -p /usr/local/emhttp/plugins/UnraidFRR/scripts
-mkdir -p /usr/local/emhttp/plugins/UnraidFRR/event
-mkdir -p /usr/local/emhttp/plugins/UnraidFRR/packages
-mkdir -p /boot/config/plugins/UnraidFRR/packages
+echo "FabricRouting: preparing directories..."
+rm -rf /usr/local/emhttp/plugins/FabricRouting
+rm -rf /usr/local/emhttp/plugins/fabricrouting
+mkdir -p /usr/local/emhttp/plugins/FabricRouting/include
+mkdir -p /usr/local/emhttp/plugins/FabricRouting/scripts
+mkdir -p /usr/local/emhttp/plugins/FabricRouting/event
+mkdir -p /usr/local/emhttp/plugins/FabricRouting/packages
+mkdir -p /boot/config/plugins/FabricRouting/packages
+
+# Migrate legacy UnraidFRR flash state (pre-rename) into FabricRouting
+if [ -d /boot/config/plugins/UnraidFRR ] && [ ! -f /boot/config/plugins/FabricRouting/FabricRouting.cfg ]; then
+  echo "FabricRouting: migrating config from legacy UnraidFRR..."
+  mkdir -p /boot/config/plugins/FabricRouting
+  if [ -f /boot/config/plugins/UnraidFRR/UnraidFRR.cfg ]; then
+    cp -a /boot/config/plugins/UnraidFRR/UnraidFRR.cfg /boot/config/plugins/FabricRouting/FabricRouting.cfg
+  fi
+  if [ -d /boot/config/plugins/UnraidFRR/packages ]; then
+    mkdir -p /boot/config/plugins/FabricRouting/packages
+    cp -a /boot/config/plugins/UnraidFRR/packages/. /boot/config/plugins/FabricRouting/packages/ 2>/dev/null || true
+  fi
+  for f in companion.json manifest.cache.json unraidfrr.log fabricrouting.log; do
+    [ -f "/boot/config/plugins/UnraidFRR/$f" ] && cp -a "/boot/config/plugins/UnraidFRR/$f" "/boot/config/plugins/FabricRouting/" 2>/dev/null || true
+  done
+fi
+# Remove legacy emhttp tree so old Settings id does not linger
+rm -rf /usr/local/emhttp/plugins/UnraidFRR /usr/local/emhttp/plugins/unraidfrr
+rm -f /var/log/plugins/unraidfrr.plg /boot/config/plugins/unraidfrr.plg 2>/dev/null || true
 # Never block a new install on a stale Apply lock from a killed session
-rm -f /boot/config/plugins/UnraidFRR/apply.lock
-echo "UnraidFRR: directories ready."
+rm -f /boot/config/plugins/FabricRouting/apply.lock
+echo "FabricRouting: directories ready."
 ]]></INLINE>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/UnraidFRR.page">
-<URL>&raw;/UnraidFRR.page?v=&version;</URL>
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/FabricRouting.page">
+<URL>&raw;/FabricRouting.page?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/default.cfg">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/default.cfg">
 <URL>&raw;/default.cfg?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/README.md">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/README.md">
 <INLINE>
 <![CDATA[
 **Fabric Routing (FRR)**
@@ -153,72 +176,77 @@ Optional FRRouting for Unraid (packages via catalog + flash cache on Apply). Boo
 </INLINE>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/packages/manifest.json">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/packages/manifest.json">
 <URL>&raw;/packages/manifest.json?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php">
 <URL>&raw;/include/frr-lib.php?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/include/frr-update.php">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/include/frr-update.php">
 <URL>&raw;/include/frr-update.php?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-install-packages">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-install-packages">
 <URL>&raw;/scripts/frr-install-packages?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-apply">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-apply">
 <URL>&raw;/scripts/frr-apply?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-download">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-download">
 <URL>&raw;/scripts/frr-download?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/scripts/frr-force-cleanup">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-force-cleanup">
 <URL>&raw;/scripts/frr-force-cleanup?v=&version;</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/UnraidFRR/event/started">
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/event/started">
 <URL>&raw;/event/started?v=&version;</URL>
 </FILE>
 
 <FILE Run="/bin/bash">
 <INLINE><![CDATA[
-echo "UnraidFRR: finishing install (files only — no package download)..."
-chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-install-packages 2>/dev/null || true
-chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-apply 2>/dev/null || true
-chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-download 2>/dev/null || true
-chmod 755 /usr/local/emhttp/plugins/UnraidFRR/scripts/frr-force-cleanup 2>/dev/null || true
-chmod 755 /usr/local/emhttp/plugins/UnraidFRR/event/started 2>/dev/null || true
-mkdir -p /boot/config/plugins/UnraidFRR/packages
+echo "FabricRouting: finishing install (files only — no package download)..."
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-install-packages 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-apply 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-download 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-force-cleanup 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/event/started 2>/dev/null || true
+mkdir -p /boot/config/plugins/FabricRouting/packages
 # Stale Apply lock must not block a later UI Apply
-rm -f /boot/config/plugins/UnraidFRR/apply.lock
-if [ ! -f /boot/config/plugins/UnraidFRR/UnraidFRR.cfg ]; then
-  if [ -f /usr/local/emhttp/plugins/UnraidFRR/default.cfg ]; then
-    cp -a /usr/local/emhttp/plugins/UnraidFRR/default.cfg /boot/config/plugins/UnraidFRR/UnraidFRR.cfg
-    echo "UnraidFRR: created default UnraidFRR.cfg"
+rm -f /boot/config/plugins/FabricRouting/apply.lock
+if [ ! -f /boot/config/plugins/FabricRouting/FabricRouting.cfg ]; then
+  if [ -f /usr/local/emhttp/plugins/FabricRouting/default.cfg ]; then
+    cp -a /usr/local/emhttp/plugins/FabricRouting/default.cfg /boot/config/plugins/FabricRouting/FabricRouting.cfg
+    echo "FabricRouting: created default FabricRouting.cfg"
   fi
 fi
 # Companion marker only. NEVER frr_apply / download here.
 # Unraid re-runs this plg every boot (rc.local); network package work belongs on
 # Settings → Apply. Array start rehydrates flash cache only (event/started).
-php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; frr_write_companion_marker();' 2>/dev/null || true
-echo "UnraidFRR: install complete (plugin files registered)."
-echo "UnraidFRR: To download FRR packages: Settings → Network Settings → Fabric Routing → Apply."
-echo "UnraidFRR: Leave the progress window open until Done. Hard-refresh (Ctrl+Shift+R)."
+php -r 'require_once "/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php"; frr_write_companion_marker();' 2>/dev/null || true
+echo "FabricRouting: install complete (plugin files registered)."
+echo "FabricRouting: To download FRR packages: Settings → Network Settings → Fabric Routing → Apply."
+echo "FabricRouting: Leave the progress window open until Done. Hard-refresh (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
 
 <FILE Run="/bin/bash" Method="remove">
 <INLINE><![CDATA[
-echo "UnraidFRR: removing plugin (full cleanup)..."
+echo "FabricRouting: removing plugin (full cleanup)..."
+
+# Legacy product id (pre-rename)
+rm -rf /usr/local/emhttp/plugins/UnraidFRR /usr/local/emhttp/plugins/unraidfrr
+rm -rf /boot/config/plugins/UnraidFRR
+rm -f /boot/config/plugins/unraidfrr.plg /var/log/plugins/unraidfrr.plg 2>/dev/null || true
 
 # 0) Stop any in-flight Apply / background install
-rm -f /boot/config/plugins/UnraidFRR/apply.lock
-pkill -f 'frr_apply|UnraidFRR/include/frr-lib' 2>/dev/null || true
+rm -f /boot/config/plugins/FabricRouting/apply.lock
+pkill -f 'frr_apply|FabricRouting/include/frr-lib' 2>/dev/null || true
 
 # 1) Stop FRR so package removal is not blocked and daemons do not linger
 systemctl stop frr 2>/dev/null || true
@@ -234,7 +262,7 @@ for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
 done
 
 # 2) removepkg — MANIFEST first, then glob any leftover frr/libyang we may have installed
-MAN=/boot/config/plugins/UnraidFRR/packages/MANIFEST.txt
+MAN=/boot/config/plugins/FabricRouting/packages/MANIFEST.txt
 if [ -f "$MAN" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line%%#*}"
@@ -243,7 +271,7 @@ if [ -f "$MAN" ]; then
     base="$(basename "$line")"
     pkgname="$(echo "$base" | sed -E 's/\.(t[gx]z|tar\.gz)$//')"
     if command -v removepkg >/dev/null 2>&1; then
-      echo "UnraidFRR: removepkg $pkgname"
+      echo "FabricRouting: removepkg $pkgname"
       removepkg "$pkgname" 2>/dev/null || removepkg "$base" 2>/dev/null || true
     fi
   done < "$MAN"
@@ -252,7 +280,7 @@ if command -v removepkg >/dev/null 2>&1; then
   for pkgpath in /var/log/packages/frr-* /var/log/packages/libyang-*; do
     [ -e "$pkgpath" ] || continue
     pkgname="$(basename "$pkgpath")"
-    echo "UnraidFRR: removepkg sweep $pkgname"
+    echo "FabricRouting: removepkg sweep $pkgname"
     removepkg "$pkgname" 2>/dev/null || true
   done
 fi
@@ -261,52 +289,52 @@ fi
 rm -rf /var/run/frr /run/frr 2>/dev/null || true
 # Keep /etc/frr and /var/lib/frr? Clean removal = wipe runtime config we created
 rm -rf /etc/frr /var/lib/frr 2>/dev/null || true
-rm -f /var/log/unraidfrr.log 2>/dev/null || true
+rm -f /var/log/fabricrouting.log 2>/dev/null || true
 
 # 4) Remove emhttp plugin tree (case variants — avoid leftover Settings pages)
-rm -rf /usr/local/emhttp/plugins/UnraidFRR
-rm -rf /usr/local/emhttp/plugins/unraidfrr
+rm -rf /usr/local/emhttp/plugins/FabricRouting
+rm -rf /usr/local/emhttp/plugins/fabricrouting
 rm -rf /usr/local/emhttp/plugins/Unraidfrr
 
 find /usr/local/emhttp/webGui /usr/local/emhttp/plugins/dynamix -maxdepth 1 -type f \
-  \( -name 'UnraidFRR.page' -o -name 'UnraidFRR-*.page' -o -name 'unraidfrr.page' \) \
+  \( -name 'FabricRouting.page' -o -name 'FabricRouting-*.page' -o -name 'fabricrouting.page' \) \
   -delete 2>/dev/null || true
 
 # 5) Flash state (cfg, package cache, marker, locks)
-rm -rf /boot/config/plugins/UnraidFRR
-rm -rf /boot/config/plugins/unraidfrr
+rm -rf /boot/config/plugins/FabricRouting
+rm -rf /boot/config/plugins/fabricrouting
 rm -rf /boot/config/plugins/Unraidfrr
 
 # 6) Temp + log plugins remnants
-rm -f /tmp/plugins/unraidfrr.plg /tmp/plugins/unraidfrr.txt 2>/dev/null || true
-rm -f /tmp/plugins/UnraidFRR* /tmp/inline*-unraidfrr.sh 2>/dev/null || true
-rm -f /var/log/plugins/unraidfrr.plg /var/log/plugins/UnraidFRR.plg 2>/dev/null || true
+rm -f /tmp/plugins/fabricrouting.plg /tmp/plugins/fabricrouting.txt 2>/dev/null || true
+rm -f /tmp/plugins/FabricRouting* /tmp/inline*-fabricrouting.sh 2>/dev/null || true
+rm -f /var/log/plugins/fabricrouting.plg /var/log/plugins/FabricRouting.plg 2>/dev/null || true
 
 # 7) Sanity
 FAIL=0
 if which vtysh >/dev/null 2>&1; then
-  echo "UnraidFRR: WARNING — vtysh still on PATH (foreign FRR install?)"
+  echo "FabricRouting: WARNING — vtysh still on PATH (foreign FRR install?)"
   FAIL=1
 fi
 if ls /var/log/packages/frr-* /var/log/packages/libyang-* >/dev/null 2>&1; then
-  echo "UnraidFRR: WARNING — package records still present under /var/log/packages"
+  echo "FabricRouting: WARNING — package records still present under /var/log/packages"
   FAIL=1
 fi
-if [ -e /usr/local/emhttp/plugins/UnraidFRR ] || [ -e /boot/config/plugins/UnraidFRR ]; then
-  echo "UnraidFRR: WARNING — plugin paths still present"
+if [ -e /usr/local/emhttp/plugins/FabricRouting ] || [ -e /boot/config/plugins/FabricRouting ]; then
+  echo "FabricRouting: WARNING — plugin paths still present"
   FAIL=1
 fi
 if pgrep -x zebra >/dev/null 2>&1 || pgrep -x fabricd >/dev/null 2>&1; then
-  echo "UnraidFRR: WARNING — FRR processes still running"
+  echo "FabricRouting: WARNING — FRR processes still running"
   FAIL=1
 fi
 if [ "$FAIL" = "0" ]; then
-  echo "UnraidFRR: cleanup verified clean."
+  echo "FabricRouting: cleanup verified clean."
 fi
 
-echo "UnraidFRR: removed."
-echo "UnraidFRR: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
-echo "UnraidFRR: hard-refresh the browser (Ctrl+Shift+R)."
+echo "FabricRouting: removed."
+echo "FabricRouting: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
+echo "FabricRouting: hard-refresh the browser (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
 

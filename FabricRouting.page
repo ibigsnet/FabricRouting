@@ -7,11 +7,11 @@ Markdown="false"
 <?php
 /**
  * Settings → Network Settings → Fabric Routing
- * CA: Fabric Routing (FRR). Plugin id: UnraidFRR.
+ * CA: Fabric Routing (FRR). Plugin id: FabricRouting.
  */
-require_once '/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php';
+require_once '/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php';
 
-$plugin = 'UnraidFRR';
+$plugin = 'FabricRouting';
 $cfg = function_exists('parse_plugin_cfg') ? parse_plugin_cfg($plugin) : [];
 if (!is_array($cfg)) {
   $cfg = [];
@@ -152,13 +152,13 @@ $bundle_ok = !empty($bundle['ok']);
       <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
         BGP/OSPF stay Off until you enable them.</p>
       <p>
-        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup guide ↗</strong></a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup guide ↗</strong></a>
         ·
-        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR vs Unraid routing ↗</a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR vs Unraid routing ↗</a>
         ·
-        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/defaults-rationale.md" target="_blank" rel="noopener">Why these defaults ↗</a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/defaults-rationale.md" target="_blank" rel="noopener">Why these defaults ↗</a>
         ·
-        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/DOCS.md" target="_blank" rel="noopener">Full docs ↗</a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/DOCS.md" target="_blank" rel="noopener">Full docs ↗</a>
       </p>
     </div>
   </details>
@@ -208,7 +208,7 @@ $bundle_ok = !empty($bundle['ok']);
 <?php else: ?>
           <span class="frr-badge frr-badge-warn">No match yet</span>
           <span class="frr-muted"><?= htmlspecialchars($bundle['error'] ?? 'resolving…') ?></span>
-          <br><span class="frr-muted">Hard-refresh (Ctrl+Shift+R) after catalog updates, then <strong>Apply</strong> to force re-fetch. See <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
+          <br><span class="frr-muted">Hard-refresh (Ctrl+Shift+R) after catalog updates, then <strong>Apply</strong> to force re-fetch. See <a href="https://github.com/ibigsnet/FabricRouting/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
 <?php endif; ?>
         </td>
       </tr>
@@ -228,8 +228,8 @@ $bundle_ok = !empty($bundle['ok']);
   </div>
 
   <form method="POST" action="/update.php" target="progressFrame">
-    <input type="hidden" name="#file" value="UnraidFRR/UnraidFRR.cfg">
-    <input type="hidden" name="#include" value="/plugins/UnraidFRR/include/frr-update.php">
+    <input type="hidden" name="#file" value="FabricRouting/FabricRouting.cfg">
+    <input type="hidden" name="#include" value="/plugins/FabricRouting/include/frr-update.php">
 
     <div class="frr-section">
       <h3>Packages</h3>
@@ -389,7 +389,7 @@ $bundle_ok = !empty($bundle['ok']);
 </div>
 <script>
 /* Fleet standard: Network Settings sibling tabs (ibigsGotoNetTab).
-   Never deep-link /Settings/ThunderboltNet or /Settings/UnraidFRR (standalone CA). */
+   Never deep-link /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA). */
 (function (global) {
   'use strict';
   var WANT = 'ibigsWantTab';

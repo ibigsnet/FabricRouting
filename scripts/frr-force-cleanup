@@ -2,15 +2,15 @@
 # Emergency cleanup when plugin is half-installed (emhttp present, no Plugins entry).
 # Safe on Unraid: does not touch network.cfg / br0 / Docker / Thunderbolt Net.
 set -euo pipefail
-echo "UnraidFRR force-cleanup starting..."
-rm -f /boot/config/plugins/UnraidFRR/apply.lock 2>/dev/null || true
+echo "FabricRouting force-cleanup starting..."
+rm -f /boot/config/plugins/FabricRouting/apply.lock 2>/dev/null || true
 systemctl stop frr 2>/dev/null || true
 /usr/sbin/frrinit.sh stop 2>/dev/null || true
 /usr/lib/frr/frrinit.sh stop 2>/dev/null || true
 for p in zebra fabricd bgpd ospfd ospf6d isisd staticd bfdd watchfrr mgmtd; do
   pkill -9 -x "$p" 2>/dev/null || true
 done
-MAN=/boot/config/plugins/UnraidFRR/packages/MANIFEST.txt
+MAN=/boot/config/plugins/FabricRouting/packages/MANIFEST.txt
 if [ -f "$MAN" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line%%#*}"; line="$(echo "$line" | tr -d '\r' | xargs)"
@@ -25,10 +25,10 @@ for pkgpath in /var/log/packages/frr-* /var/log/packages/libyang-*; do
   removepkg "$(basename "$pkgpath")" 2>/dev/null || true
 done
 rm -rf /var/run/frr /run/frr /etc/frr /var/lib/frr 2>/dev/null || true
-rm -rf /usr/local/emhttp/plugins/UnraidFRR /usr/local/emhttp/plugins/unraidfrr
-rm -rf /boot/config/plugins/UnraidFRR /boot/config/plugins/unraidfrr
-rm -f /boot/config/plugins/unraidfrr.plg /var/log/plugins/unraidfrr.plg
-rm -f /var/log/unraidfrr.log
-echo "UnraidFRR force-cleanup done."
+rm -rf /usr/local/emhttp/plugins/FabricRouting /usr/local/emhttp/plugins/fabricrouting
+rm -rf /boot/config/plugins/FabricRouting /boot/config/plugins/fabricrouting
+rm -f /boot/config/plugins/fabricrouting.plg /var/log/plugins/fabricrouting.plg
+rm -f /var/log/fabricrouting.log
+echo "FabricRouting force-cleanup done."
 which vtysh 2>/dev/null && echo "WARN: vtysh still present" || echo "vtysh: gone"
 pgrep -x zebra >/dev/null && echo "WARN: zebra running" || echo "zebra: gone"

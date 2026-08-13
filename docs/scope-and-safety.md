@@ -54,7 +54,7 @@ So:
 | No catalog match | **Idle** download | Wrong Unraid version does not get a random binary |
 | zebra / fabricd / staticd | On when packages live | Ready for fabric; still need policy |
 | bgpd / ospfd / isisd / … | **Off** | Avoid surprise LAN protocols |
-| IP forwarding | **Not set by UnraidFRR** | Unraid LAN behavior stays Unraid’s |
+| IP forwarding | **Not set by FabricRouting** | Unraid LAN behavior stays Unraid’s |
 | Auto-add br0 / wlan / docker0 | **Never** | Hard rule |
 
 ---

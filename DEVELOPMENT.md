@@ -1,4 +1,4 @@
-# UnraidFRR — development plan
+# FabricRouting — development plan
 
 Follows the same release discipline as StorageGuard / Thunderbolt Net (`YYYY.MM.DDxx`, tags, no empty-file pushes).
 
@@ -25,7 +25,7 @@ Follows the same release discipline as StorageGuard / Thunderbolt Net (`YYYY.MM.
 
 Mixed fabric testing (any node count): see Thunderbolt Net `docs/fabric-proxmox-unraid.md`.
 
-- [ ] Install UnraidFRR alone — Settings page loads; idle with empty packages  
+- [ ] Install FabricRouting alone — Settings page loads; idle with empty packages  
 - [ ] br0 still works; Docker still works  
 - [ ] Drop packages → Apply → `vtysh -v`  
 - [ ] No unexpected LAN routes on `ip route`  

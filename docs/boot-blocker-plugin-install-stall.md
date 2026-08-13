@@ -1,13 +1,13 @@
 # Boot blocker: plugin install stalling emhttp — 2026-08-12
 
 **Host:** secondary lab Unraid (Machine B pattern) — management IP omitted in public notes  
-**Purpose:** Capture why iterations were killing the host / stalling array so we stop thrashing and fix UnraidFRR later.
+**Purpose:** Capture why iterations were killing the host / stalling array so we stop thrashing and fix FabricRouting later.
 
 ---
 
 ## What is blocking us *right now* (this boot)
 
-### Primary: UnraidFRR plugin install never finishes → `emhttp` never starts
+### Primary: FabricRouting plugin install never finishes → `emhttp` never starts
 
 Unraid boot order (simplified):
 
@@ -25,11 +25,11 @@ Unraid boot order (simplified):
 | `emhttpd` / nginx | **Not running** — never logged `Starting emhttpd` |
 | `/mnt/cache`, `/mnt/user` | **DOWN** |
 | libvirt | **Down** (normal until array/emhttp) |
-| Blocking process | `php -q /usr/local/sbin/plugin install /boot/config/plugins/unraidfrr.plg` (PID stuck **minutes**) |
+| Blocking process | `php -q /usr/local/sbin/plugin install /boot/config/plugins/fabricrouting.plg` (PID stuck **minutes**) |
 | Child | `frr_write_companion_marker(); frr_apply();` waiting on **pipe read** |
 | Parent | **`/etc/rc.d/rc.local` still running** — waiting on plugin install |
 
-So **auto array start is not broken by unclean shutdown config**. It simply **never gets a chance to run** because rc.local is wedged on UnraidFRR.
+So **auto array start is not broken by unclean shutdown config**. It simply **never gets a chance to run** because rc.local is wedged on FabricRouting.
 
 **Kernel reset reason (this boot):**
 
@@ -100,11 +100,11 @@ Not a single magic bug — stacked bad ops:
 
 ---
 
-## UnraidFRR — bug to fix later (custom plugin)
+## FabricRouting — bug to fix later (custom plugin)
 
-**Plugin:** UnraidFRR (ibigsnet / local work)  
-**Plg:** `/boot/config/plugins/unraidfrr.plg`  
-**Install path:** `/usr/local/emhttp/plugins/UnraidFRR/`
+**Plugin:** FabricRouting (ibigsnet / local work)  
+**Plg:** `/boot/config/plugins/fabricrouting.plg`  
+**Install path:** `/usr/local/emhttp/plugins/FabricRouting/`
 
 ### Failure mode
 
@@ -118,13 +118,13 @@ Process tree (stuck):
 
 ```text
 rc.local
-  └─ plugin install unraidfrr.plg
-       └─ bash /tmp/inline12-unraidfrr.sh
+  └─ plugin install fabricrouting.plg
+       └─ bash /tmp/inline12-fabricrouting.sh
             └─ php frr_apply() …  (blocked in anon_pipe_read)
                  └─ sh …
 ```
 
-Also: on install, plugin-manager **re-downloads** many files from GitHub (`UnraidFRR.page`, packages, scripts). Slow or hanging network during boot makes this worse. Boot must not block forever on package download + `frr_apply`.
+Also: on install, plugin-manager **re-downloads** many files from GitHub (`FabricRouting.page`, packages, scripts). Slow or hanging network during boot makes this worse. Boot must not block forever on package download + `frr_apply`.
 
 ### Fix directions (later — do not rush mid-gaming-iter)
 
@@ -133,9 +133,9 @@ Also: on install, plugin-manager **re-downloads** many files from GitHub (`Unrai
    - `frr_apply()` only from **array start event** (`event/started`) or UI button, with timeout.  
 2. **Never wait unbounded on pipes** in install path; timeout + log + leave emhttp free.  
 3. **Offline-capable install** — packages on flash under `packages/`; no mandatory GitHub fetch at boot if files already present.  
-4. **Safe mode / disable flag** — e.g. `/boot/config/plugins/UnraidFRR/disable` or rename `.plg` to `.plg.disabled` to recover host without FRR.  
+4. **Safe mode / disable flag** — e.g. `/boot/config/plugins/FabricRouting/disable` or rename `.plg` to `.plg.disabled` to recover host without FRR.  
 5. **Idempotent apply** — if zebra/watchfrr already up or mgmt iface is wifi-only, do not hang on netlink “Operation not supported” (seen on wlan0/tailscale1).  
-6. **Log clearly** — `logger -t UnraidFRR` start/end of apply so syslog shows block.
+6. **Log clearly** — `logger -t FabricRouting` start/end of apply so syslog shows block.
 
 ### Emergency recovery (when FRR blocks array)
 
@@ -147,10 +147,10 @@ kill <plugin-install-pid>   # and children if needed
 /usr/local/sbin/emhttp
 # 3) WebUI: confirm array/cache start (startArray=yes should then run)
 # 4) Optional disable until fixed:
-mv /boot/config/plugins/unraidfrr.plg /boot/config/plugins/unraidfrr.plg.disabled
+mv /boot/config/plugins/fabricrouting.plg /boot/config/plugins/fabricrouting.plg.disabled
 ```
 
-Do **not** kill random PHP without checking `pgrep -af unraidfrr|plugin install`.
+Do **not** kill random PHP without checking `pgrep -af fabricrouting|plugin install`.
 
 ---
 
@@ -173,7 +173,7 @@ Do **not** kill random PHP without checking `pgrep -af unraidfrr|plugin install`
 ## Next steps (ordered)
 
 1. Documented here (this file).  
-2. **Later:** fix UnraidFRR non-blocking install (see above).  
+2. **Later:** fix FabricRouting non-blocking install (see above).  
 3. Recover this boot: kill stuck FRR install *or* disable plg → finish rc.local/go → emhttp → array → verify VFIO → **patient** Nobara start.  
 4. Resume MC/EAC identity only after host stable.  
 5. Optional: free a second host core for Unraid resilience.

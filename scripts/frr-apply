@@ -1,4 +1,4 @@
 #!/bin/bash
 # CLI Apply: packages + daemons + start. Standalone.
-php -r 'require_once "/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php"; echo json_encode(frr_apply(), JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), "\n";' 2>/dev/null \
+php -r 'require_once "/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php"; echo json_encode(frr_apply(), JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), "\n";' 2>/dev/null \
   || php -r 'require_once "' "$(dirname "$0")/../include/frr-lib.php" '"; echo json_encode(frr_apply(), JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), "\n";'

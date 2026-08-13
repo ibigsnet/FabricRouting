@@ -7,14 +7,14 @@ You can get the plugin in **either** of these ways. Both install the same Unraid
 ### Option A — Community Applications (recommended for most users)
 
 1. On Unraid, open the **Apps** tab (Community Applications).  
-2. Search for **FRR** or **UnraidFRR**.  
+2. Search for **FRR** or **FabricRouting**.  
 3. Open the app and click **Install** (or **Update** if already installed).  
 4. Hard-refresh the browser (**Ctrl+Shift+R** / **Cmd+Shift+R**).  
 5. Open **Settings → Network Settings → Fabric Routing** → set **Auto-download = Yes** once if needed → **Apply**.
 
-**Support in CA:** use the app’s **Support** / **Project** menu — Support currently goes to [GitHub Issues](https://github.com/ibigsnet/UnraidFRR/issues); Project goes to [GitHub](https://github.com/ibigsnet/UnraidFRR). (Unraid forum thread can replace Support when published, same pattern as Storage Guard / Thunderbolt Net.)
+**Support in CA:** use the app’s **Support** / **Project** menu — Support currently goes to [GitHub Issues](https://github.com/ibigsnet/FabricRouting/issues); Project goes to [GitHub](https://github.com/ibigsnet/FabricRouting). (Unraid forum thread can replace Support when published, same pattern as Storage Guard / Thunderbolt Net.)
 
-CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templates) repo (`plugins/unraidfrr.xml`); updates may lag a short time after a GitHub push.
+CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templates) repo (`plugins/fabricrouting.xml`); updates may lag a short time after a GitHub push.
 
 ### Option B — Plugins → Install Plugin (raw URL)
 
@@ -25,8 +25,8 @@ CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templat
 
 | Track | When to use | URL |
 |-------|-------------|-----|
-| **Latest (`main`)** | Always get the newest published tree | `https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg` |
-| **Pinned tag** | Install/rollback to a fixed version | `https://raw.githubusercontent.com/ibigsnet/UnraidFRR/vVERSION/unraidfrr.plg` |
+| **Latest (`main`)** | Always get the newest published tree | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
+| **Pinned tag** | Install/rollback to a fixed version | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg` |
 
 After install, confirm the version under **Plugins**.
 
@@ -41,7 +41,7 @@ After install, confirm the version under **Plugins**.
 
 **Plugins → Fabric Routing (FRR) → Remove** (or remove via CA).
 
-Removal stops FRR, removes packages we installed (when known via MANIFEST), clears emhttp plugin paths and flash config under `/boot/config/plugins/UnraidFRR`. Does not touch Unraid Network Settings or Thunderbolt Net. Hard-refresh after remove. See [DOCS.md — Uninstall](DOCS.md#uninstall-clean-removal).
+Removal stops FRR, removes packages we installed (when known via MANIFEST), clears emhttp plugin paths and flash config under `/boot/config/plugins/FabricRouting`. Does not touch Unraid Network Settings or Thunderbolt Net. Hard-refresh after remove. See [DOCS.md — Uninstall](DOCS.md#uninstall-clean-removal).
 
 ---
 
@@ -58,7 +58,7 @@ Unraid plugin updates use **lexicographic `strcmp()`**, not PHP `version_compare
 
 - No hyphens in the version string.  
 - After the bare date, use **two-letter** suffixes only — never a single `a`–`z` on a new day.  
-- Bump only `<!ENTITY version "…">` in `unraidfrr.plg`; asset URLs use `?v=&version;`.  
+- Bump only `<!ENTITY version "…">` in `fabricrouting.plg`; asset URLs use `?v=&version;`.  
 - Add a `###&version;` block under `<CHANGES>` in the same ship.
 
 ### Cross-plugin UI links (fleet standard)
@@ -68,7 +68,7 @@ Same rules as Thunderbolt Net / NBD Export:
 | Do | Don’t |
 |----|--------|
 | `/Settings/NetworkSettings` + `ibigsGotoNetTab('Thunderbolt')` | `/Settings/ThunderboltNet` |
-| `/Settings/NetworkSettings` + `ibigsGotoNetTab('Fabric Routing')` | `/Settings/UnraidFRR` |
+| `/Settings/NetworkSettings` + `ibigsGotoNetTab('Fabric Routing')` | `/Settings/FabricRouting` |
 
 Canonical JS: **`ibigsGotoNetTab(needle, event)`** (aliases: `tbnGotoNetTab`, `frrGotoNetTab`, `nbdGotoNetTab`).  
 Storage: `sessionStorage.ibigsWantTab` (+ legacy `tbnWantTab`).
@@ -120,7 +120,7 @@ develop → bump .plg version + CHANGES → push main (= Latest)
 
 | | |
 |--|--|
-| **GitHub repo** | https://github.com/ibigsnet/UnraidFRR |
+| **GitHub repo** | https://github.com/ibigsnet/FabricRouting |
 | **CA templates** | https://github.com/ibigsnet/unraid-templates |
 | **Docs** | [DOCS.md](DOCS.md) · [docs/](docs/) |
 | **Thunderbolt Net** | https://github.com/ibigsnet/ThunderboltNet |

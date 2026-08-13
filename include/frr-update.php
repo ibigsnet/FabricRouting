@@ -1,6 +1,6 @@
 <?php
 /**
- * #include after writing UnraidFRR.cfg
+ * #include after writing FabricRouting.cfg
  * Output goes to Unraid progressFrame — leave that window open until finished
  * (Unraid progressFrame — leave open until finished).
  */
@@ -12,6 +12,6 @@ while (ob_get_level() > 0) {
 }
 ob_implicit_flush(true);
 
-require_once '/usr/local/emhttp/plugins/UnraidFRR/include/frr-lib.php';
+require_once '/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php';
 
 frr_apply();

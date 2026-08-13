@@ -3,13 +3,13 @@
 Full product intro: [../DOCS.md](../DOCS.md).
 
 **UI:** Settings → Network Settings → **Fabric Routing**  
-**Plugin id / install:** UnraidFRR · `unraidfrr.plg`
+**Plugin id / install:** FabricRouting · `fabricrouting.plg`
 
 ## How the pieces fit
 
 ```text
 User options (channel, daemons)
-    → UnraidFRR catalog (manifest.json)
+    → FabricRouting catalog (manifest.json)
     → auto-download + sha256 + installpkg
     → FRR daemons (zebra, fabricd, …)
     → optional Thunderbolt Net OpenFabric policy on TB ifaces
@@ -42,6 +42,6 @@ User options (channel, daemons)
 | [../RELEASES.md](../RELEASES.md) | CA + raw install URLs, versioning, tags |
 | [boot-lifecycle.md](boot-lifecycle.md) | Boot plg vs UI Apply vs array-start rehydrate |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
-| [plugin-fleet-boot-audit.md](plugin-fleet-boot-audit.md) | Boot/install audit across UnraidFRR + siblings |
+| [plugin-fleet-boot-audit.md](plugin-fleet-boot-audit.md) | Boot/install audit across FabricRouting + siblings |
 | [lab-two-node-fabric.md](lab-two-node-fabric.md) | Two-host lab pattern (Machine A/B; no personal hostnames) |
 | [boot-blocker-plugin-install-stall.md](boot-blocker-plugin-install-stall.md) | Why heavy work must not run in `.plg` at boot |

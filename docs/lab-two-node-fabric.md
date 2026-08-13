@@ -29,7 +29,7 @@ Optional later underlay: **Thunderbolt host-net** (e.g. 1-lane train ≈ **~20 G
 | OpenFabric on private **eth0** | Adjacency **Up** ↔ B | Adjacency **Up** ↔ A |
 | Default route on mgmt iface | Unchanged | Unchanged |
 
-**Catalog:** GitHub Release [`pkg-10.7.0`](https://github.com/ibigsnet/UnraidFRR/releases/tag/pkg-10.7.0) + `packages/manifest.json` for Unraid 7.0–7.3 x86_64.
+**Catalog:** GitHub Release [`pkg-10.7.0`](https://github.com/ibigsnet/FabricRouting/releases/tag/pkg-10.7.0) + `packages/manifest.json` for Unraid 7.0–7.3 x86_64.
 
 ## Connectivity checks
 
@@ -42,7 +42,7 @@ ethtool eth0 | grep Speed   # e.g. 2500Mb/s on a 2.5G link
 
 ## After packages exist
 
-1. Cache `.txz` under `/boot/config/plugins/UnraidFRR/packages/` (or use Auto-download → Apply).  
+1. Cache `.txz` under `/boot/config/plugins/FabricRouting/packages/` (or use Auto-download → Apply).  
 2. Smoke `vtysh -c 'show version'` on Machine A.  
 3. Repeat on Machine B.  
 4. OpenFabric / static tests only on the **private** underlay (not the management Wi‑Fi/LAN).

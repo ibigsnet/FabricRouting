@@ -1,20 +1,20 @@
 # Fabric Routing (FRR) — Documentation
 
-How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite on Unraid—package catalog download on **Apply** (when Auto-download is Yes), daemon selection, and safe defaults for the rest of the network stack.
+How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) suite on Unraid—package catalog download on **Apply** (when Auto-download is Yes), daemon selection, and safe defaults for the rest of the network stack.
 
-**Install (recommended):** Apps (Community Applications) → search **FRR** or **UnraidFRR** → Install.
+**Install (recommended):** Apps (Community Applications) → search **FRR** or **FabricRouting** → Install.
 
 **Manual install:** Plugins → Install Plugin →  
-`https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg`
+`https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg`
 
-**Support:** [GitHub Issues](https://github.com/ibigsnet/UnraidFRR/issues)  
-**Source / project:** [github.com/ibigsnet/UnraidFRR](https://github.com/ibigsnet/UnraidFRR)  
+**Support:** [GitHub Issues](https://github.com/ibigsnet/FabricRouting/issues)  
+**Source / project:** [github.com/ibigsnet/FabricRouting](https://github.com/ibigsnet/FabricRouting)  
 **CA templates:** [ibigsnet/unraid-templates](https://github.com/ibigsnet/unraid-templates)  
 **Support development:** [Patreon](https://www.patreon.com/cw/IBIGSNet) · [PayPal](https://www.paypal.com/paypalme/RifleJock)
 
 `README.md` is only the short Unraid Plugins-list blurb (`**Name**` + one paragraph). Unraid runs it through Markdown for the Plugins description—keep it tiny. This file is the full documentation.
 
-**Related plugin:** [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) — TB host-net underlay and OpenFabric *policy* when FRR is present. UnraidFRR does **not** require it.
+**Related plugin:** [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) — TB host-net underlay and OpenFabric *policy* when FRR is present. FabricRouting does **not** require it.
 
 ---
 
@@ -39,7 +39,7 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 
 ## When do I need this?
 
-| Your setup | Install UnraidFRR? |
+| Your setup | Install FabricRouting? |
 |------------|--------------------|
 | Two hosts, **one** TB cable, static IPs, file copy / SMB | **No** — Thunderbolt Net underlay is enough |
 | **Ring / mesh / multi-hop** (reach a host through a neighbor) | **Yes** — packages here; OpenFabric policy on Thunderbolt Net |
@@ -47,7 +47,7 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 | Want OSPF/BGP/etc. on Unraid for non-TB reasons | **Yes** — standalone FRR manager; enable daemons you need |
 | Curious about USB4STREAM / `thunderbolt_stream` | **Wrong plugin** — that is a **Linux kernel** feature, not FRR |
 
-**Roles:** UnraidFRR = **packages + daemons**. Thunderbolt Net = **tbn IPs + OpenFabric conf/metrics**. Neither installs the other.
+**Roles:** FabricRouting = **packages + daemons**. Thunderbolt Net = **tbn IPs + OpenFabric conf/metrics**. Neither installs the other.
 
 On Thunderbolt Net, the orange chip **needs FRR packages** jumps to the Multi-hop companion card that points here.
 
@@ -65,7 +65,7 @@ Unraid does not ship FRR. This plugin **owns FRR lifecycle** on the host:
 | **Daemons** | Enables selected entries in `/etc/frr/daemons` (zebra, fabricd, …) |
 | **Start** | Best-effort start/restart of the FRR service |
 | **UI** | **Settings → Network Settings → Fabric Routing** tab (with Routing Table) — status, channel, daemons |
-| **Companion marker** | `companion.json` so Thunderbolt Net can detect UnraidFRR |
+| **Companion marker** | `companion.json` so Thunderbolt Net can detect FabricRouting |
 
 You choose **options** only (channel, which daemons, auto-download). You do **not** need to manually copy packages once Auto-download has populated the flash cache.
 
@@ -133,13 +133,13 @@ Same pattern as Storage Guard and Thunderbolt Net—**two equivalent ways** to g
 
 ### Option A — Community Applications (recommended)
 
-1. **Apps** tab → search **FRR** or **UnraidFRR**.  
+1. **Apps** tab → search **FRR** or **FabricRouting**.  
 2. **Install** or **Update**.  
 3. Hard-refresh the browser (**Ctrl+Shift+R**).  
 4. Open **Settings → Network Settings → Fabric Routing** (tab with eth / Routing Table / Thunderbolt).  
 5. First time: Auto-download **Yes** → **Apply** (leave progress open). Later: Auto-download can stay **No**.
 
-CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) (`plugins/unraidfrr.xml`). Updates may lag a short time after GitHub.
+CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) (`plugins/fabricrouting.xml`). Updates may lag a short time after GitHub.
 
 ### Option B — Plugins → Install Plugin (raw URL)
 
@@ -149,10 +149,10 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates) 
 
 | Track | URL |
 |-------|-----|
-| **Latest (`main`)** | `https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg` |
+| **Latest (`main`)** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
 
 Pinned tags (when published):  
-`https://raw.githubusercontent.com/ibigsnet/UnraidFRR/vVERSION/unraidfrr.plg`
+`https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg`
 
 After install, confirm the version under **Plugins**.
 
@@ -174,8 +174,8 @@ Use **Plugins → Fabric Routing (FRR) → Remove** (or remove via CA). The plug
 
 1. **Stop FRR** (service + common daemon processes) so nothing holds package files.  
 2. **`removepkg`** packages listed in the plugin’s managed `MANIFEST.txt` when present (undoes what we installed into the live system).  
-3. **Remove** emhttp plugin paths (`/usr/local/emhttp/plugins/UnraidFRR`, case variants).  
-4. **Remove** flash state under `/boot/config/plugins/UnraidFRR` (config, package cache, marker)—full clean so a later reinstall starts fresh.  
+3. **Remove** emhttp plugin paths (`/usr/local/emhttp/plugins/FabricRouting`, case variants).  
+4. **Remove** flash state under `/boot/config/plugins/FabricRouting` (config, package cache, marker)—full clean so a later reinstall starts fresh.  
 5. **Does not** edit Unraid `network.cfg`, br0, Docker, or Thunderbolt Net.  
 6. **Does not** require Thunderbolt Net to be installed or uninstalled first. If TBN remains, it simply sees FRR missing and stays on static underlay.
 
@@ -189,10 +189,10 @@ Use **Plugins → Fabric Routing (FRR) → Remove** (or remove via CA). The plug
 
 | Step | Action |
 |------|--------|
-| 1 | Install UnraidFRR → Apply (FRR present when catalog matches) |
+| 1 | Install FabricRouting → Apply (FRR present when catalog matches) |
 | 2 | Install Thunderbolt Net → OpenFabric **On** if you want multi-hop |
 | 3 | TBN writes marked OpenFabric conf for TB ifaces + lo; reloads FRR |
-| 4 | Remove UnraidFRR alone → TBN degrades to static TB; no UI breakage |
+| 4 | Remove FabricRouting alone → TBN degrades to static TB; no UI breakage |
 
 Integration notes: [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md).  
 Mixed Unraid + Proxmox/Debian fabrics: [TBN fabric guide](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md).

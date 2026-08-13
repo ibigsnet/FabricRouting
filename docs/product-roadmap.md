@@ -67,7 +67,7 @@ Keep the split **clear forever** (docs, UI, forum, CA blurbs):
 
 | Plugin | Owns | Does **not** own |
 |--------|------|------------------|
-| **Fabric Routing (UnraidFRR)** | FRR **packages**, install/rehydrate, daemon on/off, **global** fabric policy surface over time, status | TB discovery, cable UX, tbn IP assignment |
+| **Fabric Routing (FabricRouting)** | FRR **packages**, install/rehydrate, daemon on/off, **global** fabric policy surface over time, status | TB discovery, cable UX, tbn IP assignment |
 | **Thunderbolt Net** | TB host-net underlay, peers, tbn IPs, **per-TB-iface** OpenFabric participate/metric (today), OpenFabric conf **marked blocks** for `thunderbolt*` | Shipping FRR `.txz` |
 | **NBD Export** | Block device over network (imaging, remote disk) | Routing protocols |
 | **Stock Unraid** | br0, Wi‑Fi, GUI mgmt, array, Docker | FRR |
@@ -146,7 +146,7 @@ Metrics matter: a 40G TB path should beat 2.5G for multi-hop preference (auto: `
 ### Implementation sketch (phases)
 
 1. **Read-only Interfaces table** on Fabric Routing: live ifaces, speed, whether currently in `frr.conf` / TBN participate list, zebra/fabricd up.  
-2. **Editable policy** for non-TB ifaces → generate marked conf block `! BEGIN UnraidFRR Fabric Policy` …  
+2. **Editable policy** for non-TB ifaces → generate marked conf block `! BEGIN FabricRouting Fabric Policy` …  
 3. **Metric auto** from `ethtool` / sysfs speed (and TBN trained Mbps when iface is thunderbolt*).  
 4. **Conflict UI** if TBN and FRR both claim the same iface.  
 5. Optional: import TBN participate rows into the FRR table as read-only “managed by Thunderbolt Net”.
@@ -206,7 +206,7 @@ Run **several deliberate passes** (not one giant rewrite). Public tone only — 
 | **6 — Safety** | LAN-safe defaults; never-touch Wi‑Fi story | `scope-and-safety.md` |
 | **7 — Forum/CA freeze** | Short Overview + FAQ pulled from passes 1–6 | CA xml, forum draft |
 
-Each pass: fix TOC, kill awkward tables, align names (**Fabric Routing** public / UnraidFRR id).
+Each pass: fix TOC, kill awkward tables, align names (**Fabric Routing** public / FabricRouting id).
 
 ---
 
@@ -244,7 +244,7 @@ Each pass: fix TOC, kill awkward tables, align names (**Fabric Routing** public 
 
 | Item | Action |
 |------|--------|
-| Template | `unraid-templates/plugins/unraidfrr.xml` — refresh **Overview** with “first packages live for Unraid 7.x x86_64”, OpenFabric, Proxmox/AI one-liners |
+| Template | `unraid-templates/plugins/fabricrouting.xml` — refresh **Overview** with “first packages live for Unraid 7.x x86_64”, OpenFabric, Proxmox/AI one-liners |
 | Category | Keep Network:Management |
 | Support | GitHub issues + forum thread |
 | Icon | Keep; consistent with suite |

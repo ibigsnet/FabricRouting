@@ -24,12 +24,12 @@
         {
           "file": "libyang-2.1.148-x86_64-1_unraid.txz",
           "sha256": "644b1015d084ccbe6d45103b223d3d08f87b87119256ea7fdc21029da9ab45dd",
-          "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.7.0/libyang-2.1.148-x86_64-1_unraid.txz"
+          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.7.0/libyang-2.1.148-x86_64-1_unraid.txz"
         },
         {
           "file": "frr-10.7.0-x86_64-1_unraid.txz",
           "sha256": "26be9f943d2d12d48cc81dd8c0393b868f8195717925a89bdb11f3d4bc2949e5",
-          "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.7.0/frr-10.7.0-x86_64-1_unraid.txz"
+          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.7.0/frr-10.7.0-x86_64-1_unraid.txz"
         }
       ]
     }

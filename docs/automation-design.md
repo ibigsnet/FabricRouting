@@ -1,10 +1,10 @@
-# UnraidFRR automation design (catalog + flash cache)
+# FabricRouting automation design (catalog + flash cache)
 
 ## Goal
 
 Users **never** manually download or copy FRR packages. Product flow:
 
-1. Install UnraidFRR from CA / raw `.plg` (**files only** — seconds; no package download at boot)  
+1. Install FabricRouting from CA / raw `.plg` (**files only** — seconds; no package download at boot)  
 2. Choose options under **Network Settings → Fabric Routing** (daemons, channel)  
 3. User clicks **Apply** → plugin **downloads**, **verifies**, **installs**, and **starts** FRR (catalog)  
 4. On **array start**, plugin **rehydrates from flash cache into RAM** (no network)  
@@ -36,7 +36,7 @@ See [boot-lifecycle.md](boot-lifecycle.md).
 ### Location (default)
 
 ```text
-https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/packages/manifest.json
+https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json
 ```
 
 Large binaries may live on **GitHub Releases**; manifest entries carry full `url` + `sha256`.
@@ -71,12 +71,12 @@ Override: Settings → **Package catalog URL** (advanced; default above).
         {
           "file": "libyang-….txz",
           "sha256": "…",
-          "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.2.1/libyang-….txz"
+          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.2.1/libyang-….txz"
         },
         {
           "file": "frr-10.2.1-….txz",
           "sha256": "…",
-          "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.2.1/frr-10.2.1-….txz"
+          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.2.1/frr-10.2.1-….txz"
         }
       ]
     }
@@ -98,10 +98,10 @@ If **no bundle** matches: UI shows clear message (Unraid version not yet support
 ## Flash layout (managed by plugin)
 
 ```text
-/boot/config/plugins/UnraidFRR/
-  UnraidFRR.cfg           # user options
+/boot/config/plugins/FabricRouting/
+  FabricRouting.cfg           # user options
   companion.json          # for Thunderbolt Net / others
-  unraidfrr.log           # durable log
+  fabricrouting.log           # durable log
   packages/               # download cache (plugin-owned)
     .bundle-id            # which bundle is cached
     MANIFEST.txt          # install order (generated)
@@ -164,7 +164,7 @@ Remove UI/scripts; **keep** flash cache by default (fast reinstall). Optional fu
 
 ## Lifecycle summary
 
-| Phase | UnraidFRR |
+| Phase | FabricRouting |
 |--------|-------------------------|
 | Pick driver branch/version in UI | Pick package **channel** (+ later explicit FRR version) |
 | Plugin downloads ~100MB+ package | Plugin downloads FRR + deps from catalog |
@@ -196,4 +196,4 @@ Until a bundle exists for a given Unraid version, the plugin reports **“No aut
 
 ## Thunderbolt Net
 
-Unchanged split: UnraidFRR **owns FRR presence**; Thunderbolt Net **owns OpenFabric policy** when `vtysh`/`fabricd` exist. Automation here means TBN users who install UnraidFRR get FRR without a second manual package hunt.
+Unchanged split: FabricRouting **owns FRR presence**; Thunderbolt Net **owns OpenFabric policy** when `vtysh`/`fabricd` exist. Automation here means TBN users who install FabricRouting get FRR without a second manual package hunt.

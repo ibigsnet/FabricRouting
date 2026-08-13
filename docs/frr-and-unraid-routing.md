@@ -140,7 +140,7 @@ They **share the kernel**. They are **not** the same UI.
 | bgpd / ospfd / isisd | **Off** |
 | fabricd / zebra / staticd | **On** (when packages live) — still need conf/policy for real fabric |
 | Edit `network.cfg` | **Never** |
-| IP forwarding | **Not set by UnraidFRR** (TBN may when OpenFabric needs it) |
+| IP forwarding | **Not set by FabricRouting** (TBN may when OpenFabric needs it) |
 
 Details: [scope-and-safety.md](scope-and-safety.md).
 

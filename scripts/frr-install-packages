@@ -3,8 +3,8 @@
 # Safe no-op if packages/ is empty. Does not require Thunderbolt Net.
 set -euo pipefail
 
-PKGDIR="/boot/config/plugins/UnraidFRR/packages"
-LOG="/var/log/unraidfrr.log"
+PKGDIR="/boot/config/plugins/FabricRouting/packages"
+LOG="/var/log/fabricrouting.log"
 log() { echo "$(date -Iseconds) $*" | tee -a "$LOG" 2>/dev/null || echo "$(date -Iseconds) $*"; }
 
 if [ ! -d "$PKGDIR" ]; then

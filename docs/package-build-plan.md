@@ -1,6 +1,6 @@
 # FRR package build plan — first Unraid bundle (lab: primary host / Machine A)
 
-**Goal:** Ship the first automated UnraidFRR package set so **Fabric Routing → Apply** downloads real `.txz` files, `installpkg`s them, and leaves `vtysh` / `zebra` / `fabricd` usable.
+**Goal:** Ship the first automated FabricRouting package set so **Fabric Routing → Apply** downloads real `.txz` files, `installpkg`s them, and leaves `vtysh` / `zebra` / `fabricd` usable.
 
 **Lab host:** primary host (Machine A pattern)  
 **Do not touch:** production array/cache data. Package work uses flash + RAM/tmp scratch only.
@@ -82,7 +82,7 @@
                                       │ HTTPS
                                       ▼
                     ┌─────────────────────────────────────┐
-  UnraidFRR plugin  │  frr_download_bundle → flash cache  │
+  FabricRouting plugin  │  frr_download_bundle → flash cache  │
                     │  installpkg → RAM root              │
                     │  daemons + start_frr                │
                     └─────────────────────────────────────┘
@@ -221,10 +221,10 @@ Why not build bare on Unraid without a container:
 
 ```text
 # On Machine A (example)
-cp out/*.txz /boot/config/plugins/UnraidFRR/packages/
+cp out/*.txz /boot/config/plugins/FabricRouting/packages/
 # Write MANIFEST.txt install order: libyang then frr
-installpkg /boot/config/plugins/UnraidFRR/packages/libyang-*.txz
-installpkg /boot/config/plugins/UnraidFRR/packages/frr-*.txz
+installpkg /boot/config/plugins/FabricRouting/packages/libyang-*.txz
+installpkg /boot/config/plugins/FabricRouting/packages/frr-*.txz
 vtysh -c 'show version'
 ls /usr/lib/frr/fabricd /usr/sbin/fabricd 2>/dev/null
 ```
@@ -247,7 +247,7 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 
 ## Phase 4 — Catalog + GitHub Release
 
-1. Create GitHub Release on `ibigsnet/UnraidFRR`:  
+1. Create GitHub Release on `ibigsnet/FabricRouting`:  
    `pkg-10.x.y` (match FRR version)  
 2. Upload `.txz` assets  
 3. Update `packages/manifest.json`:
@@ -264,12 +264,12 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
     "packages": [
       {
         "file": "libyang-….txz",
-        "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.x.y/libyang-….txz",
+        "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.x.y/libyang-….txz",
         "sha256": "…"
       },
       {
         "file": "frr-….txz",
-        "url": "https://github.com/ibigsnet/UnraidFRR/releases/download/pkg-10.x.y/frr-….txz",
+        "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.x.y/frr-….txz",
         "sha256": "…"
       }
     ]
@@ -291,7 +291,7 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 | Apply (download path) | Packages in flash cache + live binaries |
 | Array stop/start or reboot | `install_on_start` rehydrates FRR |
 | Destructive: disable auto-download | No re-fetch; still uses cache |
-| Uninstall UnraidFRR | `removepkg` via MANIFEST; no leftover daemons |
+| Uninstall FabricRouting | `removepkg` via MANIFEST; no leftover daemons |
 | Thunderbolt Net OpenFabric | Chip / status sees FRR; policy can write conf when TB links exist |
 | LAN-safe | No OSPF/BGP on br0/wlan unless user enables + conf (defaults off) |
 
@@ -361,7 +361,7 @@ Package correctness **does not** require wires. Fabric **behavior** does.
 
 ## Immediate next actions (execution order)
 
-1. **Phase 0:** Add `packages/build/` scripts + Dockerfile scaffold in UnraidFRR.  
+1. **Phase 0:** Add `packages/build/` scripts + Dockerfile scaffold in FabricRouting.  
 2. **Phase 1:** On Machine A, create `/mnt/cache/frr-build`, pull base image, prove compile of a tiny C hello + makepkg.  
 3. **Phase 2:** libyang → frr build; iterate configure until fabricd links.  
 4. **Phase 3:** manual installpkg + plugin Apply (daemons).  
