@@ -20,6 +20,7 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 
 ## Contents
 
+- [First-time setup](#first-time-setup)
 - [When do I need this?](#when-do-i-need-this)
 - [What it does](#what-it-does)
 - [FRR vs Unraid Routing Table](#frr-vs-unraid-routing-table)
@@ -29,6 +30,12 @@ How UnraidFRR installs and manages the [FRRouting](https://frrouting.org/) suite
 - [With Thunderbolt Net](#with-thunderbolt-net)
 - [Documentation map](#documentation-map)
 - [Related](#related)
+
+## First-time setup
+
+**New to FRR or this plugin?** Start here:
+
+**[docs/first-time-setup.md](docs/first-time-setup.md)** — do I need it, plugin map, first Apply (packages), what each setting means, success checks, common mistakes.
 
 ## When do I need this?
 

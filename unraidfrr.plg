@@ -15,7 +15,7 @@
   Historical 2026.08.12a–d used single-letter suffixes; do not add more
   single letters. Next after 12d is 12da (two-letter, still strcmp-newer).
 -->
-<!ENTITY version "2026.08.12f">
+<!ENTITY version "2026.08.12g">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -37,6 +37,7 @@
 
 <CHANGES>
 ###&version;
+- Docs: first-time-setup.md — need/skip, settings guide, first Apply checklist; linked from DOCS + UI.
 - UI: companion link goes to /Settings/ThunderboltNet (Thunderbolt tab), not bare Network Settings.
 - Defaults: Auto-download **No** (opt-in network fetch); first-time Yes → Apply still works.
 - UI: beginner “What is FRR?” section; clearer package/daemon help; no public Nvidia branding.

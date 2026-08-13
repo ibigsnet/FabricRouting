@@ -152,6 +152,8 @@ $bundle_ok = !empty($bundle['ok']);
       <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
         BGP/OSPF stay Off until you enable them.</p>
       <p>
+        <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup guide ↗</strong></a>
+        ·
         <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR vs Unraid routing ↗</a>
         ·
         <a href="https://github.com/ibigsnet/UnraidFRR/blob/main/docs/defaults-rationale.md" target="_blank" rel="noopener">Why these defaults ↗</a>

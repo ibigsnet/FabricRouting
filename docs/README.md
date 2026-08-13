@@ -17,8 +17,9 @@ User options (channel, daemons)
 
 | You want… | Start here |
 |-----------|------------|
+| **First-time setup** (settings + first Apply) | **[first-time-setup.md](first-time-setup.md)** |
 | Install (CA or raw URL) / uninstall | [../DOCS.md](../DOCS.md) · [../RELEASES.md](../RELEASES.md) |
-| When to install vs skip | [../DOCS.md](../DOCS.md#when-do-i-need-this) |
+| When to install vs skip | [first-time-setup.md](first-time-setup.md#1-do-you-need-fabric-routing) · [../DOCS.md](../DOCS.md#when-do-i-need-this) |
 | Automation design (catalog / flash cache) | [automation-design.md](automation-design.md) |
 | Ethernet / host-wide safety | [scope-and-safety.md](scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [integration-thunderboltnet.md](integration-thunderboltnet.md) |
@@ -33,7 +34,8 @@ User options (channel, daemons)
 
 | Doc | Contents |
 |-----|----------|
-| [automation-design.md](automation-design.md) | Full auto download/install lifecycle |
+| [first-time-setup.md](first-time-setup.md) | Onboarding: need/skip, settings, first Apply, success checks |
+| [automation-design.md](automation-design.md) | Catalog / flash cache / Apply lifecycle |
 | [scope-and-safety.md](scope-and-safety.md) | Host-wide FRR vs br0/eth safety |
 | [integration-thunderboltnet.md](integration-thunderboltnet.md) | Optional TBN companion |
 | [../RELEASES.md](../RELEASES.md) | CA + raw install URLs, versioning, tags |
