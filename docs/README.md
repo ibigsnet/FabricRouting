@@ -28,6 +28,7 @@ User options (channel, daemons)
 | FRR vs stock Routing Table / what Unraid can leverage | [frr-and-unraid-routing.md](frr-and-unraid-routing.md) |
 | Scope & LAN safety | [scope-and-safety.md](scope-and-safety.md) |
 | Product roadmap / ambitions | [product-roadmap.md](product-roadmap.md) |
+| Two-host lab pattern (anonymized) | [lab-two-node-fabric.md](lab-two-node-fabric.md) |
 | Defaults rationale | [defaults-rationale.md](defaults-rationale.md) |
 
 ## All topics
@@ -42,3 +43,5 @@ User options (channel, daemons)
 | [boot-lifecycle.md](boot-lifecycle.md) | Boot plg vs UI Apply vs array-start rehydrate |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
 | [plugin-fleet-boot-audit.md](plugin-fleet-boot-audit.md) | Boot/install audit across UnraidFRR + siblings |
+| [lab-two-node-fabric.md](lab-two-node-fabric.md) | Two-host lab pattern (Machine A/B; no personal hostnames) |
+| [boot-blocker-plugin-install-stall.md](boot-blocker-plugin-install-stall.md) | Why heavy work must not run in `.plg` at boot |

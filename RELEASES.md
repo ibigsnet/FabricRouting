@@ -95,7 +95,7 @@ Same discipline as Thunderbolt Net / Storage Guard:
 6. **Tag** — `git tag -a "vYYYY.MM.DDxx" -m "Fabric Routing YYYY.MM.DDxx"` + push tag.  
 7. **RELEASES.md** — update Stable baselines row.  
 8. **CA** — unraid-templates PluginURL usually tracks `main`; bump Overview only if story changes.  
-9. **Lab** — NIROG preferred for install/remove cycles (`docs/install-uninstall-audit.md`).
+9. **Lab** — use a non-production host for install/remove cycles (`docs/install-uninstall-audit.md`).
 
 ### Tracks at a glance
 

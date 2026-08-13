@@ -1,6 +1,6 @@
-# HoloX3D host hang + boot blockers — 2026-08-12
+# Boot blocker: plugin install stalling emhttp — 2026-08-12
 
-**Chassis:** HoloX3D (GENE) Unraid · `192.168.1.4`  
+**Host:** secondary lab Unraid (Machine B pattern) — management IP omitted in public notes  
 **Purpose:** Capture why iterations were killing the host / stalling array so we stop thrashing and fix UnraidFRR later.
 
 ---
@@ -21,7 +21,7 @@ Unraid boot order (simplified):
 | Check | Result |
 |--------|--------|
 | `startArray` in `disk.cfg` | `"yes"` (config OK) |
-| Cache pool `cache.cfg` | Present (4× SanDisk RAID10, UUID `9dc32bdf-…`) |
+| Cache pool `cache.cfg` | Present (4× cache pool (RAID), UUID (omitted)) |
 | `emhttpd` / nginx | **Not running** — never logged `Starting emhttpd` |
 | `/mnt/cache`, `/mnt/user` | **DOWN** |
 | libvirt | **Down** (normal until array/emhttp) |
@@ -140,7 +140,7 @@ Also: on install, plugin-manager **re-downloads** many files from GitHub (`Unrai
 ### Emergency recovery (when FRR blocks array)
 
 ```bash
-# On Holo SSH — only if emhttpd not running and plugin install stuck:
+# On the stuck host (SSH) — only if emhttpd not running and plugin install stuck:
 # 1) Stop the stuck install (accept FRR incomplete this boot)
 kill <plugin-install-pid>   # and children if needed
 # 2) Let rc.local finish OR run go / emhttp manually:
@@ -164,7 +164,7 @@ Do **not** kill random PHP without checking `pgrep -af unraidfrr|plugin install`
 
 ## Guest (Nobara) notes (still valid)
 
-- Hibernate unstick applied on 9100: `noresume`, resume= stripped, swap recreated UUID `6098a8cf-ab0f-456d-a808-5fe05e86cc77`.  
+- Hibernate unstick applied on 9100: `noresume`, resume= stripped, swap recreated UUID (omitted).  
 - Phase 1 domain: sysinfo AMI + `vm=off` (S8) — re-verify after healthy host+guest boot.  
 - Protect serials: 9100 `S7YJNJ0Y800227R`; never wipe; 990s host/cache only.
 
@@ -180,4 +180,4 @@ Do **not** kill random PHP without checking `pgrep -af unraidfrr|plugin install`
 
 ---
 
-*Captured 2026-08-12 from live Holo SSH after user hard-reset; array/libvirt down; FRR plugin install stuck ~4+ minutes on pipe read.*
+*Captured 2026-08-12 from live SSH after user hard-reset; array/libvirt down; FRR plugin install stuck ~4+ minutes on pipe read.*

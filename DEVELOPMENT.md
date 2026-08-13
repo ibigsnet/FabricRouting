@@ -16,7 +16,7 @@ Follows the same release discipline as StorageGuard / Thunderbolt Net (`YYYY.MM.
 |-------|-------------|------|
 | **0** | Scaffold, docs, scope/safety | No |
 | **1** | Harden baseline conf, UI warnings, logging | No |
-| **2** | First real FRR `.txz` (or documented build) for one Unraid line | **Yes** — [package-build-plan.md](docs/package-build-plan.md) (lab NIROG 7.3.2) |
+| **2** | First real FRR `.txz` (or documented build) for one Unraid line | **Yes** — [package-build-plan.md](docs/package-build-plan.md) (lab Unraid 7.3.2 x86_64) |
 | **3** | Boot reinstall reliability, uninstall options, CA template | Yes |
 | **4** | Optional signed download URL from GitHub Releases | Yes |
 | **5** | Status: daemon health, vtysh snippet, conflict detect (foreign frr.conf) | Yes |

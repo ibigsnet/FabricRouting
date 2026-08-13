@@ -6,8 +6,8 @@ Two kinds of rows in the matrix:
 
 | Status | Meaning |
 |--------|---------|
-| **Lab-confirmed** | We installed the bundle on real hardware, ran `vtysh`, and exercised basic fabric (or at least install + daemons). |
-| **Suggested (compatible)** | Same catalog range / same binary we *expect* to work (same major Unraid line + arch, similar userspace). Not separately lab-signed. Report issues if it fails. |
+| **Lab-confirmed** | Bundle installed on real hardware; `vtysh` works; basic fabric exercised (install + daemons, and where noted OpenFabric). |
+| **Suggested (compatible)** | Same catalog range / same binary we *expect* to work (same major Unraid line + arch, similar userspace). Not separately signed off on every minor build. Report issues if it fails. |
 | **Not in catalog** | Apply will not download packages. Need a new build or explicit range before support claims. |
 
 ---
@@ -16,7 +16,7 @@ Two kinds of rows in the matrix:
 
 | Unraid product | Arch | FRR package set | Status |
 |----------------|------|-----------------|--------|
-| **7.3.2** | **x86_64** | FRR **10.7.0** + libyang **2.1.148** | **Lab-confirmed** — NIROG + HoloX3D (install, fabricd, OpenFabric on eth0) |
+| **7.3.2** | **x86_64** | FRR **10.7.0** + libyang **2.1.148** | **Lab-confirmed** — two-host fabric: install, fabricd, OpenFabric adjacency on private **2.5G eth0** underlay |
 | **7.3.x** (other 7.3 builds) | **x86_64** | same bundle | **Suggested** — same product line as lab |
 | **7.0.x – 7.2.x** | **x86_64** | same bundle | **Suggested** — catalog range; similar 7.x userspace; not separately lab-signed |
 | 6.12.x | x86_64 | — | **Not in catalog** |
@@ -54,8 +54,8 @@ We still prefer **narrow lab-confirmed rows** in this doc even when the catalog 
 
 1. Install Fabric Routing on that Unraid product + arch.  
 2. Apply → packages install → `vtysh -c 'show version'`.  
-3. Optional: OpenFabric or static underlay smoke test.  
-4. Update this matrix (**Lab-confirmed** + host notes).  
+3. Optional: OpenFabric or static underlay smoke test (two hosts on a private link).  
+4. Update this matrix (**Lab-confirmed** + what was exercised).  
 5. Only then market that exact version as tested.
 
 Widening **catalog** range without lab: allowed for **Suggested**, with clear wording.
@@ -67,3 +67,4 @@ Widening **catalog** range without lab: allowed for **Suggested**, with clear wo
 - [manifest.json](manifest.json) — machine-readable ranges  
 - [README.md](README.md) — maintainer build/release  
 - [../docs/frr-and-unraid-routing.md](../docs/frr-and-unraid-routing.md) — FRR vs stock Routing Table  
+- [../docs/lab-two-node-fabric.md](../docs/lab-two-node-fabric.md) — generic two-host lab pattern  

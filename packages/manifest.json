@@ -34,5 +34,5 @@
       ]
     }
   ],
-  "notes": "First automated bundle: Slackware-style packages built for Unraid 7.3.2 lab (NIROG). Includes fabricd (OpenFabric). Built with --disable-protobuf."
+  "notes": "First automated bundle: Slackware-style packages built for Unraid 7.3.2 x86_64 lab. Includes fabricd (OpenFabric). Built with --disable-protobuf."
 }

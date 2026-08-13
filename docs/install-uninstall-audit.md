@@ -1,6 +1,6 @@
 # Install / uninstall audit (full stack)
 
-**Lab:** NIROG `192.168.1.3` (preferred for destructive cycles).  
+**Lab:** primary host (Machine A) preferred for destructive install/remove cycles.  
 **Date:** 2026-08-12.
 
 ---
@@ -12,7 +12,7 @@
 | `plugin remove` said removed, but FRR packages + emhttp + flash remained | Plugin **not registered** (`/var/log/plugins/unraidfrr.plg` missing). Unraid only runs `Method=remove` when the installed plg path is valid; orphaned files need force cleanup. |
 | “No match yet” after catalog shipped | **Stale empty** `manifest.cache.json` (1h TTL). Fixed: empty catalogs not long-cached; Apply force-refreshes. |
 | Install interrupted mid-download → half state | Finish script ran **`frr_apply()`** (sync or background download) during boot plg rehydrate — blocked `rc.local` / registration. Fixed **2026.08.12da**: boot = **files only**; download only on UI **Apply**. |
-| Array never auto-starts after reboot | Boot stuck on UnraidFRR package fetch inside `plugin install` (Holo 2026-08-12). Same root cause. |
+| Array never auto-starts after reboot | Boot stuck on UnraidFRR package fetch inside `plugin install` (see boot-blocker-plugin-install-stall.md). Same root cause. |
 | Second Apply blocked forever | Stale **`apply.lock`** after killed process. Fixed: clear lock on prepare/remove; dead-pid detection. |
 | Progress window empty | `frr-update.php` called apply with no echo. Fixed: progress-frame lines. |
 

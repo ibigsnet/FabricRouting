@@ -14,7 +14,7 @@
 
 ## Lab (current)
 
-- Host: Unraid **7.3.2** x86_64, glibc **2.43** (NIROG).  
+- Host: Unraid **7.3.2** x86_64, glibc **2.43** (primary lab host).  
 - Sacred: `/mnt/cache` BTRFS RAID1 data.  
 - Scratch OK: `/mnt/cache/frr-build` (dedicated dir only).
 

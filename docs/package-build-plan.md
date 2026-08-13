@@ -1,9 +1,9 @@
-# FRR package build plan — first Unraid bundle (lab: NIROG)
+# FRR package build plan — first Unraid bundle (lab: primary host / Machine A)
 
 **Goal:** Ship the first automated UnraidFRR package set so **Fabric Routing → Apply** downloads real `.txz` files, `installpkg`s them, and leaves `vtysh` / `zebra` / `fabricd` usable.
 
-**Lab host:** `192.168.1.3` (NIROG)  
-**Do not touch:** `/mnt/cache` BTRFS RAID1 data (appdata, domains, docker.img, etc.). Package work is flash + RAM root only.
+**Lab host:** primary host (Machine A pattern)  
+**Do not touch:** production array/cache data. Package work uses flash + RAM/tmp scratch only.
 
 ---
 
@@ -15,7 +15,7 @@
 - [Phase 0 — Repo scaffolding](#phase-0--repo-scaffolding)
 - [Phase 1 — Build environment](#phase-1--build-environment)
 - [Phase 2 — First packages (libyang + frr)](#phase-2--first-packages-libyang--frr)
-- [Phase 3 — Install on NIROG (no catalog yet)](#phase-3--install-on-nirog-no-catalog-yet)
+- [Phase 3 — Install on Machine A (no catalog yet)](#phase-3--install-on-machine-a-no-catalog-yet)
 - [Phase 4 — Catalog + GitHub Release](#phase-4--catalog--github-release)
 - [Phase 5 — Plugin E2E + companions](#phase-5--plugin-e2e--companions)
 - [Phase 6 — Network matrix (you + optional adapters)](#phase-6--network-matrix-you--optional-adapters)
@@ -25,26 +25,21 @@
 
 ---
 
-## Lab facts (gathered)
+## Lab facts (target environment)
 
 | Item | Value |
 |------|--------|
-| Host | NIROG @ `192.168.1.3` |
-| Unraid | **7.3.2** |
+| Host | primary lab Unraid (Machine A pattern) |
+| Unraid | **7.3.2** (lab-confirmed product) |
 | Arch | **x86_64** |
-| Kernel | `6.18.38-Unraid` |
-| Userspace | Slackware **15.0+**, **glibc 2.43** |
-| CPU / RAM | Ryzen 9 9950X3D (32 threads), **61 GiB** RAM |
-| Flash | `/boot` ~8.4 GiB free (enough for package cache) |
-| Rootfs | tmpfs-style ~31 GiB free (installpkg target) |
-| UnraidFRR | Installed; `auto_download=yes`; log: **catalog empty** |
-| Docker | Present (build vehicle) |
-| **Cache** | BTRFS 2-device pool `/mnt/cache` (~7.1 TiB used) — **sacred** |
-| NIC hardware (PCI) | Intel **I225-V** (1G-class), **Aquantia AQC113** (10G), Intel **AX210** Wi‑Fi 6E, **TB4 Maple Ridge** |
-| Interfaces currently up | **`wlan0` = 192.168.1.3/24** only (wired eth / TB host-net not up in `ip` dump) |
-| TB | Thunderbolt domain `0-0` present; no `thunderboltN` addresses yet |
+| Userspace | Slackware **15.0+**-class, modern **glibc** (lab: 2.43) |
+| Flash | Enough free space on `/boot` for package cache (hundreds of MB) |
+| Rootfs | Enough free RAM/tmp for `installpkg` |
+| Docker / build vehicle | Available for Slackware-style toolchain builds |
+| Production data | Array/cache pools — **do not wipe**; use `/tmp` or dedicated scratch |
+| NICs | Management path (Wi‑Fi or LAN) separate from fabric underlay (e.g. 2.5G eth, later TB/10G) |
 
-**Implication:** Package **build + installpkg** can run over **Wi‑Fi**. Multi-hop / OpenFabric / 10G / TB validation needs **physical wiring** later (see Phase 6).
+**Implication:** Package **build + installpkg** can run over the management path. Multi-hop / OpenFabric / high-speed underlay validation needs **physical wiring** on a private subnet (see Phase 6 and [lab-two-node-fabric.md](lab-two-node-fabric.md)).
 
 ---
 
@@ -57,7 +52,7 @@
    - `channel: latest`
    - `arch: x86_64`
    - `unraid_min` / `unraid_max` covering **7.3.x** (and likely 7.0–7.3 while we learn glibc range)
-5. On NIROG: **Apply** → download → sha256 OK → installpkg → `vtysh -c 'show version'` and fabricd present.  
+5. On Machine A: **Apply** → download → sha256 OK → installpkg → `vtysh -c 'show version'` and fabricd present.  
 6. Reboot/array-start rehydrates from flash cache.  
 7. Uninstall path still `removepkg`s from MANIFEST.  
 8. **br0/wlan**, Docker, **cache pool** unchanged and healthy.
@@ -75,7 +70,7 @@
                                       ▼
                     ┌─────────────────────────────────────┐
   Build box         │  Slackware-compatible chroot/image  │
-  (Docker on NIROG  │  ./configure --enable-fabricd …     │
+  (Docker on Machine A  │  ./configure --enable-fabricd …     │
    or workstation)  │  make + makepkg → .txz              │
                     └─────────────────┬───────────────────┘
                                       │ upload
@@ -112,7 +107,7 @@
 | Example empty bundle comments in manifest | Already documented shape |
 | CI optional later | Build on tag `pkg-*` only after first manual success |
 
-**Exit:** `podman`/`docker` can run a smoke “hello makepkg” container on NIROG or local with volume mount to `/mnt/user/…` **build work dir on cache is OK for scratch** if under a dedicated path like `/mnt/cache/frr-build` that we create — **do not** write into appdata/domains randomly. Prefer **`/mnt/cache/frr-build`** or **`/tmp/frr-build`** on rootfs for intermediate; final `.txz` copy to flash `packages/` only after success.
+**Exit:** `podman`/`docker` can run a smoke “hello makepkg” container on Machine A or local with volume mount to `/mnt/user/…` **build work dir on cache is OK for scratch** if under a dedicated path like `/mnt/cache/frr-build` that we create — **do not** write into appdata/domains randomly. Prefer **`/mnt/cache/frr-build`** or **`/tmp/frr-build`** on rootfs for intermediate; final `.txz` copy to flash `packages/` only after success.
 
 Scratch on cache: only a **new directory we own**; never rebalance/format/wipe cache devices.
 
@@ -120,9 +115,9 @@ Scratch on cache: only a **new directory we own**; never rebalance/format/wipe c
 
 ## Phase 1 — Build environment
 
-### Recommended vehicle: Docker on NIROG
+### Recommended vehicle: Docker on Machine A
 
-Why NIROG:
+Why Machine A:
 
 - Same glibc **2.43** target as production install  
 - 61 GiB RAM, fast CPU  
@@ -220,12 +215,12 @@ Why not build bare on Unraid without a container:
 
 ---
 
-## Phase 3 — Install on NIROG (no catalog yet)
+## Phase 3 — Install on Machine A (no catalog yet)
 
 **Manual path first** (prove packages before public catalog).
 
 ```text
-# On NIROG (example)
+# On Machine A (example)
 cp out/*.txz /boot/config/plugins/UnraidFRR/packages/
 # Write MANIFEST.txt install order: libyang then frr
 installpkg /boot/config/plugins/UnraidFRR/packages/libyang-*.txz
@@ -243,7 +238,7 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 | `ip route` | No surprise default via FRR |
 | Docker containers | Still run |
 | `/mnt/cache` | Untouched, mounts present |
-| `wlan0` / management IP | Still `192.168.1.3` |
+| management iface / default route | Still via Unraid mgmt path |
 | `removepkg` | Clean removal test on a **second** attempt after reinstall |
 
 **Exit:** FRR works after manual installpkg; plugin can start daemons.
@@ -283,7 +278,7 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 ```
 
 4. Bump plugin version if needed (catalog is raw GitHub — users pick up on next Apply without plugin bump, but flash message helps).  
-5. Wipe local packages cache on NIROG, **Apply** with auto-download, confirm log shows download not “catalog empty”.
+5. Wipe local packages cache on Machine A, **Apply** with auto-download, confirm log shows download not “catalog empty”.
 
 **Exit:** cold Apply on clean packages/ dir fully automates install.
 
@@ -308,9 +303,9 @@ Then **Fabric Routing → Apply** (daemons only / start) without download.
 
 Package correctness **does not** require wires. Fabric **behavior** does.
 
-| Link | Hardware on NIROG | Status now | Your action when ready |
+| Link | Hardware on Machine A | Status now | Your action when ready |
 |------|-------------------|------------|-------------------------|
-| Mgmt | Wi‑Fi AX210 `wlan0` | **Up** @ 192.168.1.3 | Keep for SSH/GUI |
+| Mgmt | Wi‑Fi or LAN | Up | Keep for SSH/GUI — do not put in fabric |
 | 1G-class | Intel I225-V | PCI present, **no iface up** | Cable to switch/peer; assign eth in Unraid |
 | 10G | Aquantia AQC113 | PCI present, **no iface up** | 10G DAC/fiber/copper to peer |
 | TB4 | Maple Ridge dual | Domain present | TB cable + Thunderbolt Net host-net |
@@ -357,8 +352,8 @@ Package correctness **does not** require wires. Fabric **behavior** does.
 
 | Date | Decision |
 |------|----------|
-| 2026-08-12 | Lab = NIROG 7.3.2 x86_64 glibc 2.43; catalog empty confirmed |
-| 2026-08-12 | Build via Docker on NIROG preferred; no deb/rpm direct install |
+| 2026-08-12 | Lab = Machine A 7.3.2 x86_64 glibc 2.43; catalog empty confirmed |
+| 2026-08-12 | Build via Docker on Machine A preferred; no deb/rpm direct install |
 | 2026-08-12 | First bundle = libyang + frr w/ fabricd; OpenFabric is the killer feature |
 | 2026-08-12 | Cache RAID1 out of scope for all destructive ops |
 
@@ -367,7 +362,7 @@ Package correctness **does not** require wires. Fabric **behavior** does.
 ## Immediate next actions (execution order)
 
 1. **Phase 0:** Add `packages/build/` scripts + Dockerfile scaffold in UnraidFRR.  
-2. **Phase 1:** On NIROG, create `/mnt/cache/frr-build`, pull base image, prove compile of a tiny C hello + makepkg.  
+2. **Phase 1:** On Machine A, create `/mnt/cache/frr-build`, pull base image, prove compile of a tiny C hello + makepkg.  
 3. **Phase 2:** libyang → frr build; iterate configure until fabricd links.  
 4. **Phase 3:** manual installpkg + plugin Apply (daemons).  
 5. **Phase 4:** Release + manifest (public automation).  

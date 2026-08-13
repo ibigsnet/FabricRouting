@@ -1,7 +1,7 @@
 # Fabric Routing (FRR) + companions — product roadmap & ambitions
 
 **Date:** 2026-08-12  
-**Lab proven:** NIROG + HoloX3D (Unraid 7.3.2), first package set FRR 10.7.0 + libyang 2.1.148, OpenFabric Up on 2.5G eth0.
+**Lab-confirmed pattern:** two Unraid **7.3.2** x86_64 hosts; FRR **10.7.0** + libyang **2.1.148**; OpenFabric up on private **2.5G eth0** underlay (see [lab-two-node-fabric.md](lab-two-node-fabric.md)).
 
 This document is the **north star** for UI, docs, CA, forum, and what we build next. It is intentionally ambitious and honest.
 
@@ -90,7 +90,7 @@ Today **(1)** is Fabric Routing; **(2)(3)** for **Thunderbolt only** are Thunder
 | Automated FRR download (catalog + sha256 + installpkg) | **Yes** — first bundle FRR **10.7.0** / Unraid **7.x x86_64** |
 | Fabric Routing Settings tab | Packages + daemon toggles + status |
 | Thunderbolt Net OpenFabric participate + metric auto/manual | **Per thunderbolt\* iface** |
-| OpenFabric lab on **eth0** (manual conf) | **Proven** NIROG ↔ HoloX3D |
+| OpenFabric lab on **eth0** (manual conf) | **Proven** Machine A ↔ Machine B |
 | UI to pick eth0/10G/wlan for fabric | **No** (gap) |
 | Multi-protocol OSPF/BGP wizard | **No** (daemons can install; conf is advanced) |
 | CA listing | Template exists (`unraid-templates`); keep Overview current |
@@ -158,7 +158,7 @@ Metrics matter: a 40G TB path should beat 2.5G for multi-hop preference (auto: `
 | Phase | Deliverable | Lab |
 |-------|-------------|-----|
 | **P0** | Package pipeline + first catalog (done) | Done |
-| **P1** | Uninstall/reinstall + auto-download proven; fix start path (frrinit) | NIROG |
+| **P1** | Uninstall/reinstall + auto-download proven; fix start path (frrinit) | Primary lab host |
 | **P2** | Status UX: version, neighbors snippet, “mgmt still on wlan/br0” health line | Both |
 | **P3** | **Interfaces** table (read-only) + docs | Both |
 | **P4** | **Interfaces** policy apply (eth/10G opt-in) + metrics | Both |
@@ -182,7 +182,7 @@ Every release must pass on a lab Unraid:
 | Mgmt path | Default route / Wi‑Fi / br0 still work |
 | Reinstall + Apply | Clean download + install again |
 
-**Test host preference:** NIROG (`192.168.1.3`) for full cycle; light checks on HoloX3D.
+**Test host preference:** primary lab host for full cycle; light checks on a second peer.
 
 Known follow-ups:
 
@@ -319,7 +319,7 @@ CA lag after GitHub push is normal; template accuracy matters more than hourly s
 
 ## Immediate next actions (execution order)
 
-1. **P1:** Finish documented uninstall→reinstall→auto-download on NIROG; patch remove script for `/usr/sbin/frrinit.sh` if needed.  
+1. **P1:** Finish documented uninstall→reinstall→auto-download on the primary lab host; patch remove script for `/usr/sbin/frrinit.sh` if needed.  
 2. **P2:** Status strip (mgmt route + neighbor snippet) on Fabric Routing page.  
 3. **P3–P4:** Interfaces table design + implement eth opt-in + metrics.  
 4. **Docs passes 1–3** in sequence (ambition, install truth, day-two).  

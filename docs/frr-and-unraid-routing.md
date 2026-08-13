@@ -109,9 +109,9 @@ Unraid still serves shares, Docker, and VMs as usual. FRR improves **how packets
 - Those routes appear alongside Unraid’s routes.  
 - More specific prefixes usually win over a default route; a **bad** FRR default could steal management traffic — avoid putting LAN/Wi‑Fi into protocols carelessly.
 
-### Lab observation (NIROG / HoloX3D)
+### Lab observation (two-host private underlay)
 
-With OpenFabric on **eth0 only** (`192.168.254.0/24`) and management on **wlan0**:
+With OpenFabric on **eth0 only** (a private fabric subnet) and management on **wlan0**:
 
 - Default route stayed **`default via … dev wlan0`**  
 - Fabric adjacency came up on eth0  

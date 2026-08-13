@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/UnraidFRR (standalone CA pages).
 -->
-<!ENTITY version "2026.08.13aa">
+<!ENTITY version "2026.08.13ab">
 <!ENTITY launch "Settings/UnraidFRR">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/UnraidFRR/main/unraidfrr.plg">
 <!ENTITY github "ibigsnet/UnraidFRR">
@@ -38,6 +38,9 @@
 
 <CHANGES>
 ###&version;
+- Docs: public sanitization — SUPPORTED matrix and lab notes use **Machine A/B** patterns (no personal hostnames/IPs); [lab-two-node-fabric.md](docs/lab-two-node-fabric.md).
+
+###2026.08.13aa
 - Fleet standard: companion links use **`ibigsGotoNetTab`** (aliases `frrGotoNetTab` / …); apply-on-load for `ibigsWantTab`; never deep-link standalone CA paths.
 - Docs: RELEASES cross-plugin UI link table.
 
@@ -69,7 +72,7 @@
 - Docs: product-roadmap.md — interfaces/metrics UI, CA/forum, ambitions (Proxmox, multi-node AI).
 - First FRR package set: libyang 2.1.148 + frr 10.7.0 (fabricd) for Unraid 7.x x86_64 — GitHub Release pkg-10.7.0 + manifest catalog.
 - frr_try_start: prefer /usr/sbin/frrinit.sh (our packages).
-- Docs: lab NIROG+HoloX3D; package build plan; packages/build scripts.
+- Docs: two-host lab fabric pattern; package build plan; packages/build scripts.
 - Docs: Contents/TOC on DOCS.md.
 - UI: collapsible About; tighter companion strip (less wall of text).
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.
