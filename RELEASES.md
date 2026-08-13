@@ -26,7 +26,20 @@ CA is fed from the [unraid-templates](https://github.com/ibigsnet/unraid-templat
 | Track | When to use | URL |
 |-------|-------------|-----|
 | **Latest (`main`)** | Always get the newest published tree | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
+| **Recommended freeze** | Known-good FabricRouting line | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.13ad/fabricrouting.plg` |
 | **Pinned tag** | Install/rollback to a fixed version | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg` |
+
+### Recommended freeze (2026-08-13)
+
+| | |
+|--|--|
+| **Label** | **Recommended** (fleet freeze; product id **FabricRouting**) |
+| **Plugin version** | **`2026.08.13ad`** |
+| **Tag** | [`stable-recommended-2026.08.13ad`](https://github.com/ibigsnet/FabricRouting/releases/tag/stable-recommended-2026.08.13ad) |
+| **Also** | `v2026.08.13ad` |
+| **Install / rollback** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.13ad/fabricrouting.plg` |
+
+Includes: trademark-safe **FabricRouting** id (not UnraidFRR), FRR catalog packages, boot = files only, package download only on Apply, array local rehydrate, public doc sanitization, Thunderbolt wording. Legacy UnraidFRR flash paths migrate on install. **`main` may move ahead** after this pin.
 
 After install, confirm the version under **Plugins**.
 
@@ -111,7 +124,8 @@ develop → bump .plg version + CHANGES → push main (= Latest)
 
 | Tag | Plugin version | Notes |
 |-----|----------------|--------|
-| `main` / `v2026.08.12da` | **2026.08.12da** | Boot = files only; package download only on UI Apply; array start local rehydrate |
+| **[`stable-recommended-2026.08.13ad`](https://github.com/ibigsnet/FabricRouting/releases/tag/stable-recommended-2026.08.13ad)** | **2026.08.13ad** | **Current recommended freeze** — FabricRouting rename + catalog FRR |
+| `v2026.08.13ad` | **2026.08.13ad** | Same tree as the freeze (version tag) |
 | (historical) | 2026.08.12d | Single-letter version (non-standard); progress-frame Apply + catalog fixes |
 
 ---
