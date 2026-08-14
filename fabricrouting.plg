@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14ah">
+<!ENTITY version "2026.08.14ai">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -37,12 +37,15 @@
   readme="https://raw.githubusercontent.com/&github;/stable/README.md">
 
 <CHANGES>
-###2026.08.14ah
-- Network Settings tab order: `Menu=NetworkSettings:1200` so Fabric Routing sorts **after**
-  stock Routing Table (and Interface Extra/Rules), not immediately after Thunderbolt/tbn.
-  Unraid sorts by rank+page-name; empty rank made `FabricRouting` first among unnumbered tabs.
-
 ###&version;
+- Network Settings tab order: `Menu=NetworkSettings:z` so Fabric Routing sorts **after** stock
+  Routing Table (far right). Numeric ranks (`:1200`) sort *before* unranked stock tabs with
+  SORT_NATURAL — that left FR stuck next to Thunderbolt/tbn. UI copy: packages-only vs TBN policy.
+
+###2026.08.14ah
+- Attempted tab pin at `:1200` (still before Interface Extra / Routing Table under SORT_NATURAL).
+
+###2026.08.14ag
 - Wording: spell out **Thunderbolt** (not ambiguous “TB”, which can mean terabyte).
 - **Rename:** product id **FabricRouting** (public **Fabric Routing**). No “Unraid” in the product name (trademark). Legacy UnraidFRR paths migrated on install.
 - Install URL: `fabricrouting.plg` on `ibigsnet/FabricRouting`.

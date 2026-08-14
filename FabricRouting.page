@@ -1,4 +1,4 @@
-Menu="NetworkSettings:1200"
+Menu="NetworkSettings:z"
 Title="Fabric Routing"
 Icon="sitemap"
 Tag="sitemap"
@@ -8,6 +8,12 @@ Markdown="false"
 /**
  * Settings → Network Settings → Fabric Routing
  * CA: Fabric Routing (FRR). Plugin id: FabricRouting.
+ *
+ * Tab order: Unraid PageBuilder key is "{rank}{pageName}" with SORT_NATURAL.
+ * Numeric ranks (eth :100, Wireless :1000, Thunderbolt :1100, tbn :1110+) sort
+ * *before* unranked stock tabs (Interface Extra/Rules, Routing Table).
+ * Rank "z" → key "zFabricRouting" sorts *after* RoutingTable (far right).
+ * Rank "1200" wrongly sat between tbn and Interface Extra — next to Thunderbolt.
  */
 require_once '/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php';
 
@@ -121,21 +127,22 @@ $bundle_ok = !empty($bundle['ok']);
 
 <div class="frr-wrap">
   <p class="frr-lead">
-    Optional <strong>routing software</strong> for this Unraid host
-    (<a href="https://frrouting.org/" target="_blank" rel="noopener">FRRouting</a>).
-    Use it when you need multi-hop / multipath fabrics — not for ordinary SMB on one LAN cable.
-    Different from the stock <strong>Routing Table</strong> tab (simple kernel routes only).
+    Optional <strong>FRRouting packages</strong> for this Unraid host
+    (<a href="https://frrouting.org/" target="_blank" rel="noopener">frrouting.org</a>).
+    This tab only installs and starts daemons (<code>zebra</code>, <code>fabricd</code>, …).
+    It is <strong>not</strong> the stock <strong>Routing Table</strong> (kernel static routes),
+    and not the Thunderbolt cable / peer UI.
   </p>
 
   <div class="frr-companion">
-    <strong>Need this?</strong> Rings, multi-hop, Proxmox/Linux FRR peers, multi-node AI underlays ·
-    <strong>Skip:</strong> single static Thunderbolt or Ethernet cable ·
+    <strong>Need this?</strong> Multi-hop rings, Proxmox/Linux FRR peers, multipath underlays ·
+    <strong>Skip:</strong> one static Ethernet or Thunderbolt link (IPs alone are enough) ·
 <?php if ($tbn): ?>
-    <strong>Thunderbolt Net:</strong> cable underlay + OpenFabric <em>policy</em> on
+    <strong>Split with Thunderbolt Net:</strong> packages/daemons <em>here</em>;
+    OpenFabric <em>policy</em> (area, metrics) and multi-host reports on
     <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
-    (this tab only installs packages / daemons)
 <?php else: ?>
-    <strong>Thunderbolt Net:</strong> optional companion for Thunderbolt host-net
+    <strong>Thunderbolt Net</strong> (optional) holds OpenFabric policy when you use TB host-net
 <?php endif; ?>
   </div>
   <details class="frr-about">
@@ -147,8 +154,8 @@ $bundle_ok = !empty($bundle['ok']);
         set <em>Auto-download packages = Yes</em> → <strong>Apply</strong> (leave progress window open) →
         wait until finished → hard-refresh. After packages are cached, you can set Auto-download back to
         <em>No</em>; reboots still rehydrate from flash if <em>Install on array start</em> is Yes.</p>
-      <p><strong>OpenFabric</strong> is the multi-hop fabric protocol (daemon <code>fabricd</code>).
-        Thunderbolt metrics/participate live under Thunderbolt Net, not here.</p>
+      <p><strong>OpenFabric</strong> (daemon <code>fabricd</code>) is multi-hop IP routing once packages exist.
+        Area, metrics, and participate toggles live under <strong>Thunderbolt → Advanced</strong> when Thunderbolt Net is installed — not on this page.</p>
       <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
         BGP/OSPF stay Off until you enable them.</p>
       <p>
