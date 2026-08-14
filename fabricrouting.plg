@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14ak">
+<!ENTITY version "2026.08.14al">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,10 @@
 
 <CHANGES>
 ###&version;
+- UI: blue <code>inline_help</code> on Advanced core daemons (zebra / fabricd / staticd), optional
+  protocols, install-on-start, catalog URL, and start-on-Apply — what each is and when to leave defaults.
+
+###2026.08.14ak
 - **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so
   openBox reaches DONE; skip start when zebra already running (packages were already OK).
 

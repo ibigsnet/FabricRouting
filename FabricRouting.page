@@ -341,7 +341,12 @@ $bundle_ok = !empty($bundle['ok']);
         </dd>
       </dl>
       <blockquote class="inline_help">
-        After reboot, reinstall packages <em>already on the flash</em> into the live (RAM) system — <strong>no download</strong>.
+        <strong>What this does:</strong> after a reboot, reinstall FRR packages that are
+        <em>already on the flash</em> into the live (RAM) Unraid root so <code>zebra</code> /
+        <code>fabricd</code> exist again.<br><br>
+        <strong>What it does not do:</strong> no catalog download, no internet required at boot.
+        Unraid’s RAM OS loses <code>installpkg</code> results on reboot — that is why this exists.<br><br>
+        Leave <strong>Yes</strong> once you have used Download &amp; Install packages successfully.
       </blockquote>
 
       <dl>
@@ -353,10 +358,19 @@ $bundle_ok = !empty($bundle['ok']);
         </dd>
       </dl>
       <blockquote class="inline_help">
-        Leave empty for the official catalog. Only change if you host a mirror.
+        <strong>What this is:</strong> where Download &amp; Install packages looks up which
+        <code>.txz</code> files match your Unraid version.<br><br>
+        Leave <strong>empty</strong> for the official GitHub catalog. Only set a URL if you host
+        your own mirror of <code>manifest.json</code> (advanced / air‑gapped labs).
       </blockquote>
 
       <h3 style="margin-top:1em;font-size:1em">Core daemons</h3>
+      <p class="frr-section-lead">
+        These are the FRR processes written to <code>/etc/frr/daemons</code> and started with the stack.
+        Defaults (all Yes below) are right for OpenFabric multi-hop. Blue help under each setting
+        explains what it is and when to leave it alone.
+      </p>
+
       <dl>
         <dt>Enable zebra:</dt>
         <dd>
@@ -366,6 +380,15 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
+      <blockquote class="inline_help">
+        <strong>What it is:</strong> FRR’s core process — the bridge between routing protocols and the
+        Linux kernel routing table (<code>ip route</code>).<br><br>
+        <strong>What it does:</strong> installs/withdraws routes that protocols learn, and owns
+        kernel interaction for the rest of FRR.<br><br>
+        <strong>Leave Yes</strong> if you use this plugin at all. Without zebra, fabricd/BGP/OSPF
+        cannot put routes into the host. Almost never turn this Off.
+      </blockquote>
+
       <dl>
         <dt>Enable fabricd (OpenFabric):</dt>
         <dd>
@@ -375,6 +398,18 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
+      <blockquote class="inline_help">
+        <strong>What it is:</strong> the <strong>OpenFabric</strong> daemon (IS‑IS–derived multi-hop
+        IP fabric routing). Process name <code>fabricd</code>.<br><br>
+        <strong>What it does:</strong> exchanges fabric topology with peers so traffic can take
+        alternate paths (rings, multi-hop, Unraid↔Proxmox FRR labs) — not a single static cable.<br><br>
+        <strong>What it does not do:</strong> does not assign Thunderbolt IPs, does not edit
+        <code>br0</code>/Wi‑Fi by default, and does not replace one-peer static tbn addressing.<br><br>
+        <strong>Policy</strong> (area, metrics, which interfaces participate) lives under
+        <strong>Network Settings → Thunderbolt → Advanced</strong> when Thunderbolt Net is installed.
+        This checkbox only enables the daemon binary.
+      </blockquote>
+
       <dl>
         <dt>Enable staticd:</dt>
         <dd>
@@ -384,9 +419,16 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
+      <blockquote class="inline_help">
+        <strong>What it is:</strong> FRR’s static-route helper daemon.<br><br>
+        <strong>What it does:</strong> lets FRR own selected static routes in <code>frr.conf</code>
+        (useful next to OpenFabric). Unraid’s stock <strong>Routing Table</strong> tab can still
+        manage simple statics independently.<br><br>
+        Safe default <strong>Yes</strong>. Set No only if you want zero FRR static handling.
+      </blockquote>
 
       <h3 style="margin-top:1em;font-size:1em">Optional protocols</h3>
-      <p class="frr-section-lead">Default all No — not needed for OpenFabric alone.</p>
+      <p class="frr-section-lead">Default all No — not needed for OpenFabric / Thunderbolt multi-hop alone.</p>
       <div class="frr-daemon-grid">
         <label>bgpd
           <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>
@@ -404,6 +446,16 @@ $bundle_ok = !empty($bundle['ok']);
           <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
         </label>
       </div>
+      <blockquote class="inline_help">
+        <strong>bgpd</strong> — BGP (border/external routing, large multi-site fabrics).<br>
+        <strong>ospfd / ospf6d</strong> — OSPF IPv4 / IPv6 (classic multi-router LAN/WAN areas).<br>
+        <strong>isisd</strong> — classic IS‑IS (not the same as OpenFabric’s <code>fabricd</code>).<br>
+        <strong>bfdd</strong> — BFD fast failure detection for other protocols.<br><br>
+        Leave all <strong>No</strong> unless you deliberately run these on this host and know how to
+        configure them in <code>frr.conf</code>. Enabling a daemon alone does not configure peers —
+        it only allows the process to start. This plugin does <strong>not</strong> auto-enroll
+        <code>br0</code> or house Wi‑Fi into any protocol.
+      </blockquote>
 
       <dl>
         <dt>Start/restart FRR on Apply settings:</dt>
@@ -414,6 +466,14 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
+      <blockquote class="inline_help">
+        <strong>What it does:</strong> after you click <strong>Apply settings</strong>, try to start
+        (or leave running) FRR so the daemon checkboxes above take effect.<br><br>
+        <strong>Yes</strong> (default) — bring the stack up after saving.<br>
+        <strong>No</strong> — only write <code>/etc/frr/daemons</code>; you start FRR later yourself
+        (or via Download &amp; Install packages, which still starts FRR).<br><br>
+        Does not download packages. Safe with Yes for normal use.
+      </blockquote>
 
       <div class="frr-actions">
         <input type="submit" name="#apply" value="Apply settings">
