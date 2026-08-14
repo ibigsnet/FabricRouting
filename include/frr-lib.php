@@ -753,52 +753,85 @@ function frr_run_install_packages() {
   return ['ok' => $rc === 0, 'rc' => $rc, 'output' => $out];
 }
 
-function frr_try_start($timeout_sec = 45) {
-  // Cap start/restart so a wedged frrinit cannot pin php-fpm / hang the WebUI.
-  $timeout_sec = max(10, min(120, (int)$timeout_sec));
+/**
+ * True if core FRR process is alive.
+ */
+function frr_zebra_running() {
+  return trim((string)@shell_exec('pgrep -x zebra 2>/dev/null')) !== '';
+}
+
+/**
+ * Start FRR without hanging the openBox / php job.
+ *
+ * frrinit.sh starts daemons that can inherit PHP's stdout pipe; a plain
+ * exec() then never sees EOF even after daemons are up (zombie sh + hung job).
+ * Always close stdio, use a hard timeout + kill-after, and treat "zebra up"
+ * as success. Skip start entirely when already running.
+ *
+ * @param int $timeout_sec
+ * @return array{ok:bool,cmd?:string,error?:string,rc?:int}
+ */
+function frr_try_start($timeout_sec = 20) {
+  $timeout_sec = max(5, min(60, (int)$timeout_sec));
+
+  if (frr_zebra_running()) {
+    frr_log('start: already-running (zebra)');
+    frr_progress('  FRR already running (zebra up) — skip start.');
+    return ['ok' => true, 'cmd' => 'already-running'];
+  }
+
   $has_timeout = trim((string)@shell_exec('command -v timeout 2>/dev/null')) !== '';
+  $has_setsid = trim((string)@shell_exec('command -v setsid 2>/dev/null')) !== '';
 
   // Our Slackware-style packages ship tools/frrinit.sh as /usr/sbin/frrinit.sh
   $cmds = [
     '/usr/sbin/frrinit.sh start',
-    '/usr/sbin/frrinit.sh restart',
     '/usr/lib/frr/frrinit.sh start',
-    '/usr/lib/frr/frrinit.sh restart',
     'systemctl start frr',
-    'systemctl restart frr',
     'service frr start',
-    'service frr restart',
   ];
   foreach ($cmds as $cmd) {
     $bin = strtok($cmd, ' ');
     if ($bin !== false && $bin !== '' && $bin[0] === '/' && !is_file($bin)) {
       continue;
     }
+    // Close all stdio so daemons cannot hold the logging.htm pipe open.
+    // setsid: new session; timeout -k: SIGKILL after grace if still stuck.
+    $inner = $cmd . ' </dev/null >/dev/null 2>&1';
+    if ($has_setsid) {
+      $inner = 'setsid ' . $inner;
+    }
+    if ($has_timeout) {
+      $run = 'timeout -k 3 ' . $timeout_sec . 's bash -c ' . escapeshellarg($inner);
+    } else {
+      $run = 'bash -c ' . escapeshellarg($inner);
+    }
     $rc = 1;
     $o = [];
-    $run = $has_timeout
-      ? ('timeout ' . $timeout_sec . 's ' . $cmd . ' 2>/dev/null')
-      : ($cmd . ' 2>/dev/null');
+    frr_progress('  trying: ' . $cmd . ' (max ' . $timeout_sec . 's)…');
     @exec($run, $o, $rc);
-    if ($rc === 0) {
-      frr_log('start: ' . $cmd);
-      return ['ok' => true, 'cmd' => $cmd];
-    }
-    // timeout(1) uses 124; frrinit may still have brought daemons up
-    if (trim((string)@shell_exec('pgrep -x zebra 2>/dev/null')) !== '') {
-      frr_log('start: zebra up after ' . $cmd . ' (rc=' . $rc . ')');
-      return ['ok' => true, 'cmd' => $cmd . ' (running)', 'rc' => $rc];
+    // Brief settle for watchfrr → zebra
+    usleep(400000);
+    if (frr_zebra_running()) {
+      frr_log('start: ' . $cmd . ' (zebra up, rc=' . $rc . ')');
+      frr_progress('  OK — zebra is up.');
+      return ['ok' => true, 'cmd' => $cmd, 'rc' => $rc];
     }
     if ($rc === 124) {
-      frr_log('start timed out (' . $timeout_sec . 's): ' . $cmd);
-      frr_progress('  note: start timed out after ' . $timeout_sec . 's — checking if daemons are up…');
+      frr_log('start timed out: ' . $cmd);
+      frr_progress('  timed out after ' . $timeout_sec . 's — zebra not up yet.');
+    } else {
+      frr_log('start rc=' . $rc . ': ' . $cmd);
     }
   }
-  // Already running counts as success
-  if (trim((string)@shell_exec('pgrep -x zebra 2>/dev/null')) !== '') {
+
+  if (frr_zebra_running()) {
     return ['ok' => true, 'cmd' => 'already-running'];
   }
-  return ['ok' => false, 'error' => 'could not start frr service within ' . $timeout_sec . 's (package may lack unit)'];
+  return [
+    'ok' => false,
+    'error' => 'could not start frr (zebra not running after ' . $timeout_sec . 's attempts)',
+  ];
 }
 
 /**

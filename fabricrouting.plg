@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14aj">
+<!ENTITY version "2026.08.14ak">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,10 @@
 
 <CHANGES>
 ###&version;
+- **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so
+  openBox reaches DONE; skip start when zebra already running (packages were already OK).
+
+###2026.08.14aj
 - **Package UX v2:** radio pick (Latest / Previous / Flash) + **Download &amp; Install packages**
   via Unraid `openBox` (Nvidia-style log + DONE — do not close early). Settings Apply no longer
   downloads packages. Collapse Advanced daemons. Timeout on `frrinit.sh` start so WebUI cannot hang.
