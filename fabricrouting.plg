@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14al">
+<!ENTITY version "2026.08.14am">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,8 +38,12 @@
 
 <CHANGES>
 ###&version;
+- Lead copy: short product blurb; move when-to-use / Thunderbolt split into <strong>What is FRR?</strong>
+  (drop “not Routing Table” banner and Need this strip).
+
+###2026.08.14al
 - UI: blue <code>inline_help</code> on Advanced core daemons (zebra / fabricd / staticd), optional
-  protocols, install-on-start, catalog URL, and start-on-Apply — what each is and when to leave defaults.
+  protocols, install-on-start, catalog URL, and start-on-Apply.
 
 ###2026.08.14ak
 - **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so

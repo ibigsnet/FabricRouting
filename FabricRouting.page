@@ -148,43 +148,33 @@ $bundle_ok = !empty($bundle['ok']);
 
 <div class="frr-wrap">
   <p class="frr-lead">
-    Optional <strong>FRRouting packages</strong> for this Unraid host
-    (<a href="https://frrouting.org/" target="_blank" rel="noopener">frrouting.org</a>).
-    This tab only installs and starts daemons (<code>zebra</code>, <code>fabricd</code>, …).
-    It is <strong>not</strong> the stock <strong>Routing Table</strong> (kernel static routes),
-    and not the Thunderbolt cable / peer UI.
+    Install and run <strong>FRRouting</strong> on this host
+    (<a href="https://frrouting.org/" target="_blank" rel="noopener">frrouting.org</a>) —
+    packages, daemons (<code>zebra</code>, <code>fabricd</code>, …), and start/stop.
   </p>
 
-  <div class="frr-companion">
-    <strong>Need this?</strong> Multi-hop rings, Proxmox/Linux FRR peers, multipath underlays ·
-    <strong>Skip:</strong> one static Ethernet or Thunderbolt link (IPs alone are enough) ·
-<?php if ($tbn): ?>
-    <strong>Split with Thunderbolt Net:</strong> packages/daemons <em>here</em>;
-    OpenFabric <em>policy</em> (area, metrics) and multi-host reports on
-    <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>
-<?php else: ?>
-    <strong>Thunderbolt Net</strong> (optional) holds OpenFabric policy when you use TB host-net
-<?php endif; ?>
-  </div>
   <details class="frr-about">
-    <summary>What is FRR? (start here if new)</summary>
+    <summary>What is FRR?</summary>
     <div class="frr-about-body">
       <p><strong>FRR</strong> is open-source routing software used on many Linux routers and Proxmox hosts.
-      Unraid does not ship it. This plugin installs FRR packages onto your flash/RAM OS, then starts daemons you choose.</p>
-      <p><strong>First-time path:</strong>
-        pick a package option below → <strong>Download &amp; Install packages</strong> →
-        leave the popup open until <strong>DONE</strong> → hard-refresh.
-        Reboots rehydrate from flash if <em>Install on array start</em> is Yes (Advanced).</p>
-      <p><strong>OpenFabric</strong> (daemon <code>fabricd</code>) is multi-hop IP routing once packages exist.
-        Area, metrics, and participate toggles live under <strong>Thunderbolt → Advanced</strong> when Thunderbolt Net is installed — not on this page.</p>
-      <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
-        BGP/OSPF stay Off until you enable them.</p>
+      Unraid does not ship it. This plugin downloads FRR onto flash, installs into the live system, and starts the daemons you enable.</p>
+      <p><strong>Useful when:</strong> multi-hop rings, alternate paths, or Proxmox/Linux FRR peers on a private fabric.</p>
+      <p><strong>Usually skip when:</strong> one static Ethernet or Thunderbolt link between two machines — set IPs and use SMB/NFS/NBD; you do not need FRR for that.</p>
+<?php if ($tbn): ?>
+      <p><strong>With Thunderbolt Net:</strong> this tab owns FRR <em>packages and daemons</em>.
+        OpenFabric area/metrics and multi-host fabric reports are on
+        <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt → Settings</a>.</p>
+<?php else: ?>
+      <p><strong>Thunderbolt Net</strong> (optional) can hold OpenFabric policy when you use Thunderbolt host networking.</p>
+<?php endif; ?>
+      <p><strong>First install:</strong>
+        choose Latest below → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>DONE</strong> → hard-refresh.
+        Later reboots rehydrate from flash when Install on array start is Yes (Advanced).</p>
+      <p>Does not change <code>br0</code>, Wi‑Fi, or <code>network.cfg</code>. BGP/OSPF stay Off until you enable them.</p>
       <p>
-        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup guide ↗</strong></a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup ↗</strong></a>
         ·
-        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR vs Unraid routing ↗</a>
-        ·
-        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/defaults-rationale.md" target="_blank" rel="noopener">Why these defaults ↗</a>
+        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR and Unraid routing ↗</a>
         ·
         <a href="https://github.com/ibigsnet/FabricRouting/blob/main/DOCS.md" target="_blank" rel="noopener">Full docs ↗</a>
       </p>
