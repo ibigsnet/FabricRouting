@@ -80,14 +80,43 @@ function frr_log($msg) {
 }
 
 /**
- * Progress-frame / CLI line (Unraid update.php target=progressFrame).
- * Progress-frame line — leave the Unraid popup open until finished.
+ * Enable nchan progress for openPlugin jobs (StartCommand appends "nchan").
+ * When true, progress goes to publish('plugins', …) so the Unraid Done button works.
+ */
+function frr_nchan_enabled($set = null) {
+  static $on = false;
+  if ($set !== null) {
+    $on = (bool)$set;
+  }
+  return $on;
+}
+
+/**
+ * Progress line for package jobs / Apply.
+ * - openBox / logging.htm / CLI: echo HTML-safe line + flush
+ * - openPlugin / nchan: publish to plugins channel; openDone needs exact _DONE_ / _ERROR_
  */
 function frr_progress($msg) {
   $msg = (string)$msg;
   frr_log($msg);
-  // Plain text lines: Unraid logging.htm openBox / progressFrame
-  echo htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
+
+  // openPlugin nchan: openDone/openError match the exact token (no HTML, no trailing newline)
+  if (frr_nchan_enabled() && ($msg === '_DONE_' || $msg === '_ERROR_')) {
+    if (function_exists('publish')) {
+      publish('plugins', $msg, 1, false);
+    }
+    return;
+  }
+
+  $line = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
+  if (frr_nchan_enabled() && function_exists('publish')) {
+    // nchan UI strips the final character (expects trailing \n on progress lines)
+    publish('plugins', $line, 1, false);
+    return;
+  }
+
+  // openBox / logging.htm / progressFrame
+  echo $line;
   if (function_exists('ob_flush')) {
     @ob_flush();
   }
@@ -168,18 +197,31 @@ function frr_packages_job($mode = 'latest') {
   if ($mode === 'flash') {
     frr_progress('Mode: flash cache only (no network download).');
     frr_progress('');
-    return frr_apply(['local_only' => true, 'force_download' => false]);
+    $r = frr_apply(['local_only' => true, 'force_download' => false]);
+  } else {
+    frr_progress('Mode: download channel "' . $mode . '" then install + start FRR.');
+    frr_progress('This can take a minute on first run (~20+ MiB).');
+    frr_progress('');
+    frr_save_cfg_keys([
+      'package_channel' => $mode,
+      // Explicit job only — never leave auto_download Yes for silent Settings Apply.
+      'auto_download' => 'no',
+    ]);
+    $r = frr_apply(['local_only' => false, 'force_download' => true]);
   }
 
-  frr_progress('Mode: download channel "' . $mode . '" then install + start FRR.');
-  frr_progress('This can take a minute on first run (~20+ MiB).');
-  frr_progress('');
-  frr_save_cfg_keys([
-    'package_channel' => $mode,
-    // Explicit job only — never leave auto_download Yes for silent Settings Apply.
-    'auto_download' => 'no',
-  ]);
-  return frr_apply(['local_only' => false, 'force_download' => true]);
+  // Unraid openPlugin / nchan enables the Done button only when it sees this exact line.
+  // Legacy openBox/logging.htm also finishes once the process exits after this flush.
+  if (!empty($r['ok'])) {
+    frr_progress('');
+    frr_progress('Package job complete. You may click Done and hard-refresh the page.');
+    frr_progress('_DONE_');
+  } else {
+    frr_progress('');
+    frr_progress('Package job finished with errors — see log above.');
+    frr_progress('_ERROR_');
+  }
+  return $r;
 }
 
 /**
@@ -992,6 +1034,8 @@ function frr_apply_inner($opts = []) {
     . ' fabricd=' . (!empty($d['running_fabricd']) ? 'up' : 'down'));
   frr_progress('=== Apply finished ===');
   frr_progress('You can close this window and hard-refresh the Fabric Routing page (Ctrl+Shift+R).');
+  // Note: package jobs also emit _DONE_ / _ERROR_ from frr_packages_job().
+  // Settings Apply uses progressFrame (browser Done via form), not openPlugin nchan.
   return $result;
 }
 

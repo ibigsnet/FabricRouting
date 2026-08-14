@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14an">
+<!ENTITY version "2026.08.14ao">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,10 @@
 
 <CHANGES>
 ###&version;
+- Package job: Done button works again after download/install finishes
+  (openPlugin + nchan <code>_DONE_</code> / <code>_ERROR_</code>).
+
+###2026.08.14an
 - Packages radio: default <strong>Flash cache only</strong> when packages exist (no surprise download);
   empty flash still defaults to <strong>Latest</strong> so first install works.
 

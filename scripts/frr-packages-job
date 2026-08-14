@@ -1,17 +1,22 @@
 #!/bin/bash
-# Explicit package download/install job for Unraid openBox (logging.htm).
-# Same UX pattern as nvidia-driver: streaming log + DONE button; do not close early.
+# Explicit package download/install job for Fabric Routing.
 #
 # Invoked as:
-#   openBox('/usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job&arg1=MODE', ...)
+#   openPlugin('frr-packages-job MODE', …)  → StartCommand runs: frr-packages-job MODE nchan
+#   openBox('/usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job&arg1=MODE', …)
+#
 # MODE: latest | previous | flash
+# When last arg is "nchan", progress is published for Unraid openPlugin (Done = _DONE_).
 set -u
 
-MODE="${1:-latest}"
-case "$MODE" in
-  latest|previous|flash) ;;
-  *) MODE=latest ;;
-esac
+MODE=latest
+NCHAN=0
+for a in "$@"; do
+  case "$a" in
+    latest|previous|flash) MODE=$a ;;
+    nchan) NCHAN=1 ;;
+  esac
+done
 
 PLUGIN_PHP=/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php
 if [ ! -f "$PLUGIN_PHP" ]; then
@@ -23,7 +28,7 @@ if [ ! -f "$PLUGIN_PHP" ]; then
   exit 1
 fi
 
-# Stream progress immediately (emhttpd / logging.htm)
+# Stream progress immediately (emhttpd / logging.htm / nchan)
 export PHP_FCGI_CHILDREN=0
 php -d display_errors=0 -d zlib.output_compression=0 -r '
 require_once $argv[1];
@@ -32,7 +37,25 @@ require_once $argv[1];
 @ini_set("implicit_flush", "1");
 while (ob_get_level() > 0) { @ob_end_flush(); }
 ob_implicit_flush(true);
+
+$nchan = ($argv[3] ?? "") === "1";
+if ($nchan) {
+  // CLI often has DOCUMENT_ROOT="" (set but empty) — ?? would not fall back.
+  $docroot = "/usr/local/emhttp";
+  if (!empty($_SERVER["DOCUMENT_ROOT"]) && is_dir($_SERVER["DOCUMENT_ROOT"])) {
+    $docroot = $_SERVER["DOCUMENT_ROOT"];
+  }
+  $pub = $docroot . "/webGui/include/publish.php";
+  if (is_file($pub)) {
+    require_once $pub;
+  }
+  if (!function_exists("publish")) {
+    fwrite(STDERR, "WARNING: publish() unavailable — openPlugin Done may not enable\n");
+  }
+  frr_nchan_enabled(true);
+}
+
 $r = frr_packages_job($argv[2]);
 exit(!empty($r["ok"]) ? 0 : 1);
-' "$PLUGIN_PHP" "$MODE"
+' "$PLUGIN_PHP" "$MODE" "$NCHAN"
 exit $?

@@ -540,7 +540,12 @@ $bundle_ok = !empty($bundle['ok']);
     global.nbdGotoNetTab = function (n, e) { return global.ibigsGotoNetTab(n, e); };
   }
 
-  /** Nvidia-style package job: openBox → logging.htm → DONE */
+  /**
+   * Package job progress UI.
+   * Prefer openPlugin (nchan): StartCommand finds plugins/*/scripts/frr-packages-job
+   * by basename, appends " nchan", and enables Done when the job publishes _DONE_ / _ERROR_.
+   * Fallback openBox/logging.htm: Done appears when the process exits.
+   */
   global.frrPackagesJob = function () {
     var mode = 'latest';
     var radios = document.querySelectorAll('input[name="frr_pkg_mode"]');
@@ -554,13 +559,17 @@ $bundle_ok = !empty($bundle['ok']);
     if (hidden && (mode === 'latest' || mode === 'previous')) {
       hidden.value = mode;
     }
-    if (typeof openBox !== 'function') {
-      alert('openBox unavailable — hard-refresh the Unraid UI, then try again.');
+    // openPlugin: script basename + space-separated args (NOT full path, NOT &arg1=)
+    if (typeof openPlugin === 'function') {
+      // start=1 run always; button=0 show Close (renamed Done when _DONE_ arrives)
+      openPlugin('frr-packages-job ' + mode, 'Fabric Routing packages', null, null, 1, 0);
       return false;
     }
-    // load=true → modal; on close reload page (see nvidia-driver pattern)
-    openBox(JOB + '&arg1=' + encodeURIComponent(mode),
-      'Fabric Routing packages', 600, 800, true);
+    if (typeof openBox === 'function') {
+      openBox(JOB + '&arg1=' + encodeURIComponent(mode), 'Fabric Routing packages', 600, 800, true);
+      return false;
+    }
+    alert('Progress UI unavailable — hard-refresh the Unraid UI, then try again.');
     return false;
   };
 
