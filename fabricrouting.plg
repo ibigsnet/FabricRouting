@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14ai">
+<!ENTITY version "2026.08.14aj">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,11 @@
 
 <CHANGES>
 ###&version;
+- **Package UX v2:** radio pick (Latest / Previous / Flash) + **Download &amp; Install packages**
+  via Unraid `openBox` (Nvidia-style log + DONE — do not close early). Settings Apply no longer
+  downloads packages. Collapse Advanced daemons. Timeout on `frrinit.sh` start so WebUI cannot hang.
+
+###2026.08.14ai
 - Network Settings tab order: `Menu=NetworkSettings:z` so Fabric Routing sorts **after** stock
   Routing Table (far right). Numeric ranks (`:1200`) sort *before* unranked stock tabs with
   SORT_NATURAL — that left FR stuck next to Thunderbolt/tbn. UI copy: packages-only vs TBN policy.
@@ -189,7 +194,7 @@ echo "FabricRouting: directories ready."
 <![CDATA[
 **Fabric Routing (FRR)**
 
-Optional FRRouting for Unraid (packages via catalog + flash cache on Apply). Boot only loads the plugin UI. First **Apply** under Network Settings → Fabric Routing downloads packages; array start rehydrates from flash. Standalone: Thunderbolt Net not required. Does not edit eth0/br0 by default.
+Optional FRRouting for Unraid. Boot only loads the plugin UI. Use **Download &amp; Install packages** under Network Settings → Fabric Routing (openBox log + DONE). Array start rehydrates from flash. Standalone: Thunderbolt Net not required. Does not edit eth0/br0 by default.
 ]]>
 </INLINE>
 </FILE>
@@ -218,6 +223,10 @@ Optional FRRouting for Unraid (packages via catalog + flash cache on Apply). Boo
 <URL>&raw;/scripts/frr-download?v=&version;</URL>
 </FILE>
 
+<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job">
+<URL>&raw;/scripts/frr-packages-job?v=&version;</URL>
+</FILE>
+
 <FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-force-cleanup">
 <URL>&raw;/scripts/frr-force-cleanup?v=&version;</URL>
 </FILE>
@@ -232,10 +241,11 @@ echo "FabricRouting: finishing install (files only — no package download)..."
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-install-packages 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-apply 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-download 2>/dev/null || true
+chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/frr-force-cleanup 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/event/started 2>/dev/null || true
 mkdir -p /boot/config/plugins/FabricRouting/packages
-# Stale Apply lock must not block a later UI Apply
+# Stale Apply lock must not block a later package job
 rm -f /boot/config/plugins/FabricRouting/apply.lock
 if [ ! -f /boot/config/plugins/FabricRouting/FabricRouting.cfg ]; then
   if [ -f /usr/local/emhttp/plugins/FabricRouting/default.cfg ]; then
@@ -245,11 +255,11 @@ if [ ! -f /boot/config/plugins/FabricRouting/FabricRouting.cfg ]; then
 fi
 # Companion marker only. NEVER frr_apply / download here.
 # Unraid re-runs this plg every boot (rc.local); network package work belongs on
-# Settings → Apply. Array start rehydrates flash cache only (event/started).
+# Settings → Download & Install packages. Array start rehydrates flash (event/started).
 php -r 'require_once "/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php"; frr_write_companion_marker();' 2>/dev/null || true
 echo "FabricRouting: install complete (plugin files registered)."
-echo "FabricRouting: To download FRR packages: Settings → Network Settings → Fabric Routing → Apply."
-echo "FabricRouting: Leave the progress window open until Done. Hard-refresh (Ctrl+Shift+R)."
+echo "FabricRouting: Download packages: Settings → Network Settings → Fabric Routing → Download & Install packages."
+echo "FabricRouting: Leave the openBox window open until DONE. Hard-refresh (Ctrl+Shift+R)."
 ]]></INLINE>
 </FILE>
 

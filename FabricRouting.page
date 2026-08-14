@@ -123,6 +123,27 @@ $bundle_ok = !empty($bundle['ok']);
 .frr-wrap table.frr-status { width: 100%; margin: 0.35em 0 0.5em; }
 .frr-wrap table.frr-status td { padding: 0.3em 0.45em; vertical-align: top; }
 .frr-wrap table.frr-status td:first-child { width: 12em; opacity: 0.9; }
+.frr-wrap .frr-radio-list { margin: 0.4em 0 0.75em; padding: 0; list-style: none; }
+.frr-wrap .frr-radio-list li { margin: 0.45em 0; line-height: 1.4; }
+.frr-wrap .frr-radio-list label {
+  display: flex; align-items: flex-start; gap: 0.5em;
+  cursor: pointer; font-size: 0.95em;
+}
+.frr-wrap .frr-radio-list input[type=radio] { margin-top: 0.25em; }
+.frr-wrap .frr-pkg-actions { margin: 0.75em 0 0.25em; display: flex; flex-wrap: wrap; gap: 0.5em 0.75em; align-items: center; }
+.frr-wrap details.frr-advanced {
+  margin: 1.1em 0 0;
+  padding: 0.35em 0 0;
+  border-top: 1px dashed rgba(128, 128, 128, 0.35);
+  font-size: 0.95em;
+}
+.frr-wrap details.frr-advanced > summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.05em;
+  padding: 0.45em 0;
+  opacity: 0.92;
+}
 </style>
 
 <div class="frr-wrap">
@@ -151,9 +172,9 @@ $bundle_ok = !empty($bundle['ok']);
       <p><strong>FRR</strong> is open-source routing software used on many Linux routers and Proxmox hosts.
       Unraid does not ship it. This plugin installs FRR packages onto your flash/RAM OS, then starts daemons you choose.</p>
       <p><strong>First-time path:</strong>
-        set <em>Auto-download packages = Yes</em> → <strong>Apply</strong> (leave progress window open) →
-        wait until finished → hard-refresh. After packages are cached, you can set Auto-download back to
-        <em>No</em>; reboots still rehydrate from flash if <em>Install on array start</em> is Yes.</p>
+        pick a package option below → <strong>Download &amp; Install packages</strong> →
+        leave the popup open until <strong>DONE</strong> → hard-refresh.
+        Reboots rehydrate from flash if <em>Install on array start</em> is Yes (Advanced).</p>
       <p><strong>OpenFabric</strong> (daemon <code>fabricd</code>) is multi-hop IP routing once packages exist.
         Area, metrics, and participate toggles live under <strong>Thunderbolt → Advanced</strong> when Thunderbolt Net is installed — not on this page.</p>
       <p><strong>Safe defaults:</strong> does not edit <code>br0</code> / Wi‑Fi / <code>network.cfg</code>.
@@ -234,41 +255,81 @@ $bundle_ok = !empty($bundle['ok']);
     </table>
   </div>
 
+  <div class="frr-section" style="margin-top:0.5em">
+    <h3>Packages</h3>
+    <p class="frr-section-lead">
+      Choose what to install, then use the button. Opens Unraid’s download window
+      (same idea as the Nvidia Driver plugin and plugin installs).
+      <strong>Nothing downloads until you click the button</strong> — not on page load, not when saving Advanced.
+    </p>
+
+    <p class="frr-muted" style="margin:0 0 0.5em">
+      Catalog match for this host:
+<?php if ($bundle_ok): ?>
+      <span class="frr-ok">FRR <?= htmlspecialchars($bundle['frr_version'] ?? '') ?></span>
+      <span class="frr-muted"> (<?= htmlspecialchars($bundle['label'] ?? ($bundle['channel'] ?? '')) ?>)</span>
+<?php else: ?>
+      <span class="frr-warn"><?= htmlspecialchars($bundle['error'] ?? 'no bundle yet') ?></span>
+<?php endif; ?>
+    </p>
+
+    <ul class="frr-radio-list">
+      <li>
+        <label>
+          <input type="radio" name="frr_pkg_mode" value="latest" <?= ($cfg['package_channel'] ?? 'latest') !== 'previous' ? 'checked' : '' ?>>
+          <span>
+            <strong>Latest</strong> for this Unraid version (recommended)
+            <span class="frr-muted"> — catalog download + install + start</span>
+          </span>
+        </label>
+      </li>
+      <li>
+        <label>
+          <input type="radio" name="frr_pkg_mode" value="previous" <?= ($cfg['package_channel'] ?? '') === 'previous' ? 'checked' : '' ?>>
+          <span>
+            <strong>Previous</strong> (rollback channel)
+            <span class="frr-muted"> — only if the catalog publishes a previous set</span>
+          </span>
+        </label>
+      </li>
+      <li>
+        <label>
+          <input type="radio" name="frr_pkg_mode" value="flash" <?= empty($pk) ? 'disabled' : '' ?>>
+          <span>
+            <strong>Flash cache only</strong> (no network)
+            <span class="frr-muted"> — reinstall packages already on the USB into RAM</span>
+<?php if (empty($pk)): ?>
+            <br><span class="frr-warn">No packages on flash yet — download Latest first.</span>
+<?php else: ?>
+            <br><span class="frr-muted"><?= (int)count($pk) ?> file(s): <?= htmlspecialchars(implode(', ', $pk)) ?></span>
+<?php endif; ?>
+          </span>
+        </label>
+      </li>
+    </ul>
+
+    <div class="frr-pkg-actions">
+      <input type="button" value="Download &amp; Install packages" onclick="frrPackagesJob()">
+    </div>
+    <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em;line-height:1.4">
+      Leave the popup open until <strong>DONE</strong>. Do not use the red X early.
+      After DONE, hard-refresh this page (Ctrl+Shift+R).
+    </p>
+  </div>
+
   <form method="POST" action="/update.php" target="progressFrame">
     <input type="hidden" name="#file" value="FabricRouting/FabricRouting.cfg">
     <input type="hidden" name="#include" value="/plugins/FabricRouting/include/frr-update.php">
+    <input type="hidden" name="auto_download" value="no">
+    <input type="hidden" name="package_channel" id="frr_pkg_channel_hidden" value="<?= htmlspecialchars($cfg['package_channel'] ?? 'latest') ?>">
 
-    <div class="frr-section">
-      <h3>Packages</h3>
-      <p class="frr-section-lead">How FRR is downloaded and rehydrated after reboot.</p>
+    <details class="frr-advanced">
+      <summary>Advanced — daemons &amp; boot (optional)</summary>
 
-      <dl>
-        <dt>Package channel:</dt>
-        <dd>
-          <select name="package_channel">
-            <?= mk_option($cfg['package_channel'] ?? 'latest', 'latest', 'Latest stable (recommended)') ?>
-            <?= mk_option($cfg['package_channel'] ?? 'latest', 'previous', 'Previous stable (rollback)') ?>
-          </select>
-        </dd>
-      </dl>
-      <blockquote class="inline_help">
-        Automated set from the project catalog. Channels appear as builds are published.
-      </blockquote>
-
-      <dl>
-        <dt>Auto-download packages:</dt>
-        <dd>
-          <select name="auto_download">
-            <?= mk_option($cfg['auto_download'] ?? 'no', 'no', 'No (default — flash cache only)') ?>
-            <?= mk_option($cfg['auto_download'] ?? 'no', 'yes', 'Yes — fetch from catalog on Apply') ?>
-          </select>
-        </dd>
-      </dl>
-      <blockquote class="inline_help">
-        <strong>Default No:</strong> Apply will not hit the network for large package files.
-        <strong>First install:</strong> set <strong>Yes</strong>, click Apply, wait for the progress window to finish,
-        then you may set No again. Later reboots use packages already on flash (see Install on array start).
-      </blockquote>
+      <p class="frr-section-lead" style="margin-top:0.65em">
+        These save with <strong>Apply settings</strong> only (no package download).
+        Defaults are fine for OpenFabric multi-hop.
+      </p>
 
       <dl>
         <dt>Install on array start:</dt>
@@ -281,11 +342,10 @@ $bundle_ok = !empty($bundle['ok']);
       </dl>
       <blockquote class="inline_help">
         After reboot, reinstall packages <em>already on the flash</em> into the live (RAM) system — <strong>no download</strong>.
-        Unraid’s root filesystem does not keep <code>installpkg</code> results across boot.
       </blockquote>
 
       <dl>
-        <dt>Catalog URL (advanced):</dt>
+        <dt>Catalog URL (mirror):</dt>
         <dd>
           <input type="text" name="package_base_url" style="width:min(32em,100%)"
             value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>"
@@ -295,14 +355,8 @@ $bundle_ok = !empty($bundle['ok']);
       <blockquote class="inline_help">
         Leave empty for the official catalog. Only change if you host a mirror.
       </blockquote>
-    </div>
 
-    <div class="frr-section">
-      <h3>Core daemons</h3>
-      <p class="frr-section-lead">
-        These start with FRR. Leave Yes for OpenFabric multi-hop; leave optional protocols Off unless you know you need them.
-      </p>
-
+      <h3 style="margin-top:1em;font-size:1em">Core daemons</h3>
       <dl>
         <dt>Enable zebra:</dt>
         <dd>
@@ -312,10 +366,6 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">
-        FRR’s core process — talks to the Linux kernel routing table. Almost always Yes if you use this plugin at all.
-      </blockquote>
-
       <dl>
         <dt>Enable fabricd (OpenFabric):</dt>
         <dd>
@@ -325,12 +375,6 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">
-        Multi-hop fabric protocol (used with Thunderbolt rings / mixed Linux peers).
-        Does not by itself put your LAN bridge into a mesh — policy is separate
-        (Thunderbolt Net for Thunderbolt links; advanced <code>frr.conf</code> for others).
-      </blockquote>
-
       <dl>
         <dt>Enable staticd:</dt>
         <dd>
@@ -340,14 +384,9 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">
-        Lets FRR manage static routes (optional). Unraid can still own simple statics on the stock Routing Table.
-      </blockquote>
-    </div>
 
-    <div class="frr-section">
-      <h3>Optional protocols</h3>
-      <p class="frr-section-lead">Default all No — enable only what you use (not needed for OpenFabric/Thunderbolt alone).</p>
+      <h3 style="margin-top:1em;font-size:1em">Optional protocols</h3>
+      <p class="frr-section-lead">Default all No — not needed for OpenFabric alone.</p>
       <div class="frr-daemon-grid">
         <label>bgpd
           <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>
@@ -365,12 +404,9 @@ $bundle_ok = !empty($bundle['ok']);
           <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
         </label>
       </div>
-      <blockquote class="inline_help">
-        Advanced FRR protocols. Leave No unless you deliberately run BGP/OSPF/IS-IS/BFD on this host.
-      </blockquote>
 
       <dl>
-        <dt>Start/restart FRR on Apply:</dt>
+        <dt>Start/restart FRR on Apply settings:</dt>
         <dd>
           <select name="start_frr">
             <?= mk_option($cfg['start_frr'] ?? 'yes', 'yes', 'Yes') ?>
@@ -378,20 +414,15 @@ $bundle_ok = !empty($bundle['ok']);
           </select>
         </dd>
       </dl>
-      <blockquote class="inline_help">
-        After download/install, bring the FRR service up (or reload) so daemons match the checkboxes above.
-      </blockquote>
-    </div>
 
-    <div class="frr-actions">
-      <input type="submit" name="#apply" value="Apply">
-      <input type="button" value="Done" onclick="done()">
-    </div>
-    <p class="frr-muted" style="margin:0.65em 0 0;font-size:0.9em;line-height:1.4">
-      <strong>Apply</strong> opens Unraid’s progress window (like other Settings saves).
-      <strong>Do not close it</strong> until it shows finished — especially if Auto-download is Yes (large packages).
-      Only one Apply runs at a time. Then hard-refresh this page (Ctrl+Shift+R).
-    </p>
+      <div class="frr-actions">
+        <input type="submit" name="#apply" value="Apply settings">
+        <input type="button" value="Done" onclick="done()">
+      </div>
+      <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em">
+        Saves daemons/boot options only. Does <strong>not</strong> download packages.
+      </p>
+    </details>
   </form>
 </div>
 <script>
@@ -402,6 +433,8 @@ $bundle_ok = !empty($bundle['ok']);
   var WANT = 'ibigsWantTab';
   var WANT_LEGACY = 'tbnWantTab';
   var NET = '/Settings/NetworkSettings';
+  var JOB = '/usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job';
+
   function findTab(needle) {
     var tabs = document.querySelectorAll('.tabs [role="tab"], .tabs a, #menu a, .nav-item');
     var want = (needle || '').toLowerCase();
@@ -451,6 +484,31 @@ $bundle_ok = !empty($bundle['ok']);
   if (typeof global.nbdGotoNetTab !== 'function') {
     global.nbdGotoNetTab = function (n, e) { return global.ibigsGotoNetTab(n, e); };
   }
+
+  /** Nvidia-style package job: openBox → logging.htm → DONE */
+  global.frrPackagesJob = function () {
+    var mode = 'latest';
+    var radios = document.querySelectorAll('input[name="frr_pkg_mode"]');
+    for (var i = 0; i < radios.length; i++) {
+      if (radios[i].checked && !radios[i].disabled) {
+        mode = radios[i].value;
+        break;
+      }
+    }
+    var hidden = document.getElementById('frr_pkg_channel_hidden');
+    if (hidden && (mode === 'latest' || mode === 'previous')) {
+      hidden.value = mode;
+    }
+    if (typeof openBox !== 'function') {
+      alert('openBox unavailable — hard-refresh the Unraid UI, then try again.');
+      return false;
+    }
+    // load=true → modal; on close reload page (see nvidia-driver pattern)
+    openBox(JOB + '&arg1=' + encodeURIComponent(mode),
+      'Fabric Routing packages', 600, 800, true);
+    return false;
+  };
+
   function onReady() { applyWanted(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onReady);
   else onReady();

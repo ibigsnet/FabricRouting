@@ -83,7 +83,9 @@ Same rules as Thunderbolt Net / NBD Export:
 
 Canonical JS: **`ibigsGotoNetTab(needle, event)`** (aliases: `tbnGotoNetTab`, `frrGotoNetTab`, `nbdGotoNetTab`).
 
-**Network Settings tab rank:** `Menu="NetworkSettings:z"` on `FabricRouting.page`. Unraid keys tabs as `{rank}{pageName}` and sorts with `SORT_NATURAL`. Numeric ranks (Thunderbolt `:1100`, tbn `:1110+`) come *before* unranked stock tabs (Routing Table). Rank `z` places Fabric Routing **after** Routing Table (far right). Do not use `:1200` for that goal.  
+**Network Settings tab rank:** `Menu="NetworkSettings:z"` on `FabricRouting.page`. Unraid keys tabs as `{rank}{pageName}` and sorts with `SORT_NATURAL`. Numeric ranks (Thunderbolt `:1100`, tbn `:1110+`) come *before* unranked stock tabs (Routing Table). Rank `z` places Fabric Routing **after** Routing Table (far right). Do not use `:1200` for that goal.
+
+**Package install UX (v2):** radios + **Download & Install packages** → Unraid `openBox` / `logging.htm` (same family as Nvidia Driver and plugin install). Settings **Apply** does not download. Job script: `scripts/frr-packages-job`.  
 Storage: `sessionStorage.ibigsWantTab` (+ legacy `tbnWantTab`).
 
 ---

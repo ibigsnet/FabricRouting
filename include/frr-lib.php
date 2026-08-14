@@ -38,8 +38,8 @@ function frr_load_cfg() {
   $defaults = [
     // Array start: rehydrate packages already on flash into RAM (NO network).
     'install_on_start' => 'yes',
-    // Settings → Apply: catalog + package download only when Yes.
-    // Default No = no surprise multi‑MB network fetch; first time set Yes once.
+    // Legacy: kept for older UI/scripts. v2 downloads only via explicit
+    // "Download & Install packages" (openBox job) — never on Settings Apply.
     'auto_download' => 'no',
     'package_channel' => 'latest', // latest | previous
     'package_base_url' => '', // empty = frr_default_catalog_url()
@@ -86,12 +86,100 @@ function frr_log($msg) {
 function frr_progress($msg) {
   $msg = (string)$msg;
   frr_log($msg);
-  // Plain text lines show in the Unraid progress iframe
+  // Plain text lines: Unraid logging.htm openBox / progressFrame
   echo htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "\n";
   if (function_exists('ob_flush')) {
     @ob_flush();
   }
   @flush();
+}
+
+/**
+ * Persist selected keys into FabricRouting.cfg (merge with current).
+ *
+ * @param array<string,string> $patch
+ */
+function frr_save_cfg_keys(array $patch) {
+  $cfg = frr_load_cfg();
+  foreach ($patch as $k => $v) {
+    if (!is_string($k) || !preg_match('/^[A-Za-z0-9_]+$/', $k)) {
+      continue;
+    }
+    $cfg[$k] = (string)$v;
+  }
+  $lines = ['; FabricRouting.cfg — managed by plugin', ''];
+  $order = [
+    'install_on_start', 'auto_download', 'package_channel', 'package_base_url',
+    'enable_zebra', 'enable_fabricd', 'enable_staticd',
+    'enable_bgpd', 'enable_ospfd', 'enable_ospf6d', 'enable_isisd', 'enable_bfdd',
+    'start_frr',
+  ];
+  $written = [];
+  foreach ($order as $k) {
+    if (!array_key_exists($k, $cfg)) {
+      continue;
+    }
+    $lines[] = $k . '="' . str_replace(['\\', '"'], ['\\\\', '\\"'], (string)$cfg[$k]) . '"';
+    $written[$k] = true;
+  }
+  foreach ($cfg as $k => $v) {
+    if (isset($written[$k]) || !preg_match('/^[A-Za-z0-9_]+$/', $k)) {
+      continue;
+    }
+    $lines[] = $k . '="' . str_replace(['\\', '"'], ['\\\\', '\\"'], (string)$v) . '"';
+  }
+  $dir = frr_cfg_dir();
+  @mkdir($dir, 0755, true);
+  return @file_put_contents(frr_cfg_path(), implode("\n", $lines) . "\n") !== false;
+}
+
+/**
+ * Loud banner for package jobs (Nvidia-style openBox / logging.htm).
+ */
+function frr_progress_dont_close_banner() {
+  frr_progress('');
+  frr_progress('+==============================================================================');
+  frr_progress('| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING');
+  frr_progress('|');
+  frr_progress("| Don't close this window with the red 'X' until the DONE button is displayed!");
+  frr_progress('| Leaving early can leave packages half-installed.');
+  frr_progress('|');
+  frr_progress('+==============================================================================');
+  frr_progress('');
+}
+
+/**
+ * Explicit package job from UI (openBox → scripts/frr-packages-job).
+ * Modes: latest | previous | flash (no network).
+ *
+ * @param string $mode
+ * @return array
+ */
+function frr_packages_job($mode = 'latest') {
+  $mode = strtolower(trim((string)$mode));
+  if (!in_array($mode, ['latest', 'previous', 'flash'], true)) {
+    $mode = 'latest';
+  }
+
+  frr_progress_dont_close_banner();
+  frr_progress('Fabric Routing — package job');
+  frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
+
+  if ($mode === 'flash') {
+    frr_progress('Mode: flash cache only (no network download).');
+    frr_progress('');
+    return frr_apply(['local_only' => true, 'force_download' => false]);
+  }
+
+  frr_progress('Mode: download channel "' . $mode . '" then install + start FRR.');
+  frr_progress('This can take a minute on first run (~20+ MiB).');
+  frr_progress('');
+  frr_save_cfg_keys([
+    'package_channel' => $mode,
+    // Explicit job only — never leave auto_download Yes for silent Settings Apply.
+    'auto_download' => 'no',
+  ]);
+  return frr_apply(['local_only' => false, 'force_download' => true]);
 }
 
 /**
@@ -665,7 +753,11 @@ function frr_run_install_packages() {
   return ['ok' => $rc === 0, 'rc' => $rc, 'output' => $out];
 }
 
-function frr_try_start() {
+function frr_try_start($timeout_sec = 45) {
+  // Cap start/restart so a wedged frrinit cannot pin php-fpm / hang the WebUI.
+  $timeout_sec = max(10, min(120, (int)$timeout_sec));
+  $has_timeout = trim((string)@shell_exec('command -v timeout 2>/dev/null')) !== '';
+
   // Our Slackware-style packages ship tools/frrinit.sh as /usr/sbin/frrinit.sh
   $cmds = [
     '/usr/sbin/frrinit.sh start',
@@ -678,19 +770,35 @@ function frr_try_start() {
     'service frr restart',
   ];
   foreach ($cmds as $cmd) {
+    $bin = strtok($cmd, ' ');
+    if ($bin !== false && $bin !== '' && $bin[0] === '/' && !is_file($bin)) {
+      continue;
+    }
     $rc = 1;
     $o = [];
-    @exec($cmd . ' 2>/dev/null', $o, $rc);
+    $run = $has_timeout
+      ? ('timeout ' . $timeout_sec . 's ' . $cmd . ' 2>/dev/null')
+      : ($cmd . ' 2>/dev/null');
+    @exec($run, $o, $rc);
     if ($rc === 0) {
       frr_log('start: ' . $cmd);
       return ['ok' => true, 'cmd' => $cmd];
     }
+    // timeout(1) uses 124; frrinit may still have brought daemons up
+    if (trim((string)@shell_exec('pgrep -x zebra 2>/dev/null')) !== '') {
+      frr_log('start: zebra up after ' . $cmd . ' (rc=' . $rc . ')');
+      return ['ok' => true, 'cmd' => $cmd . ' (running)', 'rc' => $rc];
+    }
+    if ($rc === 124) {
+      frr_log('start timed out (' . $timeout_sec . 's): ' . $cmd);
+      frr_progress('  note: start timed out after ' . $timeout_sec . 's — checking if daemons are up…');
+    }
   }
   // Already running counts as success
-  if (is_file('/proc') && @file_exists('/proc') && trim((string)@shell_exec('pgrep -x zebra 2>/dev/null'))) {
+  if (trim((string)@shell_exec('pgrep -x zebra 2>/dev/null')) !== '') {
     return ['ok' => true, 'cmd' => 'already-running'];
   }
-  return ['ok' => false, 'error' => 'could not start frr service (package may lack unit)'];
+  return ['ok' => false, 'error' => 'could not start frr service within ' . $timeout_sec . 's (package may lack unit)'];
 }
 
 /**
@@ -730,40 +838,53 @@ function frr_apply_inner($opts = []) {
     $opts = [];
   }
   $local_only = !empty($opts['local_only']);
+  $force_download = !empty($opts['force_download']);
+  $settings_apply = !empty($opts['settings_apply']);
   $cfg = frr_load_cfg();
   $result = [
     'ok' => true,
     'actions' => [],
     'detect_before' => frr_detect(),
     'local_only' => $local_only,
+    'force_download' => $force_download,
+    'settings_apply' => $settings_apply,
   ];
 
-  frr_progress('=== Fabric Routing Apply' . ($local_only ? ' (local rehydrate)' : '') . ' ===');
+  $title = 'Fabric Routing';
+  if ($settings_apply) {
+    $title .= ' Settings Apply';
+  } elseif ($local_only) {
+    $title .= ' (local rehydrate)';
+  } else {
+    $title .= ' packages';
+  }
+  frr_progress('=== ' . $title . ' ===');
   frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
-  if (!$local_only) {
-    frr_progress('Do not close this window until finished (Unraid progress dialog).');
+  if (!$local_only || $force_download) {
+    frr_progress('Do not close this window until finished.');
   }
 
   @mkdir(frr_packages_dir(), 0755, true);
 
-  // 1) Network download — UI Apply only. Never during boot plg or local rehydrate.
+  // 1) Network download — only when force_download (package button) or legacy auto_download=yes.
+  //    Never during boot plg, array rehydrate, or Settings Apply (settings_apply).
   //    Flash cache is the durable store; array start rehydrates without network.
-  if ($local_only) {
-    frr_progress('Step 1/4: local-only — skip catalog/download (flash cache only).');
+  if ($local_only || $settings_apply) {
+    frr_progress('Step 1/4: no network download (flash cache / settings only).');
     $result['actions'][] = 'local-only: no network download';
-  } elseif (($cfg['auto_download'] ?? 'no') === 'yes') {
+  } elseif ($force_download || ($cfg['auto_download'] ?? 'no') === 'yes') {
     frr_progress('Step 1/4: Catalog + package download…');
-    $dl = frr_download_bundle(false);
+    $dl = frr_download_bundle($force_download);
     $result['download'] = $dl;
     if (!empty($dl['ok'])) {
-      $result['actions'][] = 'package bundle ready (auto-download/cache)';
+      $result['actions'][] = 'package bundle ready (download/cache)';
       frr_progress('Step 1/4: package bundle ready.');
     } else {
-      $result['actions'][] = 'auto-download: ' . ($dl['error'] ?? 'no bundle for this Unraid version yet');
+      $result['actions'][] = 'download: ' . ($dl['error'] ?? 'no bundle for this Unraid version yet');
       frr_progress('Step 1/4: ' . ($dl['error'] ?? 'no bundle yet') . ' (will use flash cache if any)');
     }
   } else {
-    frr_progress('Step 1/4: Auto-download Off — using flash cache only.');
+    frr_progress('Step 1/4: using flash cache only (no download requested).');
   }
 
   $det = frr_detect();
@@ -772,6 +893,15 @@ function frr_apply_inner($opts = []) {
 
   if (!$have_frr && !$have_pkgs) {
     $result['ok'] = true; // safe idle until catalog has a build
+    if ($settings_apply) {
+      $result['actions'][] = 'settings saved; packages not installed yet';
+      frr_progress('Settings saved. No FRR packages on flash yet.');
+      frr_progress('Use "Download & Install packages" on this page to fetch the catalog bundle.');
+      frr_write_companion_marker();
+      $result['detect'] = $det;
+      frr_progress('=== Settings Apply finished ===');
+      return $result;
+    }
     $result['actions'][] = 'waiting for automated package set (nothing to install yet)';
     frr_progress('Nothing to install yet (no packages on flash, FRR not present).');
     frr_progress('See packages/SUPPORTED.md — lab-confirmed vs suggested Unraid versions.');

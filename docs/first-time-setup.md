@@ -68,15 +68,13 @@ Hard-refresh once (**Ctrl+Shift+R**) so you are not looking at a cached UI.
 
 ### Step B — First package download (once)
 
-1. **Auto-download packages** → **Yes** (only for this first fetch).  
-2. Leave **Install on array start** → **Yes**.  
-3. Leave **Package channel** → **Latest** (unless you know you need Previous).  
-4. Leave **Catalog URL** empty.  
-5. Core daemons: keep **zebra / fabricd / staticd = Yes**; leave BGP/OSPF/… **No**.  
-6. **Start FRR on Apply** → **Yes**.  
-7. Click **Apply**.
+1. Under **Packages**, select **Latest** (or **Previous** only if you need rollback).  
+2. Click **Download & Install packages**.  
+3. A popup log opens (same idea as the Nvidia Driver plugin / plugin installs).  
+4. Leave it open until the **DONE** button appears — do **not** use the red X early.  
+5. Hard-refresh the page (**Ctrl+Shift+R**). Status should show FRR present / zebra / fabricd.  
 
-**Progress window:** leave it open until it finishes (same idea as other Unraid Settings jobs that download). Closing early can leave a half-done state.
+**Advanced** (collapsed): install-on-array-start, catalog mirror, daemon toggles — save with **Apply settings** only (never downloads packages).
 
 Typical time: a few minutes (package set is tens of MB).
 
