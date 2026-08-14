@@ -168,7 +168,7 @@ $bundle_ok = !empty($bundle['ok']);
       <p><strong>Thunderbolt Net</strong> (optional) can hold OpenFabric policy when you use Thunderbolt host networking.</p>
 <?php endif; ?>
       <p><strong>First install:</strong>
-        choose Latest below → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>DONE</strong> → hard-refresh.
+        select <strong>Latest</strong> (recommended) → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>DONE</strong> → hard-refresh.
         Later reboots rehydrate from flash when Install on array start is Yes (Advanced).</p>
       <p>Does not change <code>br0</code>, Wi‑Fi, or <code>network.cfg</code>. BGP/OSPF stay Off until you enable them.</p>
       <p>
@@ -263,19 +263,24 @@ $bundle_ok = !empty($bundle['ok']);
 <?php endif; ?>
     </p>
 
+<?php
+  // Default radio: Flash when cache exists (no surprise network fetch).
+  // First install (empty flash): Latest so the button is useful without a dead selection.
+  $pkg_default = !empty($pk) ? 'flash' : 'latest';
+?>
     <ul class="frr-radio-list">
       <li>
         <label>
-          <input type="radio" name="frr_pkg_mode" value="latest" <?= ($cfg['package_channel'] ?? 'latest') !== 'previous' ? 'checked' : '' ?>>
+          <input type="radio" name="frr_pkg_mode" value="latest" <?= $pkg_default === 'latest' ? 'checked' : '' ?>>
           <span>
-            <strong>Latest</strong> for this Unraid version (recommended)
-            <span class="frr-muted"> — catalog download + install + start</span>
+            <strong>Latest</strong> for this Unraid version
+            <span class="frr-muted"> — <strong>recommended</strong> first install; catalog download + install + start</span>
           </span>
         </label>
       </li>
       <li>
         <label>
-          <input type="radio" name="frr_pkg_mode" value="previous" <?= ($cfg['package_channel'] ?? '') === 'previous' ? 'checked' : '' ?>>
+          <input type="radio" name="frr_pkg_mode" value="previous">
           <span>
             <strong>Previous</strong> (rollback channel)
             <span class="frr-muted"> — only if the catalog publishes a previous set</span>
@@ -284,14 +289,14 @@ $bundle_ok = !empty($bundle['ok']);
       </li>
       <li>
         <label>
-          <input type="radio" name="frr_pkg_mode" value="flash" <?= empty($pk) ? 'disabled' : '' ?>>
+          <input type="radio" name="frr_pkg_mode" value="flash" <?= empty($pk) ? 'disabled' : '' ?> <?= $pkg_default === 'flash' ? 'checked' : '' ?>>
           <span>
             <strong>Flash cache only</strong> (no network)
             <span class="frr-muted"> — reinstall packages already on the USB into RAM</span>
 <?php if (empty($pk)): ?>
-            <br><span class="frr-warn">No packages on flash yet — download Latest first.</span>
+            <br><span class="frr-warn">No packages on flash yet — choose <strong>Latest</strong> (recommended) for the first download.</span>
 <?php else: ?>
-            <br><span class="frr-muted"><?= (int)count($pk) ?> file(s): <?= htmlspecialchars(implode(', ', $pk)) ?></span>
+            <br><span class="frr-muted"><?= (int)count($pk) ?> file(s): <?= htmlspecialchars(implode(', ', $pk)) ?> · default selection (safe, no download)</span>
 <?php endif; ?>
           </span>
         </label>

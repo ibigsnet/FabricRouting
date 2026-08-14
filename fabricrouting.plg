@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14am">
+<!ENTITY version "2026.08.14an">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,10 @@
 
 <CHANGES>
 ###&version;
+- Packages radio: default <strong>Flash cache only</strong> when packages exist (no surprise download);
+  empty flash still defaults to <strong>Latest</strong> so first install works.
+
+###2026.08.14am
 - Lead copy: short product blurb; move when-to-use / Thunderbolt split into <strong>What is FRR?</strong>
   (drop “not Routing Table” banner and Need this strip).
 
