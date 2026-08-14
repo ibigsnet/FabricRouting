@@ -16,7 +16,7 @@
   UI: Network Settings siblings via ibigsGotoNetTab(Title) — never deep-link
   /Settings/ThunderboltNet or /Settings/FabricRouting (standalone CA pages).
 -->
-<!ENTITY version "2026.08.14ao">
+<!ENTITY version "2026.08.14ap">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -38,6 +38,9 @@
 
 <CHANGES>
 ###&version;
+- Package job finish copy: close or click Done (page reloads on close; no hard-refresh nag).
+
+###2026.08.14ao
 - Package job: Done button works again after download/install finishes
   (openPlugin + nchan <code>_DONE_</code> / <code>_ERROR_</code>).
 

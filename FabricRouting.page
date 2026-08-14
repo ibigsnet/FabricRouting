@@ -168,7 +168,7 @@ $bundle_ok = !empty($bundle['ok']);
       <p><strong>Thunderbolt Net</strong> (optional) can hold OpenFabric policy when you use Thunderbolt host networking.</p>
 <?php endif; ?>
       <p><strong>First install:</strong>
-        select <strong>Latest</strong> (recommended) → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>DONE</strong> → hard-refresh.
+        select <strong>Latest</strong> (recommended) → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>Done</strong>, then close.
         Later reboots rehydrate from flash when Install on array start is Yes (Advanced).</p>
       <p>Does not change <code>br0</code>, Wi‑Fi, or <code>network.cfg</code>. BGP/OSPF stay Off until you enable them.</p>
       <p>
@@ -307,8 +307,8 @@ $bundle_ok = !empty($bundle['ok']);
       <input type="button" value="Download &amp; Install packages" onclick="frrPackagesJob()">
     </div>
     <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em;line-height:1.4">
-      Leave the popup open until <strong>DONE</strong>. Do not use the red X early.
-      After DONE, hard-refresh this page (Ctrl+Shift+R).
+      Leave the popup open until <strong>Done</strong>, then close (status updates when the window closes).
+      Do not use the red X early.
     </p>
   </div>
 
@@ -560,12 +560,14 @@ $bundle_ok = !empty($bundle['ok']);
       hidden.value = mode;
     }
     // openPlugin: script basename + space-separated args (NOT full path, NOT &arg1=)
+    // 4th arg reloads this page when the dialog is closed (latest status).
     if (typeof openPlugin === 'function') {
       // start=1 run always; button=0 show Close (renamed Done when _DONE_ arrives)
-      openPlugin('frr-packages-job ' + mode, 'Fabric Routing packages', null, null, 1, 0);
+      openPlugin('frr-packages-job ' + mode, 'Fabric Routing packages', '', 'location.reload', 1, 0);
       return false;
     }
     if (typeof openBox === 'function') {
+      // load=true → reload page on close
       openBox(JOB + '&arg1=' + encodeURIComponent(mode), 'Fabric Routing packages', 600, 800, true);
       return false;
     }

@@ -214,11 +214,12 @@ function frr_packages_job($mode = 'latest') {
   // Legacy openBox/logging.htm also finishes once the process exits after this flush.
   if (!empty($r['ok'])) {
     frr_progress('');
-    frr_progress('Package job complete. You may click Done and hard-refresh the page.');
+    frr_progress('Package job complete. You can close this window or click Done.');
     frr_progress('_DONE_');
   } else {
     frr_progress('');
     frr_progress('Package job finished with errors — see log above.');
+    frr_progress('You can close this window or click Done.');
     frr_progress('_ERROR_');
   }
   return $r;
@@ -1033,8 +1034,7 @@ function frr_apply_inner($opts = []) {
     . ' zebra=' . (!empty($d['running_zebra']) ? 'up' : 'down')
     . ' fabricd=' . (!empty($d['running_fabricd']) ? 'up' : 'down'));
   frr_progress('=== Apply finished ===');
-  frr_progress('You can close this window and hard-refresh the Fabric Routing page (Ctrl+Shift+R).');
-  // Note: package jobs also emit _DONE_ / _ERROR_ from frr_packages_job().
+  // Package jobs add the close/Done line + _DONE_ in frr_packages_job().
   // Settings Apply uses progressFrame (browser Done via form), not openPlugin nchan.
   return $result;
 }
