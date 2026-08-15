@@ -1,13 +1,3 @@
 **Fabric Routing (FRR)**
 
-Optional FRRouting for Unraid: boot loads the plugin only; **Settings → Network Settings → Fabric Routing → Apply** can download/verify packages for your Unraid version + arch (enable Auto-download when needed); array start rehydrates from flash cache. Standalone: Thunderbolt Net is not required. Does not edit eth0/br0 by default. Pair with Thunderbolt Net for multi-host OpenFabric over Thunderbolt (OpenFabric policy there; FRR packages here).
-
-Install: see [RELEASES.md](RELEASES.md). Lifecycle: [docs/boot-lifecycle.md](docs/boot-lifecycle.md).
-## License
-
-GNU General Public License v3.0 or later — copyright **ibigs, LLC** (Author: RifleJock). See [LICENSE](LICENSE) and [SECURITY.md](SECURITY.md).
-
-## Install channel
-
-**Production / CA:** `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg`  
-**Development:** `main`. Ship via merge to `stable` (package catalog also pinned to `stable`).
+Optional FRRouting packages and daemons for Unraid (zebra, fabricd/OpenFabric, optional OSPF/BGP, and more). Install packages from Settings → Network Settings → Fabric Routing. Standalone — Thunderbolt Net is not required. Does not change eth0/br0 by default.
