@@ -36,5 +36,7 @@ Fresh install is **idle** until you install packages from the Fabric Routing pag
 
 ## Contact
 
-- Support: GitHub Issues (forum when listed on the Apps card)  
-- Project: https://github.com/ibigsnet/FabricRouting  
+- **Support:** https://github.com/ibigsnet/FabricRouting/issues  
+  (no Unraid forum thread yet — CA Support uses GitHub Issues)  
+- **Project:** https://github.com/ibigsnet/FabricRouting  
+

@@ -64,6 +64,7 @@ Changelog bullets ship on the **Plugins** page and optionally as [GitHub Release
 
 | | |
 |--|--|
+| **Support** | https://github.com/ibigsnet/FabricRouting/issues (no forum thread yet) |
 | **GitHub** | https://github.com/ibigsnet/FabricRouting |
 | **CA templates** | https://github.com/ibigsnet/unraid-templates |
 | **Docs** | [DOCS.md](DOCS.md) · [docs/](docs/) |
