@@ -1,3 +1,6 @@
+## 2026.08.15af
+- Uninstall: also remove /var/tmp/frr (watchfrr scratch).
+
 # Changelog — FabricRouting
 
 User-facing history for this plugin. The `.plg` file (Community Applications / Plugins page) shows only the **most recent releases**; this file is the complete record.

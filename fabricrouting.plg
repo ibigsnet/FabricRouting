@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.15ae">
+<!ENTITY version "2026.08.15af">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,6 +26,10 @@
 
 <CHANGES>
 ###&version;
+- **Uninstall:** remove all plugin-owned flash config and runtime scratch (clean reinstall).
+- Also clear /var/tmp/frr leftover watchfrr dirs.
+
+###2026.08.15ae
 - Fix: do not wipe Unraid /tmp/plugins working copy during install prepare.
 
 ###2026.08.14ao
@@ -48,13 +52,6 @@
 - **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so
   openBox reaches DONE; skip start when zebra already running (packages were already OK).
 
-###2026.08.14aj
-- **Package UX v2:** radio pick (Latest / Previous / Flash) + **Download &amp; Install packages**
-  via Unraid `openBox` (Nvidia-style log + DONE — do not close early). Settings Apply no longer
-  downloads packages. Collapse Advanced daemons. Timeout on `frrinit.sh` start so WebUI cannot hang.
-
-### Older releases
-- Full changelog (all versions): https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
 </CHANGES>
 
 <FILE Run="/bin/bash">
@@ -130,7 +127,7 @@ for p in /var/log/packages/FabricRouting-*; do
   [ -e "$p" ] || continue
   removepkg "$(basename "$p")" 2>/dev/null || true
 done
-rm -rf /var/run/frr /run/frr /etc/frr /var/lib/frr 2>/dev/null || true
+rm -rf /var/run/frr /run/frr /etc/frr /var/lib/frr /var/tmp/frr 2>/dev/null || true
 rm -f /var/log/fabricrouting.log 2>/dev/null || true
 rm -rf /usr/local/emhttp/plugins/FabricRouting
 # Legacy product id
@@ -139,7 +136,9 @@ rm -f /boot/config/plugins/unraidfrr.plg /var/log/plugins/unraidfrr.plg 2>/dev/n
 # Flash plugin tree (includes package cache)
 rm -rf /boot/config/plugins/FabricRouting
 rm -f /var/log/plugins/fabricrouting.plg 2>/dev/null || true
+rm -f /tmp/plugins/fabricrouting.txt 2>/dev/null || true
 # Note: do not delete /tmp/plugins/fabricrouting.plg here — Unraid install working copy
+# Note: do not touch /boot/config/plugins-removed/ (Unraid-owned)
 echo "FabricRouting: removed."
 echo "FabricRouting: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
 echo "FabricRouting: hard-refresh the browser (Ctrl+Shift+R)."
