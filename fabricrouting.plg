@@ -52,6 +52,8 @@
 - **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so
   openBox reaches DONE; skip start when zebra already running (packages were already OK).
 
+### Older releases
+- Full changelog (all versions): https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
 </CHANGES>
 
 <FILE Run="/bin/bash">
