@@ -50,21 +50,11 @@ We still prefer **narrow lab-confirmed rows** in this doc even when the catalog 
 
 ---
 
-## How to promote a version to lab-confirmed
-
-1. Install Fabric Routing on that Unraid product + arch.  
-2. Apply → packages install → `vtysh -c 'show version'`.  
-3. Optional: OpenFabric or static underlay smoke test (two hosts on a private link).  
-4. Update this matrix (**Lab-confirmed** + what was exercised).  
-5. Only then market that exact version as tested.
-
-Widening **catalog** range without lab: allowed for **Suggested**, with clear wording.
-
----
-
 ## Related
 
 - [manifest.json](manifest.json) — machine-readable ranges  
-- [README.md](README.md) — maintainer build/release  
+- [README.md](README.md) — catalog layout  
+- [BUILD.md](BUILD.md) — building package `.txz` files  
 - [../docs/frr-and-unraid-routing.md](../docs/frr-and-unraid-routing.md) — FRR vs stock Routing Table  
 - [../docs/lab-two-node-fabric.md](../docs/lab-two-node-fabric.md) — generic two-host lab pattern  
+

@@ -92,7 +92,7 @@ FRR vs stock routing: [docs/frr-and-unraid-routing.md](docs/frr-and-unraid-routi
 | OpenFabric stanzas on `thunderbolt*` | Thunderbolt Net (marked conf) |
 | Unraid eth0/br0 / `network.cfg` | Unraid Network Settings |
 | Auto-enroll br0 into OSPF/BGP/OpenFabric | **Never** by default |
-| Instant FRR for every Unraid version before a catalog build exists | Maintainer publishes bundles; UI waits safely |
+| Instant FRR for every Unraid version before a catalog build exists | Catalog only lists built bundles; UI waits safely |
 | Replace stock Routing Table / Network Settings | Still Unraid’s job for IPs and simple statics |
 
 ---
@@ -207,8 +207,8 @@ Mixed Unraid + Proxmox/Debian fabrics: [TBN fabric guide](https://github.com/ibi
 | Automation / catalog / flash cache flow | [docs/automation-design.md](docs/automation-design.md) |
 | Host-wide FRR vs Ethernet safety | [docs/scope-and-safety.md](docs/scope-and-safety.md) |
 | Pairing with Thunderbolt Net | [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md) |
-| Maintainer package catalog | [packages/README.md](packages/README.md) |
-| Install URLs, versioning, tags | [RELEASES.md](RELEASES.md) |
+| Package catalog | [packages/README.md](packages/README.md) |
+| Install URLs (`stable` / freezes) | [RELEASES.md](RELEASES.md) |
 | Topic index | [docs/README.md](docs/README.md) |
 
 ---

@@ -149,7 +149,7 @@ Details: [scope-and-safety.md](scope-and-safety.md).
 ## Related
 
 - [scope-and-safety.md](scope-and-safety.md)  
-- [product-roadmap.md](product-roadmap.md) — interface/metric UI plans  
 - [integration-thunderboltnet.md](integration-thunderboltnet.md)  
 - [packages/SUPPORTED.md](../packages/SUPPORTED.md) — version matrix  
 - Thunderbolt Net: [routing-openfabric.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/routing-openfabric.md)  
+

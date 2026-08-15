@@ -37,4 +37,4 @@ Authors must keep that path **fast, offline-capable after first success, and non
 - Set `install_on_start="no"` to skip even local rehydrate.  
 - Set `auto_download="no"` to use flash cache only even on Apply.
 
-See also: [install-uninstall-audit.md](install-uninstall-audit.md), [automation-design.md](automation-design.md), [../RELEASES.md](../RELEASES.md).
+See also: [automation-design.md](automation-design.md), [boot-blocker-plugin-install-stall.md](boot-blocker-plugin-install-stall.md), [../RELEASES.md](../RELEASES.md).

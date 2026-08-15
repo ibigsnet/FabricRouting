@@ -21,5 +21,5 @@ Heavy work belongs behind an explicit **Download & Install packages** (or simila
 ## Related
 
 - [boot-lifecycle.md](boot-lifecycle.md)  
-- [install-uninstall-audit.md](install-uninstall-audit.md)  
 - [scope-and-safety.md](scope-and-safety.md)  
+

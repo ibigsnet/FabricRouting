@@ -87,7 +87,7 @@ Typical time: a few minutes (package set is tens of MB).
 ### Step D — If download was interrupted
 
 - Prefer **Plugins → remove Fabric Routing**, then reinstall (only when the plugin shows as installed).  
-- Or, if the plugin is half-broken (files present but missing from Plugins list), see [install-uninstall-audit.md](install-uninstall-audit.md) / `frr-force-cleanup`.
+- If the plugin is half-broken (files on disk but missing from Plugins), use **Safe Mode** or console cleanup, then reinstall from [RELEASES.md](../RELEASES.md).
 
 ---
 
@@ -178,4 +178,4 @@ Why these defaults: [defaults-rationale.md](defaults-rationale.md).
 | [integration-thunderboltnet.md](integration-thunderboltnet.md) | Pairing with Thunderbolt Net |
 | [../packages/SUPPORTED.md](../packages/SUPPORTED.md) | Lab-confirmed vs suggested Unraid versions |
 | [../DOCS.md](../DOCS.md) | Full product docs |
-| [install-uninstall-audit.md](install-uninstall-audit.md) | Broken install / force cleanup |
+| [boot-blocker-plugin-install-stall.md](boot-blocker-plugin-install-stall.md) | Boot stuck after plugin install |

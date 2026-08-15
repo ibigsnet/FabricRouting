@@ -1,24 +1,30 @@
-# Contributing to FabricRouting
+# Contributing to Fabric Routing
+
+Thanks for helping with FRR packaging and lifecycle on Unraid.
 
 ## Scope
 
-- Package lifecycle and daemon enablement for FRR on Unraid  
-- **Must remain usable without Thunderbolt Net**  
-- Never `require` Thunderbolt Net PHP paths  
+- Package catalog, download/install, and daemon enablement for FRR  
+- Must remain usable **without** Thunderbolt Net  
+- Never hard-`require` Thunderbolt Net PHP  
 
-## Package builds
+## Helpful contributions
 
-Helpful contributions: documented Slackware/Unraid-compatible FRR `.txz` builds, CI notes, MANIFEST order, library deps (e.g. libyang).
+- Slackware/Unraid-compatible FRR `.txz` builds and catalog entries (`packages/`)  
+- Docs under [docs/](docs/)  
+- Bug reports with Unraid product version + arch  
 
-## With Thunderbolt Net
-
-Cross-plugin behavior is documented in [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md). Prefer filesystem detection (`vtysh`) over hard coupling.
-
-## License
-
-By contributing, you agree that your contributions are licensed under the **GNU GPLv3 or later** (same as this project). Copyright for the project is held by **ibigs, LLC**.
+Cross-plugin behavior: [docs/integration-thunderboltnet.md](docs/integration-thunderboltnet.md).
 
 ## Branches
 
-- `main` — development (may break)
-- `stable` — production / CA channel only; maintainers merge release-ready work here
+| Branch | Role |
+|--------|------|
+| `main` | Development |
+| `stable` | Production / Community Applications |
+
+Install channels: [RELEASES.md](RELEASES.md).
+
+## License
+
+By contributing, you agree that your contributions are licensed under the **GNU GPLv3 or later**. Copyright for the project is held by **ibigs, LLC**.

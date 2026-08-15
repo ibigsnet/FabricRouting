@@ -1,24 +1,20 @@
-# Package catalog (maintainer / automation)
+# Package catalog
 
-**End users do not place packages here manually.**
-
-FabricRouting can download the matching bundle from `manifest.json` into the flash cache when **Auto-download** is Yes and you click **Apply**.
-
-**Supported Unraid product versions:** see [SUPPORTED.md](SUPPORTED.md) (matrix + how we widen ranges).
+**Normal use:** install Fabric Routing, open **Settings → Network Settings → Fabric Routing**, then **Download & Install packages**. You do not need to put files in this folder by hand.
 
 ## Files
 
 | File | Role |
 |------|------|
-| `manifest.json` | Public catalog: channels, Unraid version ranges, package URLs + sha256 |
-| `SUPPORTED.md` | Human-readable support matrix (lab-proven vs catalog-allowed) |
-| GitHub Releases `pkg-*` | Hosts large `.txz` binaries referenced by the manifest |
+| `manifest.json` | Catalog: channels, Unraid version ranges, package URLs + sha256 |
+| `SUPPORTED.md` | Which Unraid product versions the catalog covers |
+| `BUILD.md` | Notes for building Slackware-style FRR `.txz` packages |
+| GitHub Releases `pkg-*` | Host the large `.txz` binaries referenced by the manifest |
 
-## Maintainer workflow
+Default catalog URL (production channel):
 
-1. Build FRR (+ deps) for a target Unraid major line and arch  
-2. Upload `.txz` to a GitHub Release  
-3. Add a `bundles[]` entry in `manifest.json` with `url` + `sha256`  
-4. Users get it on next **Apply** / array start  
+```text
+https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/packages/manifest.json
+```
 
-See [docs/automation-design.md](../docs/automation-design.md).
+See [docs/automation-design.md](../docs/automation-design.md) for how download, flash cache, and array-start rehydrate work.
