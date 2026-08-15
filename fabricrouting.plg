@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.15ad">
+<!ENTITY version "2026.08.15ae">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,7 +26,7 @@
 
 <CHANGES>
 ###&version;
-- Install/remove cleanup: canonical paths; leave .plg file to Unraid.
+- Fix: do not wipe Unraid /tmp/plugins working copy during install prepare.
 
 ###2026.08.14ao
 - Package job: Done button works again after download/install finishes
@@ -60,7 +60,7 @@
 <FILE Run="/bin/bash">
 <INLINE><![CDATA[
 echo "FabricRouting: preparing..."
-rm -f /tmp/plugins/fabricrouting.plg /tmp/plugins/fabricrouting.txt 2>/dev/null || true
+# Note: do not delete /tmp/plugins/fabricrouting.plg here — Unraid install working copy
 mkdir -p /boot/config/plugins/FabricRouting
 rm -rf /usr/local/emhttp/plugins/FabricRouting
 # plugin package only — do not delete packages/ FRR .txz cache
@@ -139,7 +139,7 @@ rm -f /boot/config/plugins/unraidfrr.plg /var/log/plugins/unraidfrr.plg 2>/dev/n
 # Flash plugin tree (includes package cache)
 rm -rf /boot/config/plugins/FabricRouting
 rm -f /var/log/plugins/fabricrouting.plg 2>/dev/null || true
-rm -f /tmp/plugins/fabricrouting.plg /tmp/plugins/fabricrouting.txt 2>/dev/null || true
+# Note: do not delete /tmp/plugins/fabricrouting.plg here — Unraid install working copy
 echo "FabricRouting: removed."
 echo "FabricRouting: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
 echo "FabricRouting: hard-refresh the browser (Ctrl+Shift+R)."
