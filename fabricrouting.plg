@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.15ac">
+<!ENTITY version "2026.08.15ad">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,7 +26,7 @@
 
 <CHANGES>
 ###&version;
-- Cleaner install/remove scripts (canonical paths only).
+- Install/remove cleanup: canonical paths; leave .plg file to Unraid.
 
 ###2026.08.14ao
 - Package job: Done button works again after download/install finishes
@@ -138,7 +138,7 @@ rm -rf /usr/local/emhttp/plugins/UnraidFRR /boot/config/plugins/UnraidFRR
 rm -f /boot/config/plugins/unraidfrr.plg /var/log/plugins/unraidfrr.plg 2>/dev/null || true
 # Flash plugin tree (includes package cache)
 rm -rf /boot/config/plugins/FabricRouting
-rm -f /boot/config/plugins/fabricrouting.plg /var/log/plugins/fabricrouting.plg 2>/dev/null || true
+rm -f /var/log/plugins/fabricrouting.plg 2>/dev/null || true
 rm -f /tmp/plugins/fabricrouting.plg /tmp/plugins/fabricrouting.txt 2>/dev/null || true
 echo "FabricRouting: removed."
 echo "FabricRouting: did not modify network.cfg, br0, Docker, or Thunderbolt Net."
