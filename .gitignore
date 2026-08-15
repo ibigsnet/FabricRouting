@@ -1,10 +1,16 @@
-.grok-notes/
-*.local.md
-NOTES.local.md
-.private/
+# Editor / OS
 *~
 *.swp
 .DS_Store
+.idea/
+.vscode/
+.cursor/
+
+# Local scratch files
+*.local.md
+NOTES.local.md
+.private/
+
 # Do not commit large binary packages by default (use GitHub Releases)
 packages/*.txz
 packages/*.tgz
