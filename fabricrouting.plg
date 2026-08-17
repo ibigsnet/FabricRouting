@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.17aa">
+<!ENTITY version "2026.08.17ab">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,43 +26,25 @@
 
 <CHANGES>
 ###&version;
-- <strong>Docs/audit:</strong> still does not patch stock dynamix UI or network.cfg; package
-  rehydrate remains local-only on array start. Install/upgrade still clean-replaces plugin package.
+- <strong>Plugins UI:</strong> trim embedded CHANGES list. CA/PluginURL use GitHub <code>main</code>.
+
+###2026.08.17aa
+- Docs/audit: no dynamix/network.cfg patch; array-start rehydrate local-only.
 
 ###2026.08.16aa
-- <strong>Install/upgrade:</strong> always removepkg prior FabricRouting-* (and legacy UnraidFRR-*)
-  plugin packages and wipe emhttp dirs before the new .txz. Does <em>not</em> remove FRR package
-  cache under packages/.
+- Clean package replace on upgrade (plugin package only; not FRR flash cache).
 
 ###2026.08.15af
-- **Uninstall:** remove all plugin-owned flash config and runtime scratch (clean reinstall).
-- Also clear /var/tmp/frr leftover watchfrr dirs.
+- Full uninstall wipe; clear leftover FRR runtime dirs.
 
 ###2026.08.15ae
-- Fix: do not wipe Unraid /tmp/plugins working copy during install prepare.
-
-###2026.08.14ao
-- Package job: Done button works again after download/install finishes
-  (openPlugin + nchan <code>_DONE_</code> / <code>_ERROR_</code>).
-
-###2026.08.14an
-- Packages radio: default <strong>Flash cache only</strong> when packages exist (no surprise download);
-  empty flash still defaults to <strong>Latest</strong> so first install works.
-
-###2026.08.14am
-- Lead copy: short product blurb; move when-to-use / Thunderbolt split into <strong>What is FRR?</strong>
-  (drop “not Routing Table” banner and Need this strip).
-
-###2026.08.14al
-- UI: blue <code>inline_help</code> on Advanced core daemons (zebra / fabricd / staticd), optional
-  protocols, install-on-start, catalog URL, and start-on-Apply.
+- Do not wipe Unraid /tmp/plugins working copy during install prepare.
 
 ###2026.08.14ak
-- **Fix:** package job no longer hangs on Step 4/4 — close stdio / hard-timeout frrinit so
-  openBox reaches DONE; skip start when zebra already running (packages were already OK).
+- Package job: no hang on FRR start; openBox reaches DONE.
 
 ### Older releases
-- Full changelog (all versions): https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
+- Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
 </CHANGES>
 
 <FILE Run="/bin/bash">
