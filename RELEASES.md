@@ -19,7 +19,7 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates).
 |---------|----------|-----|
 | **Production (`stable`)** | Normal install / CA channel | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg` |
 | **Lab (`main`)** | Newest development tree | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg` |
-| **Recommended freeze** | Known-good pin | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.13ad/fabricrouting.plg` |
+| **Recommended freeze** | Known-good pin | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.17aa/fabricrouting.plg` |
 | **Pinned version** | Install or roll back to a fixed tag | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/vVERSION/fabricrouting.plg` |
 
 - **`stable`** — what CA installs; production updates.
@@ -30,9 +30,9 @@ CA is fed from [unraid-templates](https://github.com/ibigsnet/unraid-templates).
 
 | | |
 |--|--|
-| **Version** | **2026.08.13ad** |
-| **Tag** | [`stable-recommended-2026.08.13ad`](https://github.com/ibigsnet/FabricRouting/releases/tag/stable-recommended-2026.08.13ad) (also `v2026.08.13ad`) |
-| **Install** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.13ad/fabricrouting.plg` |
+| **Version** | **2026.08.17aa** |
+| **Tag** | [`stable-recommended-2026.08.17aa`](https://github.com/ibigsnet/FabricRouting/releases/tag/stable-recommended-2026.08.17aa) (also `v2026.08.17aa`) |
+| **Install** | `https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable-recommended-2026.08.17aa/fabricrouting.plg` |
 
 Catalog FRR packages, array-start rehydrate from flash, standalone of Thunderbolt Net. Legacy **UnraidFRR** flash paths migrate on install.
 

@@ -4,9 +4,9 @@
 <!ENTITY author "RifleJock">
 <!ENTITY version "2026.08.17aa">
 <!ENTITY launch "Settings/FabricRouting">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
-<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main">
+<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/FabricRouting">
 <!ENTITY configdir "/boot/config/plugins/FabricRouting">
 <!ENTITY pkg "FabricRouting-&version;-x86_64-1">
