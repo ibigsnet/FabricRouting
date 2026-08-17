@@ -6,6 +6,11 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+###2026.08.16aa
+- **Install/upgrade hygiene:** prepare always `removepkg`s prior `FabricRouting-*` / legacy
+  `UnraidFRR-*` **plugin** packages and wipes emhttp dirs before the new `.txz`. Does **not**
+  touch FRR/libyang packages or the flash `packages/` cache.
+
 ###2026.08.15af
 - Uninstall: also remove /var/tmp/frr (watchfrr scratch).
 

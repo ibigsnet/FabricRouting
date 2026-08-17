@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.15af">
+<!ENTITY version "2026.08.16aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,6 +26,11 @@
 
 <CHANGES>
 ###&version;
+- <strong>Install/upgrade:</strong> always removepkg prior FabricRouting-* (and legacy UnraidFRR-*)
+  plugin packages and wipe emhttp dirs before the new .txz. Does <em>not</em> remove FRR package
+  cache under packages/.
+
+###2026.08.15af
 - **Uninstall:** remove all plugin-owned flash config and runtime scratch (clean reinstall).
 - Also clear /var/tmp/frr leftover watchfrr dirs.
 
@@ -60,9 +65,17 @@
 <INLINE><![CDATA[
 echo "FabricRouting: preparing..."
 # Note: do not delete /tmp/plugins/fabricrouting.plg here — Unraid install working copy
-mkdir -p /boot/config/plugins/FabricRouting
-rm -rf /usr/local/emhttp/plugins/FabricRouting
-# plugin package only — do not delete packages/ FRR .txz cache
+mkdir -p /boot/config/plugins/FabricRouting/packages
+# Plugin packages only (YYYY.MM.DDxx) — never removepkg frr / libyang from packages/
+for p in /var/log/packages/FabricRouting-* /var/log/packages/UnraidFRR-*; do
+  [ -e "$p" ] || continue
+  echo "FabricRouting: removing old plugin package $(basename "$p")"
+  removepkg "$(basename "$p")" 2>/dev/null || true
+done
+rm -rf /usr/local/emhttp/plugins/FabricRouting \
+       /usr/local/emhttp/plugins/UnraidFRR \
+       /usr/local/emhttp/plugins/fabricrouting 2>/dev/null || true
+# Cached plugin runtime .txz only — keep packages/ FRR .txz flash cache
 rm -f /boot/config/plugins/FabricRouting/FabricRouting-*.txz 2>/dev/null || true
 echo "FabricRouting: ready."
 ]]></INLINE>
@@ -75,6 +88,11 @@ echo "FabricRouting: ready."
 <FILE Run="/bin/bash">
 <INLINE><![CDATA[
 echo "FabricRouting: finishing install..."
+if [ ! -f /usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php ] \
+   && [ ! -f /usr/local/emhttp/plugins/FabricRouting/FabricRouting.page ]; then
+  echo "FabricRouting: ERROR — package did not install (missing plugin files)"
+  exit 1
+fi
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/scripts/* 2>/dev/null || true
 chmod 755 /usr/local/emhttp/plugins/FabricRouting/event/started 2>/dev/null || true
 mkdir -p /boot/config/plugins/FabricRouting/packages
@@ -86,6 +104,7 @@ fi
 if [ -d /boot/config/plugins/UnraidFRR ]; then
   cp -an /boot/config/plugins/UnraidFRR/. /boot/config/plugins/FabricRouting/ 2>/dev/null || true
 fi
+echo "FabricRouting: packages now: $(ls /var/log/packages/FabricRouting-* 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
 echo "FabricRouting: install complete. Settings → Network Settings → Fabric Routing"
 echo "FabricRouting: Hard-refresh the browser (Ctrl+Shift+R)."
 ]]></INLINE>
