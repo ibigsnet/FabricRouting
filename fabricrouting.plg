@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.16aa">
+<!ENTITY version "2026.08.17aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,6 +26,10 @@
 
 <CHANGES>
 ###&version;
+- <strong>Docs/audit:</strong> still does not patch stock dynamix UI or network.cfg; package
+  rehydrate remains local-only on array start. Install/upgrade still clean-replaces plugin package.
+
+###2026.08.16aa
 - <strong>Install/upgrade:</strong> always removepkg prior FabricRouting-* (and legacy UnraidFRR-*)
   plugin packages and wipe emhttp dirs before the new .txz. Does <em>not</em> remove FRR package
   cache under packages/.

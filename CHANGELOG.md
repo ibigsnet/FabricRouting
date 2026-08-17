@@ -1,3 +1,7 @@
+## 2026.08.17aa
+
+- **Audit/docs:** SECURITY clarifies no stock UI patch, full flash wipe on uninstall; version bump for suite ship.
+
 # Changelog — FabricRouting
 
 User-facing history for this plugin. The `.plg` file (Community Applications / Plugins page) shows only the **most recent releases**; this file is the complete record.

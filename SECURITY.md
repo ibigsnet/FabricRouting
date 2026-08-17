@@ -30,8 +30,9 @@ Fresh install is **idle** until you install packages from the Fabric Routing pag
 ## Uninstall
 
 - Stops FRR and removes packages this plugin managed (when known).
-- Removes plugin emhttp + flash config/package cache.
+- Removes plugin emhttp + flash config/package cache (full wipe of `/boot/config/plugins/FabricRouting`).
 - Does not touch Thunderbolt Net, NBD Export, or Unraid `network.cfg`.
+- Does **not** patch stock dynamix / HeadInlineJS (unlike some UI companions).
 - If FRR was installed only via this plugin, uninstall removes those packages. Mixing independent third-party FRR with the same package names on one host is not recommended.
 
 ## Contact
