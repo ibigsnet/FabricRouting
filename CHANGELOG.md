@@ -1,3 +1,8 @@
+## 2026.08.17ae
+
+- Plugins list: README leads with **Fabric Routing (FRR)** (Unraid shows README as the card text).
+- `.plg` icon `share-alt` — Unraid ships Font Awesome 4; `project-diagram` (FA5) rendered blank.
+
 ## 2026.08.17ad
 
 - CA/Support: WIP blurb — Thunderbolt Net OpenFabric focus; eth fabric later.
