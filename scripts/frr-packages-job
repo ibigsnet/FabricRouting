@@ -28,13 +28,21 @@ if [ ! -f "$PLUGIN_PHP" ]; then
   exit 1
 fi
 
-# Stream progress immediately (emhttpd / logging.htm / nchan)
+# Stream progress immediately (emhttpd / logging.htm / nchan).
+# Always exit the shell so openBox/logging.htm onload can paint Done —
+# even if PHP is SIGKILL'd mid-download (lock cleanup is best-effort).
 export PHP_FCGI_CHILDREN=0
-php -d display_errors=0 -d zlib.output_compression=0 -r '
+cleanup_lock() {
+  rm -f /boot/config/plugins/FabricRouting/apply.lock 2>/dev/null || true
+}
+trap cleanup_lock EXIT
+
+php -d display_errors=0 -d zlib.output_compression=0 -d max_execution_time=0 -r '
 require_once $argv[1];
 @ini_set("zlib.output_compression", "0");
 @ini_set("output_buffering", "0");
 @ini_set("implicit_flush", "1");
+@ini_set("default_socket_timeout", "600");
 while (ob_get_level() > 0) { @ob_end_flush(); }
 ob_implicit_flush(true);
 
@@ -58,4 +66,5 @@ if ($nchan) {
 $r = frr_packages_job($argv[2]);
 exit(!empty($r["ok"]) ? 0 : 1);
 ' "$PLUGIN_PHP" "$MODE" "$NCHAN"
-exit $?
+RC=$?
+exit $RC

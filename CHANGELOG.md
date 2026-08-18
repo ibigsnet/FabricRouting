@@ -1,3 +1,11 @@
+## 2026.08.17af
+
+- **Fix:** Download & Install openBox stuck at FRR `.txz` (step 2) with no Done button.
+  Root cause: `file_get_contents` buffered ~22 MiB into PHP under emhttpd; process died mid-transfer,
+  HTTP stream never closed → `logging.htm` never painted Done.
+- Package fetch now **curl-streams to `/tmp` then copies to flash** (hard `--max-time`, no RAM buffer).
+- Package job: shutdown / EXIT always clears `apply.lock` and emits `_DONE_` / `_ERROR_` when possible.
+
 ## 2026.08.17ae
 
 - Plugins list: README leads with **Fabric Routing (FRR)** (Unraid shows README as the card text).

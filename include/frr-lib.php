@@ -190,28 +190,49 @@ function frr_packages_job($mode = 'latest') {
     $mode = 'latest';
   }
 
+  // openBox/logging.htm only shows Done after the HTTP stream ends (onload).
+  // Guarantee we always finish the PHP process and emit a terminal token even
+  // on unexpected fatals — otherwise the popup sits forever with no Done.
+  $job_state = ['finished' => false];
+  register_shutdown_function(function () use (&$job_state) {
+    if (!empty($job_state['finished'])) {
+      return;
+    }
+    $job_state['finished'] = true;
+    @frr_apply_lock(false);
+    frr_progress('');
+    frr_progress('Package job ended unexpectedly (see log). You can click Done.');
+    frr_progress('_ERROR_');
+  });
+
   frr_progress_dont_close_banner();
   frr_progress('Fabric Routing — package job');
   frr_progress('Unraid ' . frr_unraid_version() . ' · ' . frr_arch());
 
-  if ($mode === 'flash') {
-    frr_progress('Mode: flash cache only (no network download).');
-    frr_progress('');
-    $r = frr_apply(['local_only' => true, 'force_download' => false]);
-  } else {
-    frr_progress('Mode: download channel "' . $mode . '" then install + start FRR.');
-    frr_progress('This can take a minute on first run (~20+ MiB).');
-    frr_progress('');
-    frr_save_cfg_keys([
-      'package_channel' => $mode,
-      // Explicit job only — never leave auto_download Yes for silent Settings Apply.
-      'auto_download' => 'no',
-    ]);
-    $r = frr_apply(['local_only' => false, 'force_download' => true]);
+  try {
+    if ($mode === 'flash') {
+      frr_progress('Mode: flash cache only (no network download).');
+      frr_progress('');
+      $r = frr_apply(['local_only' => true, 'force_download' => false]);
+    } else {
+      frr_progress('Mode: download channel "' . $mode . '" then install + start FRR.');
+      frr_progress('This can take a minute on first run (~20+ MiB).');
+      frr_progress('');
+      frr_save_cfg_keys([
+        'package_channel' => $mode,
+        // Explicit job only — never leave auto_download Yes for silent Settings Apply.
+        'auto_download' => 'no',
+      ]);
+      $r = frr_apply(['local_only' => false, 'force_download' => true]);
+    }
+  } catch (Throwable $e) {
+    frr_progress('FATAL: ' . $e->getMessage());
+    $r = ['ok' => false, 'error' => $e->getMessage()];
   }
 
   // Unraid openPlugin / nchan enables the Done button only when it sees this exact line.
   // Legacy openBox/logging.htm also finishes once the process exits after this flush.
+  $job_state['finished'] = true;
   if (!empty($r['ok'])) {
     frr_progress('');
     frr_progress('Package job complete. You can close this window or click Done.');
@@ -438,6 +459,25 @@ function frr_http_get($url, $timeout = 60) {
     frr_log('refuse non-https URL: ' . $url);
     return null;
   }
+  // Prefer curl for reliability (GitHub release redirects + hard --max-time).
+  // file_get_contents can hang under emhttpd/openBox even when CLI works.
+  $tmp = tempnam('/tmp', 'frrget');
+  if ($tmp === false) {
+    $tmp = '/tmp/frrget.' . getmypid();
+  }
+  $cmd = 'curl -fsSL --connect-timeout 30 --max-time ' . (int)$timeout
+    . ' -A ' . escapeshellarg('FabricRouting/1.0')
+    . ' -o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($url) . ' 2>/dev/null';
+  $o = [];
+  $rc = 1;
+  @exec($cmd, $o, $rc);
+  if ($rc === 0 && is_readable($tmp) && filesize($tmp) > 0) {
+    $body = (string)@file_get_contents($tmp);
+    @unlink($tmp);
+    return $body;
+  }
+  @unlink($tmp);
+
   $ctx = stream_context_create([
     'http' => [
       'timeout' => $timeout,
@@ -451,19 +491,59 @@ function frr_http_get($url, $timeout = 60) {
   ]);
   $body = @file_get_contents($url, false, $ctx);
   if ($body === false || $body === '') {
-    // curl fallback
-    $tmp = tempnam('/tmp', 'frrget');
-    $cmd = 'curl -fsSL --max-time ' . (int)$timeout . ' -o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($url) . ' 2>/dev/null';
-    @exec($cmd, $o, $rc);
-    if ($rc === 0 && is_readable($tmp)) {
-      $body = (string)@file_get_contents($tmp);
-      @unlink($tmp);
-      return $body;
-    }
-    @unlink($tmp);
     return null;
   }
   return $body;
+}
+
+/**
+ * Stream a large HTTPS asset straight to disk (no PHP memory buffer).
+ * Used for FRR/libyang .txz (~20+ MiB) so openBox jobs cannot hang/OOM
+ * inside file_get_contents.
+ *
+ * @return array{ok:bool,bytes?:int,error?:string}
+ */
+function frr_http_download_file($url, $dest, $timeout = 600) {
+  if (!preg_match('#^https://#i', (string)$url)) {
+    return ['ok' => false, 'error' => 'refuse non-https URL'];
+  }
+  $dest = (string)$dest;
+  $dir = dirname($dest);
+  if ($dir !== '' && !is_dir($dir)) {
+    @mkdir($dir, 0755, true);
+  }
+  // Stage in /tmp then rename onto flash — avoids partial USB writes if killed mid-transfer.
+  $tmp = tempnam('/tmp', 'frrdl');
+  if ($tmp === false) {
+    $tmp = '/tmp/frrdl.' . getmypid() . '.' . mt_rand(1000, 9999);
+  }
+  @unlink($tmp);
+  $timeout = max(60, (int)$timeout);
+  frr_progress('  curl → staging… (max ' . $timeout . 's)');
+  $cmd = 'curl -fL --connect-timeout 30 --max-time ' . $timeout
+    . ' -A ' . escapeshellarg('FabricRouting/1.0')
+    . ' -o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($url) . ' 2>&1';
+  $o = [];
+  $rc = 1;
+  @exec($cmd, $o, $rc);
+  if ($rc !== 0 || !is_readable($tmp) || filesize($tmp) < 1) {
+    @unlink($tmp);
+    $hint = trim(implode(' ', array_slice($o, 0, 3)));
+    return ['ok' => false, 'error' => 'curl rc=' . $rc . ($hint !== '' ? (': ' . $hint) : '')];
+  }
+  $bytes = (int)filesize($tmp);
+  // Atomic-ish replace on flash
+  @unlink($dest);
+  if (!@rename($tmp, $dest)) {
+    // rename across filesystems fails (/tmp → /boot); fall back to copy
+    if (@copy($tmp, $dest) === false) {
+      @unlink($tmp);
+      return ['ok' => false, 'error' => 'write failed: ' . basename($dest)];
+    }
+    @unlink($tmp);
+  }
+  @chmod($dest, 0644);
+  return ['ok' => true, 'bytes' => $bytes];
 }
 
 function frr_version_compare_loose($a, $b) {
@@ -624,18 +704,17 @@ function frr_download_bundle($force = false) {
     }
     frr_progress("[$i/$n] Downloading: $file …");
     frr_progress('  URL: ' . $url);
-    $body = frr_http_get($url, 600);
-    if ($body === null || $body === '') {
-      $errors[] = 'download failed: ' . $file;
-      frr_progress("  FAILED download: $file");
+    // Stream to disk (curl). Never buffer ~20MiB FRR .txz in PHP — that hung
+    // openBox on Holo (step 2, no Done: process died mid file_get_contents).
+    $got = frr_http_download_file($url, $dest, 600);
+    if (empty($got['ok'])) {
+      $err = !empty($got['error']) ? (string)$got['error'] : 'download failed';
+      $errors[] = 'download failed: ' . $file . ' (' . $err . ')';
+      frr_progress('  FAILED download: ' . $file . ' — ' . $err);
+      @unlink($dest);
       continue;
     }
-    if (@file_put_contents($dest, $body) === false) {
-      $errors[] = 'write failed: ' . $file;
-      frr_progress("  FAILED write: $file");
-      continue;
-    }
-    $bytes = strlen($body);
+    $bytes = (int)($got['bytes'] ?? @filesize($dest));
     if ($sha !== '') {
       $have = hash_file('sha256', $dest);
       if (strtolower((string)$have) !== $sha) {
