@@ -6,15 +6,15 @@
 .vscode/
 .cursor/
 
-# Local scratch files
+# Local scratch
 *.local.md
 NOTES.local.md
 .private/
 
-# Do not commit large binary packages by default (use GitHub Releases)
-packages/*.txz
-packages/*.tgz
-packages/*.tar.gz
+# Lab / workstation only — NOT Unraid runtime
+AGENTS.md
+scripts/pack-txz.sh
+scripts/promote-stable.sh
+packages/build/
+packages/BUILD.md
 packages/dist/
-!packages/README.md
-!packages/manifest.json
