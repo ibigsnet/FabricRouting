@@ -148,9 +148,11 @@ $bundle_ok = !empty($bundle['ok']);
 
 <div class="frr-wrap">
   <p class="frr-lead">
-    Install and run <strong>FRRouting</strong> on this host
+    <strong>WIP</strong> — install and run <strong>FRRouting</strong> on this host
     (<a href="https://frrouting.org/" target="_blank" rel="noopener">frrouting.org</a>) —
     packages, daemons (<code>zebra</code>, <code>fabricd</code>, …), and start/stop.
+    Primary focus right now: <strong>Thunderbolt Net</strong> OpenFabric underlay.
+    Broader Ethernet fabric support comes later.
   </p>
 
   <details class="frr-about">

@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.17ac">
+<!ENTITY version "2026.08.17ad">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -20,13 +20,17 @@
   pluginURL="&pluginURL;"
   icon="project-diagram"
   min="6.12.0"
-  support="https://github.com/&github;/issues"
+  support="https://forums.unraid.net/topic/200065-plugin-thunderbolt-net-host-to-host-networking-over-thunderbolt-345-and-usb44v2/"
   project="https://github.com/&github;"
   readme="https://raw.githubusercontent.com/&github;/main/README.md">
 
 <CHANGES>
 ###&version;
-- Fix Download &amp; Install packages: use openBox progress window (openPlugin could return pid=0 with no UI).
+- Support: Thunderbolt Net forum (WIP — TBN OpenFabric focus; eth fabric later).
+- CA blurb: WIP / Thunderbolt-first.
+
+###2026.08.17ac
+- Fix Download &amp; Install openBox progress.
 
 ###2026.08.17ab
 - Plugins UI: trim embedded CHANGES list.

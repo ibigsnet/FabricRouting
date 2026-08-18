@@ -1,3 +1,8 @@
+## 2026.08.17ad
+
+- CA/Support: WIP blurb — Thunderbolt Net OpenFabric focus; eth fabric later.
+  Support URL → Thunderbolt Net forum thread until a dedicated FRR thread exists.
+
 ## 2026.08.17ac
 
 - Download & Install packages: prefer openBox/logging.htm so the button always opens a progress window (openPlugin silent pid=0 on some Network Settings loads).
