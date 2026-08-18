@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.17ab">
+<!ENTITY version "2026.08.17ac">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,7 +26,10 @@
 
 <CHANGES>
 ###&version;
-- <strong>Plugins UI:</strong> trim embedded CHANGES list. CA/PluginURL use GitHub <code>main</code>.
+- Fix Download &amp; Install packages: use openBox progress window (openPlugin could return pid=0 with no UI).
+
+###2026.08.17ab
+- Plugins UI: trim embedded CHANGES list.
 
 ###2026.08.17aa
 - Docs/audit: no dynamix/network.cfg patch; array-start rehydrate local-only.

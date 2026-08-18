@@ -1,3 +1,7 @@
+## 2026.08.17ac
+
+- Download & Install packages: prefer openBox/logging.htm so the button always opens a progress window (openPlugin silent pid=0 on some Network Settings loads).
+
 ## 2026.08.17aa
 
 - **Audit/docs:** SECURITY clarifies no stock UI patch, full flash wipe on uninstall; version bump for suite ship.

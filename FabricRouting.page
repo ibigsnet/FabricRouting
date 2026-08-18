@@ -542,9 +542,8 @@ $bundle_ok = !empty($bundle['ok']);
 
   /**
    * Package job progress UI.
-   * Prefer openPlugin (nchan): StartCommand finds plugins/*/scripts/frr-packages-job
-   * by basename, appends " nchan", and enables Done when the job publishes _DONE_ / _ERROR_.
-   * Fallback openBox/logging.htm: Done appears when the process exits.
+   * Prefer openBox/logging.htm: reliable on Network Settings (many sibling pages).
+   * openPlugin can return pid=0 with zero UI feedback — looks like the button "does nothing".
    */
   global.frrPackagesJob = function () {
     var mode = 'latest';
@@ -559,16 +558,33 @@ $bundle_ok = !empty($bundle['ok']);
     if (hidden && (mode === 'latest' || mode === 'previous')) {
       hidden.value = mode;
     }
-    // openPlugin: script basename + space-separated args (NOT full path, NOT &arg1=)
-    // 4th arg reloads this page when the dialog is closed (latest status).
-    if (typeof openPlugin === 'function') {
-      // start=1 run always; button=0 show Close (renamed Done when _DONE_ arrives)
-      openPlugin('frr-packages-job ' + mode, 'Fabric Routing packages', '', 'location.reload', 1, 0);
-      return false;
-    }
+    var jobCmd = JOB + '&arg1=' + encodeURIComponent(mode);
+    var title = 'Fabric Routing packages';
+
+    // 1) openBox → logging.htm (Nvidia-style). Visible progress; Done when process exits.
     if (typeof openBox === 'function') {
-      // load=true → reload page on close
-      openBox(JOB + '&arg1=' + encodeURIComponent(mode), 'Fabric Routing packages', 600, 800, true);
+      try {
+        openBox(jobCmd, title, 600, 800, true);
+        return false;
+      } catch (e1) { /* fall through */ }
+    }
+    // 2) openWindow popup + form POST
+    if (typeof openWindow === 'function') {
+      try {
+        openWindow(jobCmd, title, 600, 800);
+        return false;
+      } catch (e2) { /* fall through */ }
+    }
+    // 3) openPlugin nchan (may silent-fail when StartCommand returns 0)
+    if (typeof openPlugin === 'function') {
+      openPlugin('frr-packages-job ' + mode, title, '', 'location.reload', 1, 0);
+      setTimeout(function () {
+        var swalOn = typeof $ !== 'undefined' && $('.sweet-alert:visible').length;
+        var sbOn = typeof $ !== 'undefined' && $('#sb-container:visible').length;
+        if (!swalOn && !sbOn) {
+          alert('Package job did not open a progress window. Hard-refresh Network Settings (Ctrl+Shift+R), then try again.');
+        }
+      }, 900);
       return false;
     }
     alert('Progress UI unavailable — hard-refresh the Unraid UI, then try again.');
