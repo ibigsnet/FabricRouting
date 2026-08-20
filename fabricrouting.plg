@@ -4,9 +4,9 @@
 <!ENTITY author "RifleJock">
 <!ENTITY version "2026.08.17af">
 <!ENTITY launch "Settings/FabricRouting">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
-<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing">
+<!ENTITY raw "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/FabricRouting">
 <!ENTITY configdir "/boot/config/plugins/FabricRouting">
 <!ENTITY pkg "FabricRouting-&version;-x86_64-1">
@@ -22,7 +22,7 @@
   min="6.12.0"
   support="https://forums.unraid.net/topic/200065-plugin-thunderbolt-net-host-to-host-networking-over-thunderbolt-345-and-usb44v2/"
   project="https://github.com/&github;"
-  readme="https://raw.githubusercontent.com/&github;/testing/README.md">
+  readme="https://raw.githubusercontent.com/&github;/main/README.md">
 
 <CHANGES>
 ###&version;
