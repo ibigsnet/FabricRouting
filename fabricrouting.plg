@@ -48,7 +48,7 @@
 - Full uninstall wipe; clear leftover FRR runtime dirs.
 
 ### Older releases
-- Full changelog: https://github.com/ibigsnet/FabricRouting/blob/testing/CHANGELOG.md
+- Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
 </CHANGES>
 
 <FILE Run="/bin/bash">
