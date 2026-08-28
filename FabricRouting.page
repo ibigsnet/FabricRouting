@@ -563,31 +563,26 @@ $bundle_ok = !empty($bundle['ok']);
     var jobCmd = JOB + '&arg1=' + encodeURIComponent(mode);
     var title = 'Fabric Routing packages';
 
-    // 1) openBox → logging.htm (Nvidia-style). Visible progress; Done when process exits.
+    // Unraid 7.3+: openPlugin is createTask — Dismiss/Done on exact _DONE_/_ERROR_.
+    // openBox/logging.htm only paints Done on HTTP onload (stream end); a hung
+    // child after the .txz lands looks like “download finished, no Done”.
+    if (typeof openPlugin === 'function') {
+      try {
+        openPlugin('frr-packages-job ' + mode, title, '', 'location.reload', 1, 0);
+        return false;
+      } catch (e0) { /* fall through */ }
+    }
     if (typeof openBox === 'function') {
       try {
         openBox(jobCmd, title, 600, 800, true);
         return false;
       } catch (e1) { /* fall through */ }
     }
-    // 2) openWindow popup + form POST
     if (typeof openWindow === 'function') {
       try {
         openWindow(jobCmd, title, 600, 800);
         return false;
       } catch (e2) { /* fall through */ }
-    }
-    // 3) openPlugin nchan (may silent-fail when StartCommand returns 0)
-    if (typeof openPlugin === 'function') {
-      openPlugin('frr-packages-job ' + mode, title, '', 'location.reload', 1, 0);
-      setTimeout(function () {
-        var swalOn = typeof $ !== 'undefined' && $('.sweet-alert:visible').length;
-        var sbOn = typeof $ !== 'undefined' && $('#sb-container:visible').length;
-        if (!swalOn && !sbOn) {
-          alert('Package job did not open a progress window. Hard-refresh Network Settings (Ctrl+Shift+R), then try again.');
-        }
-      }, 900);
-      return false;
     }
     alert('Progress UI unavailable — hard-refresh the Unraid UI, then try again.');
     return false;
