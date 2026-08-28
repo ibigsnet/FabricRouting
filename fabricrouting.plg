@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.08.17af">
+<!ENTITY version "2026.08.28aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -26,7 +26,10 @@
 
 <CHANGES>
 ###&version;
-- Package download: curl stream to disk so openBox reaches Done after FRR .txz (no PHP memory hang).
+- Download and Install: Done/Dismiss after packages finish (Unraid 7.3 task tray; openBox fallback button).
+
+###2026.08.17af
+- Package download: curl stream to disk so openBox can finish after FRR .txz (no PHP memory hang).
 
 ###2026.08.17ae
 - Plugins list: lead README with product name; icon FA share-alt (Unraid FA4).
@@ -36,16 +39,13 @@
 - CA blurb: WIP / Thunderbolt-first.
 
 ###2026.08.17ac
-- Fix Download &amp; Install openBox progress.
+- Fix Download and Install openBox progress.
 
 ###2026.08.17aa
 - Docs/audit: no dynamix/network.cfg patch; array-start rehydrate local-only.
 
 ###2026.08.16aa
 - Clean package replace on upgrade (plugin package only; not FRR flash cache).
-
-###2026.08.15af
-- Full uninstall wipe; clear leftover FRR runtime dirs.
 
 ### Older releases
 - Full changelog: https://github.com/ibigsnet/FabricRouting/blob/testing/CHANGELOG.md

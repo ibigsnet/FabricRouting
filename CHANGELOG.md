@@ -6,6 +6,15 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.08.28aa
+
+- **Fix:** Download & Install window missing Done/Dismiss after the packages finish.
+  Unraid 7.3 `openPlugin` is the task tray (Dismiss on `_DONE_`); we were still using
+  legacy `openBox`/`logging.htm`, which only paints Done when the HTTP stream ends — so a
+  child holding the pipe after the `.txz` looked like “download complete, no button”.
+- Prefer `openPlugin` first; inject a Done control into the openBox log as fallback;
+  close stdio after the terminal token; curl `-sS` (no progress-meter on the pipe).
+
 ## 2026.08.17af
 
 - **Fix:** Download & Install openBox stuck at FRR `.txz` (step 2) with no Done button.

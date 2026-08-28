@@ -202,7 +202,13 @@ function frr_packages_job($mode = 'latest') {
     @frr_apply_lock(false);
     frr_progress('');
     frr_progress('Package job ended unexpectedly (see log). You can click Done.');
+    if (function_exists('frr_progress_openbox_done_button')) {
+      frr_progress_openbox_done_button();
+    }
     frr_progress('_ERROR_');
+    if (function_exists('frr_progress_close_stdio')) {
+      frr_progress_close_stdio();
+    }
   });
 
   frr_progress_dont_close_banner();
@@ -230,20 +236,53 @@ function frr_packages_job($mode = 'latest') {
     $r = ['ok' => false, 'error' => $e->getMessage()];
   }
 
-  // Unraid openPlugin / nchan enables the Done button only when it sees this exact line.
-  // Legacy openBox/logging.htm also finishes once the process exits after this flush.
+  // Unraid openPlugin / nchan enables Dismiss only on this exact token.
+  // openBox/logging.htm paints Done on stream end — also inject a button in
+  // case onload never fires (child still holding the pipe after the .txz).
   $job_state['finished'] = true;
   if (!empty($r['ok'])) {
     frr_progress('');
     frr_progress('Package job complete. You can close this window or click Done.');
+    frr_progress_openbox_done_button();
     frr_progress('_DONE_');
   } else {
     frr_progress('');
     frr_progress('Package job finished with errors — see log above.');
     frr_progress('You can close this window or click Done.');
+    frr_progress_openbox_done_button();
     frr_progress('_ERROR_');
   }
+  frr_progress_close_stdio();
   return $r;
+}
+
+/**
+ * Last-resort Done control for openBox/logging.htm (not nchan).
+ */
+function frr_progress_openbox_done_button() {
+  if (frr_nchan_enabled()) {
+    return;
+  }
+  echo "<p class='centered'><button class='logLine' type='button' onclick=\"try{parent.Shadowbox.close()}catch(e){try{window.close()}catch(e2){}}\">Done</button></p>\n";
+  if (function_exists('ob_flush')) {
+    @ob_flush();
+  }
+  @flush();
+}
+
+/**
+ * Drop the logging.htm pipe so Unraid onload can fire even if a child lingers.
+ */
+function frr_progress_close_stdio() {
+  if (function_exists('fastcgi_finish_request')) {
+    @fastcgi_finish_request();
+  }
+  if (defined('STDOUT') && is_resource(STDOUT)) {
+    @fclose(STDOUT);
+  }
+  if (defined('STDERR') && is_resource(STDERR)) {
+    @fclose(STDERR);
+  }
 }
 
 /**
@@ -520,7 +559,7 @@ function frr_http_download_file($url, $dest, $timeout = 600) {
   @unlink($tmp);
   $timeout = max(60, (int)$timeout);
   frr_progress('  curl → staging… (max ' . $timeout . 's)');
-  $cmd = 'curl -fL --connect-timeout 30 --max-time ' . $timeout
+  $cmd = 'curl -sS -fL --connect-timeout 30 --max-time ' . $timeout
     . ' -A ' . escapeshellarg('FabricRouting/1.0')
     . ' -o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($url) . ' 2>&1';
   $o = [];
@@ -532,7 +571,7 @@ function frr_http_download_file($url, $dest, $timeout = 600) {
     return ['ok' => false, 'error' => 'curl rc=' . $rc . ($hint !== '' ? (': ' . $hint) : '')];
   }
   $bytes = (int)filesize($tmp);
-  // Atomic-ish replace on flash
+  frr_progress('  copy to flash (' . frr_format_bytes($bytes) . ')…');
   @unlink($dest);
   if (!@rename($tmp, $dest)) {
     // rename across filesystems fails (/tmp → /boot); fall back to copy
