@@ -73,6 +73,7 @@ echo "FabricRouting: ready."
 
 <FILE Name="/boot/config/plugins/FabricRouting/&pkgfile;" Run="upgradepkg --install-new --reinstall">
 <URL>&raw;/archive/&pkgfile;?v=&version;</URL>
+<MD5>7346563f3d973255b3f16d80a764c11d</MD5>
 </FILE>
 
 <FILE Run="/bin/bash">
