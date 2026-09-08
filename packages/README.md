@@ -15,7 +15,7 @@ Build scripts and container notes for producing Slackware-style FRR `.txz` packa
 Default catalog URL (production channel):
 
 ```text
-https://raw.githubusercontent.com/ibigsnet/FabricRouting/stable/packages/manifest.json
+https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json
 ```
 
 See [docs/automation-design.md](../docs/automation-design.md) for how download, flash cache, and array-start rehydrate work.

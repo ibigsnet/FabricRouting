@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.09.06aa">
+<!ENTITY version "2026.09.06ab">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,6 +24,9 @@
 
 <CHANGES>
 ###&version;
+- Hashed raw plugin install; docs pin catalog/install URLs to main (not deleted stable).
+
+###2026.09.06aa
 - Install copies plugin files from GitHub raw (SHA256/MD5 pin). No plugin archive .txz (FRR Slackware packages unchanged).
 
 ###2026.08.28aa
