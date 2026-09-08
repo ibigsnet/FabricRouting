@@ -17,7 +17,7 @@ Copyright (c) 2026 ibigs, LLC · Author: RifleJock · License: GPL-3.0-or-later
 | Package download | Explicit **Download & Install packages** | No surprise multi‑MB fetch |
 | Install on array start | Yes | Rehydrate packages **already on flash** only |
 | Optional protocols (BGP/OSPF/…) | Off | Enable only if you need them |
-| Catalog | GitHub `stable` | HTTPS + sha256 verification |
+| Catalog | GitHub `main` | HTTPS + sha256 verification |
 
 Fresh install is **idle** until you install packages from the Fabric Routing page.
 
