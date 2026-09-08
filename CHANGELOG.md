@@ -6,6 +6,12 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.09.08aa
+
+- **Install:** do not `rm -rf` the live plugin or `removepkg` the plugin shell before
+  GitHub FILE copies (Update All error-install). Overlay; forget old plugin-txz names
+  only. FRR/libyang flash packages are untouched.
+
 ## 2026.09.06ab
 
 - **Install / docs:** hashed raw plugin install. Docs/SECURITY catalog URLs pin **main**
