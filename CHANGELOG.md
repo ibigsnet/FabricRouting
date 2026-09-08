@@ -8,7 +8,7 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ## 2026.09.06ab
 
-- **CA review:** hashed raw plugin install. Docs/SECURITY catalog URLs pin **main**
+- **Install / docs:** hashed raw plugin install. Docs/SECURITY catalog URLs pin **main**
   (deleted `stable` 404). FRR Slackware packages still use manifest sha256.
 
 ## 2026.09.06aa
