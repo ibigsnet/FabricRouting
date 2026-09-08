@@ -6,6 +6,12 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.09.06aa
+
+- **Install:** plugin UI files come from GitHub raw with SHA256/MD5 pins in the `.plg`.
+  Dropped plugin `archive/*.txz`. FRR/libyang Slackware packages on flash are unchanged
+  (still catalog `.txz` + manifest hashes).
+
 ## 2026.08.28aa
 
 - **Fix:** Download & Install window missing Done/Dismiss after the packages finish.
