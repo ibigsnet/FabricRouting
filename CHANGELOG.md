@@ -6,6 +6,13 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.09.27aa
+
+- **Install:** plugin shell is one Slackware `.txz` per version, saved on the flash
+  drive from the GitHub Release (`v2026.09.27aa`). Boot no longer re-downloads
+  plugin files from live `main`. FRR/libyang packages stay on their own Release
+  assets (`packages/manifest.json`).
+
 ## 2026.09.08aa
 
 - **Install:** do not `rm -rf` the live plugin or `removepkg` the plugin shell before

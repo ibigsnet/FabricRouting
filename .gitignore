@@ -30,5 +30,6 @@ packages/build/
 packages/BUILD.md
 packages/dist/
 
-# Plugin payload is hashed raw files in the .plg — do not ship Slackware txz
+# Plugin-shell .txz is a GitHub Release asset, not a git blob
 archive/*.txz
+dist/
