@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.09.08aa">
+<!ENTITY version "2026.09.27aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,10 +24,13 @@
 
 <CHANGES>
 ###&version;
+- Plugin payload is a flash .txz from the GitHub Release (not re-fetched from main at boot).
+
+###2026.09.08aa
 - Install overlays hashed files; do not wipe the live plugin before FILE copy.
 
 ###2026.09.06aa–ab
-- Hashed raw plugin install (SHA256/MD5); catalog/install URLs pin main.
+- Hashed plugin install (SHA256/MD5); catalog/install URLs pin main.
 
 ###2026.08.28aa
 - Download and Install: Done/Dismiss after packages finish.
@@ -38,12 +41,6 @@
 ###2026.08.17ad
 - Support: Thunderbolt Net forum thread.
 
-###2026.08.17aa
-- No dynamix/network.cfg patch; array-start rehydrate local-only.
-
-###2026.08.16aa
-- Clean plugin-package replace on upgrade (not FRR flash cache).
-
 ### Older releases
 - Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
 </CHANGES>
@@ -53,81 +50,18 @@
 echo "FabricRouting: preparing..."
 # Note: do not delete /tmp/plugins/fabricrouting.plg here — Unraid install working copy
 mkdir -p /boot/config/plugins/FabricRouting/packages
-# Forget old plugin-shell txz registration WITHOUT deleting the live tree.
 # Never removepkg frr / libyang from packages/.
-for p in /var/log/packages/FabricRouting-* /var/log/packages/UnraidFRR-*; do
-  [ -e "$p" ] || continue
-  echo "FabricRouting: forgetting old plugin package $(basename "$p") (overlay files next)"
-  rm -f "$p"
-done
 rm -rf /usr/local/emhttp/plugins/UnraidFRR \
        /usr/local/emhttp/plugins/fabricrouting 2>/dev/null || true
-rm -f /boot/config/plugins/FabricRouting/FabricRouting-*.txz 2>/dev/null || true
-mkdir -p /usr/local/emhttp/plugins/FabricRouting/{include,scripts,event,packages}
 echo "FabricRouting: ready."
 ]]></INLINE>
 </FILE>
 
 <!-- raw-files begin -->
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/FabricRouting.page">
-<URL>&raw;/FabricRouting.page?v=&version;</URL>
-<SHA256>9f0ff35d7b75ea5d4a5ffa9879dab8e2823fd1a03527db438d7e7ddc94c60e6c</SHA256>
-<MD5>48eda6f1787c8c6c02a289c6a997e8cc</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/default.cfg">
-<URL>&raw;/default.cfg?v=&version;</URL>
-<SHA256>dbbdaa28253d3254c5a84568a693dd948fbb217349b0e1e260568a4a2f70fee2</SHA256>
-<MD5>b3209a27db18ad5a12cd796ad0b31b36</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/README.md">
-<URL>&raw;/README.md?v=&version;</URL>
-<SHA256>156b6e4072c170302be780bbb87027317664575dd37c00bf4786cd122312fc3a</SHA256>
-<MD5>d345864b4283ac16e54dd2458ef3f972</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php">
-<URL>&raw;/include/frr-lib.php?v=&version;</URL>
-<SHA256>9c9aee9d107dfcfbfcb80b6d25cea515ad799eaacf387fac262e96bf44fde15e</SHA256>
-<MD5>551e809182a53b72f69046c000bed094</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/include/frr-update.php">
-<URL>&raw;/include/frr-update.php?v=&version;</URL>
-<SHA256>95841a21ec6e0e8480e85241751acf7cef231c6ff7c316bb30548e7e0affe071</SHA256>
-<MD5>31e3e32df80d3a224a686e15df77be54</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-install-packages">
-<URL>&raw;/scripts/frr-install-packages?v=&version;</URL>
-<SHA256>218a9a4b3f84b99c0cbf67d34af5126d0860c6bfdf1c748d18d5d29e91935af0</SHA256>
-<MD5>571c8e009633e4e82e2aba1930ed1d1d</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-apply">
-<URL>&raw;/scripts/frr-apply?v=&version;</URL>
-<SHA256>fdf48c3238dcd3f21bfbdb2c4dad2df211497a9b6834c47816028aee21ff6f83</SHA256>
-<MD5>3e8b03213f35dad2d578492b94a141af</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-download">
-<URL>&raw;/scripts/frr-download?v=&version;</URL>
-<SHA256>aa23f9579d3b23e2e49068bfd5ddfff77fb0449fdba311f05691fdae48d3004d</SHA256>
-<MD5>a96f958a82e044a69333ed2a6d96bc38</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-packages-job">
-<URL>&raw;/scripts/frr-packages-job?v=&version;</URL>
-<SHA256>582e765b8c735deb3f2ef9bf95c54d40ce1507d5d48b2c71306c2b357fe7a96f</SHA256>
-<MD5>16725025a5e491b7acce951555236d1c</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/scripts/frr-force-cleanup">
-<URL>&raw;/scripts/frr-force-cleanup?v=&version;</URL>
-<SHA256>6c3ada134f1c1150e29060f26bf868badadf6fdd6bb0cc9cb50fb3110219a382</SHA256>
-<MD5>a561042b17b0916eb50138a12a012eb3</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/event/started">
-<URL>&raw;/event/started?v=&version;</URL>
-<SHA256>1790e14c72d1c403cd37ef496fcdc296a00c7f353acd24ca343ff74297c21b9e</SHA256>
-<MD5>42fe2a2702d1299e7330f0c1ab5a746c</MD5>
-</FILE>
-<FILE Name="/usr/local/emhttp/plugins/FabricRouting/packages/manifest.json">
-<URL>&raw;/packages/manifest.json?v=&version;</URL>
-<SHA256>bd3d66c49c79a97ea5eff6a6f9648887c7eb0c41c6fd95bb8859ae70a284d8d0</SHA256>
-<MD5>f801c4fdf8798853088b304585141dcd</MD5>
+<FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
+<URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
+<SHA256>695437b11ed70e34bdb3d9d5952862cf049b8a0635b41caad0f3e759e3cf4849</SHA256>
+<MD5>ae4dfc710b58e60fb4de7c0a9a29d9fd</MD5>
 </FILE>
 <!-- raw-files end -->
 
@@ -149,6 +83,10 @@ fi
 # Legacy UnraidFRR flash (one-time migrate)
 if [ -d /boot/config/plugins/UnraidFRR ]; then
   cp -an /boot/config/plugins/UnraidFRR/. /boot/config/plugins/FabricRouting/ 2>/dev/null || true
+fi
+VER=$(sed -n 's/.*ENTITY version "\([^"]*\)".*/\1/p' /tmp/plugins/fabricrouting.plg 2>/dev/null | head -1)
+if [ -n "$VER" ]; then
+  find /boot/config/plugins/FabricRouting -maxdepth 1 -name 'FabricRouting-*-x86_64-1.txz' ! -name "FabricRouting-${VER}-x86_64-1.txz" -delete 2>/dev/null || true
 fi
 echo "FabricRouting: packages now: $(ls /var/log/packages/FabricRouting-* 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
 echo "FabricRouting: install complete. Settings → Network Settings → Fabric Routing"
