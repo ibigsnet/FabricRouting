@@ -228,7 +228,7 @@ $bundle_ok = !empty($bundle['ok']);
 <?php else: ?>
           <span class="frr-badge frr-badge-warn">No match yet</span>
           <span class="frr-muted"><?= htmlspecialchars($bundle['error'] ?? 'resolving…') ?></span>
-          <br><span class="frr-muted">Hard-refresh (Ctrl+Shift+R) after catalog updates, then <strong>Apply</strong> to force re-fetch. See <a href="https://github.com/ibigsnet/FabricRouting/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
+          <br><span class="frr-muted">The catalog updates with the plugin. Hard-refresh (Ctrl+Shift+R) after a plugin update. See <a href="https://github.com/ibigsnet/FabricRouting/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
 <?php endif; ?>
         </td>
       </tr>
@@ -351,13 +351,13 @@ $bundle_ok = !empty($bundle['ok']);
         <dd>
           <input type="text" name="package_base_url" style="width:min(32em,100%)"
             value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>"
-            placeholder="default: GitHub packages/manifest.json">
+            placeholder="default: bundled packages/manifest.json">
         </dd>
       </dl>
       <blockquote class="inline_help">
         <strong>What this is:</strong> where Download &amp; Install packages looks up which
         <code>.txz</code> files match your Unraid version.<br><br>
-        Leave <strong>empty</strong> for the official GitHub catalog. Only set a URL if you host
+        Leave <strong>empty</strong> to use the catalog bundled with this plugin version. Only set a URL if you host
         your own mirror of <code>manifest.json</code> (advanced / air‑gapped labs).
       </blockquote>
 

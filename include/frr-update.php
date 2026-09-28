@@ -4,6 +4,11 @@
  * Settings only: daemons + start from flash — NEVER catalog download.
  * Package download is only via scripts/frr-packages-job (openBox).
  */
+// Unraid update.php includes this on POST only; refuse a direct GET.
+if (PHP_SAPI !== 'cli' && ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+  http_response_code(405);
+  return;
+}
 @ini_set('zlib.output_compression', '0');
 @ini_set('output_buffering', '0');
 @ini_set('implicit_flush', '1');
