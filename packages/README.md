@@ -10,12 +10,8 @@
 | `SUPPORTED.md` | Which Unraid product versions the catalog covers |
 | GitHub Releases `pkg-*` | Host the large `.txz` binaries referenced by the manifest |
 
-Build scripts and container notes for producing Slackware-style FRR `.txz` packages are **not** in this repo (workstation-only). They live locally under `~/.local/share/ibigsnet-notes/plugin-ops/frr-build/`.
+Build scripts for the Slackware-style FRR `.txz` packages are not in this repo.
 
-Default catalog URL (production channel):
-
-```text
-https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json
-```
+Default catalog: this `manifest.json`, bundled in each plugin version. Package files are GitHub Release assets with `sha256`.
 
 See [docs/automation-design.md](../docs/automation-design.md) for how download, flash cache, and array-start rehydrate work.

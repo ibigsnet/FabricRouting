@@ -35,13 +35,11 @@ See [boot-lifecycle.md](boot-lifecycle.md).
 
 ### Location (default)
 
-```text
-https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json
-```
+`packages/manifest.json` bundled with the installed plugin version (no network lookup).
 
 Large binaries may live on **GitHub Releases**; manifest entries carry full `url` + `sha256`.
 
-Override: Settings → **Package catalog URL** (advanced; default above).
+Override: Settings → **Catalog URL (mirror)** (advanced; empty = bundled).
 
 ### Manifest shape (`packages/manifest.json`)
 

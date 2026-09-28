@@ -6,6 +6,15 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.09.28aa
+
+- **Packages:** the package catalog is the `packages/manifest.json` bundled with this plugin
+  version. The plugin no longer reads the catalog from live `main` on GitHub. A custom
+  **Catalog URL (mirror)** still works. FRR/libyang files stay pinned Release assets with `sha256`.
+- **Install:** old plugin `.txz` files on flash are removed by `&version;` instead of
+  reading the `.plg` from `/tmp/plugins`.
+- **Plugins page:** release notes list `2026.08.17ac–af` in order.
+
 ## 2026.09.27aa
 
 - **Install:** plugin shell is one Slackware `.txz` per version, saved on the flash

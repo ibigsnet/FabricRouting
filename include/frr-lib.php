@@ -28,10 +28,25 @@ function frr_log_path() {
 }
 
 /**
- * Official package catalog URL (GitHub raw manifest).
+ * Package catalog shipped inside this plugin version (packages/manifest.json).
+ */
+function frr_bundled_manifest_path() {
+  foreach ([
+    '/usr/local/emhttp/plugins/FabricRouting/packages/manifest.json',
+    dirname(__DIR__) . '/packages/manifest.json',
+  ] as $p) {
+    if (is_readable($p)) {
+      return $p;
+    }
+  }
+  return '';
+}
+
+/**
+ * Default catalog = bundled file (no network lookup).
  */
 function frr_default_catalog_url() {
-  return 'https://raw.githubusercontent.com/ibigsnet/FabricRouting/main/packages/manifest.json';
+  return frr_bundled_manifest_path();
 }
 
 function frr_load_cfg() {
@@ -42,7 +57,7 @@ function frr_load_cfg() {
     // "Download & Install packages" (openBox job) — never on Settings Apply.
     'auto_download' => 'no',
     'package_channel' => 'latest', // latest | previous
-    'package_base_url' => '', // empty = frr_default_catalog_url()
+    'package_base_url' => '', // empty = bundled packages/manifest.json
     'enable_zebra' => 'yes',
     'enable_fabricd' => 'yes',
     'enable_bgpd' => 'no',
@@ -445,6 +460,18 @@ function frr_catalog_url(array $cfg = null) {
  */
 function frr_fetch_manifest($force = false) {
   $cfg = frr_load_cfg();
+  if (trim((string)($cfg['package_base_url'] ?? '')) === '') {
+    // Default: catalog bundled with this plugin version. No network.
+    $bundled = frr_bundled_manifest_path();
+    if ($bundled === '') {
+      return ['ok' => false, 'error' => 'bundled package catalog missing (reinstall the plugin)', 'url' => ''];
+    }
+    $j = json_decode((string)@file_get_contents($bundled), true);
+    if (!is_array($j)) {
+      return ['ok' => false, 'error' => 'invalid catalog JSON', 'url' => $bundled];
+    }
+    return ['ok' => true, 'manifest' => $j, 'source' => 'bundled', 'url' => $bundled];
+  }
   $url = frr_catalog_url($cfg);
   $cache = frr_cfg_dir() . '/manifest.cache.json';
   $ttl = 3600;
@@ -743,8 +770,8 @@ function frr_download_bundle($force = false) {
     }
     frr_progress("[$i/$n] Downloading: $file …");
     frr_progress('  URL: ' . $url);
-    // Stream to disk (curl). Never buffer ~20MiB FRR .txz in PHP — that hung
-    // openBox on Holo (step 2, no Done: process died mid file_get_contents).
+    // Stream to disk (curl). Buffering a ~20 MiB .txz in PHP can stall the
+    // openBox job before Done.
     $got = frr_http_download_file($url, $dest, 600);
     if (empty($got['ok'])) {
       $err = !empty($got['error']) ? (string)$got['error'] : 'download failed';

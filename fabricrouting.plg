@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.09.27aa">
+<!ENTITY version "2026.09.28aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,6 +24,9 @@
 
 <CHANGES>
 ###&version;
+- Package catalog is the manifest.json bundled with the plugin; no lookup on live main. Install drops old .txz by version.
+
+###2026.09.27aa
 - Plugin payload is a flash .txz from the GitHub Release (not re-fetched from main at boot).
 
 ###2026.09.08aa
@@ -35,11 +38,8 @@
 ###2026.08.28aa
 - Download and Install: Done/Dismiss after packages finish.
 
-###2026.08.17af–ac
-- Package download streams to disk; openBox progress; README/icon.
-
-###2026.08.17ad
-- Support: Thunderbolt Net forum thread.
+###2026.08.17ac–af
+- Package download streams to disk; openBox progress; README/icon; support links to the Thunderbolt Net forum thread.
 
 ### Older releases
 - Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
@@ -60,10 +60,14 @@ echo "FabricRouting: ready."
 <!-- raw-files begin -->
 <FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
-<SHA256>695437b11ed70e34bdb3d9d5952862cf049b8a0635b41caad0f3e759e3cf4849</SHA256>
-<MD5>ae4dfc710b58e60fb4de7c0a9a29d9fd</MD5>
+<SHA256>00308569825a1922df62e5ede83796fe9a7e6a5c7e399224a9139b3238f35761</SHA256>
+<MD5>7a17d85b2b5ddc79f95a4137aa4398ad</MD5>
 </FILE>
 <!-- raw-files end -->
+
+<FILE Run="/bin/bash">
+<INLINE>find &configdir; -maxdepth 1 -name "&name;-*-x86_64-1.txz" ! -name "&name;-&version;-x86_64-1.txz" -delete 2>/dev/null || true</INLINE>
+</FILE>
 
 <FILE Run="/bin/bash">
 <INLINE><![CDATA[
@@ -83,10 +87,6 @@ fi
 # Legacy UnraidFRR flash (one-time migrate)
 if [ -d /boot/config/plugins/UnraidFRR ]; then
   cp -an /boot/config/plugins/UnraidFRR/. /boot/config/plugins/FabricRouting/ 2>/dev/null || true
-fi
-VER=$(sed -n 's/.*ENTITY version "\([^"]*\)".*/\1/p' /tmp/plugins/fabricrouting.plg 2>/dev/null | head -1)
-if [ -n "$VER" ]; then
-  find /boot/config/plugins/FabricRouting -maxdepth 1 -name 'FabricRouting-*-x86_64-1.txz' ! -name "FabricRouting-${VER}-x86_64-1.txz" -delete 2>/dev/null || true
 fi
 echo "FabricRouting: packages now: $(ls /var/log/packages/FabricRouting-* 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
 echo "FabricRouting: install complete. Settings → Network Settings → Fabric Routing"
