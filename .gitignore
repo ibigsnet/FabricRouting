@@ -11,25 +11,6 @@
 NOTES.local.md
 .private/
 
-# Lab / workstation only — NOT Unraid runtime
-AGENTS.md
-CA-CHANNEL.md
-DEVELOPMENT.md
-docs/DEVELOPMENT.md
-UnraidFRR.page
-unraidfrr.plg
-docs/boot-blocker-holo-*.md
-docs/lab-nirog-holox3d.md
-docs/package-build-plan.md
-docs/product-roadmap.md
-docs/install-uninstall-audit.md
-docs/plugin-fleet-boot-audit.md
-scripts/pack-txz.sh
-scripts/promote-stable.sh
-packages/build/
-packages/BUILD.md
-packages/dist/
-
 # Plugin-shell .txz is a GitHub Release asset, not a git blob
 archive/*.txz
 dist/
