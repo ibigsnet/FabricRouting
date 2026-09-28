@@ -70,6 +70,10 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 - Download & Install packages: prefer openBox/logging.htm so the button always opens a progress window (openPlugin silent pid=0 on some Network Settings loads).
 
+## 2026.08.17ab
+
+- Plugins page: shorter CHANGES list.
+
 ## 2026.08.17aa
 
 - **Audit/docs:** SECURITY clarifies no stock UI patch, full flash wipe on uninstall; version bump for suite ship.
@@ -82,8 +86,30 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 ## 2026.08.15af
 - Uninstall: also remove /var/tmp/frr (watchfrr scratch).
 
+## 2026.08.15ae
+
+- **Install:** do not wipe `/tmp/plugins` during install. Unraid copies the `.plg` to flash
+  after the FILE scripts.
+
+## 2026.08.15ad
+
+- **Remove:** do not delete the plugin's own `.plg` (Unraid owns it).
+
+## 2026.08.15ac
+
+- **Install/remove:** canonical paths only; legacy UnraidFRR rename still migrated.
+
 ## 2026.08.15ab
 - Changelog: Plugins page shows recent entries only; full history on GitHub <code>CHANGELOG.md</code>.
+
+## 2026.08.15aa
+
+- **Install:** single runtime `.txz` package installed with `upgradepkg`; uninstall uses `removepkg`.
+
+## 2026.08.14ap
+
+- Package job finish: close the window or click Done; the page reloads when it closes.
+- Docs: maintainer notes removed from the public repo.
 
 ## 2026.08.14ao
 - Package job: Done button works again after download/install finishes
@@ -132,6 +158,15 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 - **Release channel:** PluginURL, raw FILE sources, and package catalog pin to branch `stable`.
 - SECURITY.md: idle install, no eth0/br0, packages only on Apply, uninstall scope.
 
+## 2026.08.13ad
+
+- Docs and Plugins blurb spell out Thunderbolt (not TB).
+
+## 2026.08.13ac
+
+- Renamed to **Fabric Routing** (plugin id FabricRouting, `fabricrouting.plg`). Flash packages
+  and config migrate from UnraidFRR on install.
+
 ## 2026.08.13ab
 - Docs: public sanitization — SUPPORTED matrix and lab notes use **Machine A/B** patterns (no personal hostnames/IPs); [lab-two-node-fabric.md](docs/lab-two-node-fabric.md).
 
@@ -155,6 +190,19 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 - Docs: boot-lifecycle.md; install-uninstall-audit + automation-design aligned with Unraid plugin best practice.
 - Versioning comment aligned with StorageGuard / Thunderbolt Net (two-letter suffixes only).
 
+## 2026.08.12f
+
+- The Thunderbolt Net link on the Fabric Routing page opens the Thunderbolt tab.
+
+## 2026.08.12e
+
+- Auto-download defaults to No; beginner FRR help; docs/defaults-rationale.md.
+
+## 2026.08.12da
+
+- Boot installs plugin files only; package download only from Settings → Apply. Array start
+  rehydrates packages already on flash.
+
 ## 2026.08.12d
 - Apply: progress-frame messages (do not close — same UX as other Unraid Settings progress dialogs); single-flight lock.
 - Catalog: do not keep empty-bundle cache for a full hour (fixes stale “No match yet”).
@@ -173,6 +221,46 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.
 - Public name: **Fabric Routing** (Network Settings tab) · **Fabric Routing (FRR)** (CA / Plugins blurb). Plugin id FabricRouting.
 - Note: single-letter 12d was non-standard; use two-letter suffixes going forward.
+
+## 2026.08.12c
+
+- Apply shows progress steps; single apply lock; an empty catalog is not cached for an hour;
+  status shows package names.
+
+## 2026.08.12b
+
+- Docs: Unraid version matrix tiers; FRR vs Unraid routing table.
+
+## 2026.08.12a
+
+- Docs: supported Unraid version matrix. Uninstall removes frr/libyang packages and stops FRR
+  via frrinit.sh.
+
+## 2026.08.12
+
+- First FRR package catalog: libyang 2.1.148 + FRR 10.7.0 (fabricd) for Unraid 7.x x86_64,
+  from Release `pkg-10.7.0`. Apply prefers frrinit.sh.
+
+## 2026.08.11al
+
+- Docs: Contents/TOC in DOCS.md.
+
+## 2026.08.11ak
+
+- Docs index and Fabric Routing naming.
+
+## 2026.08.11aj
+
+- Denser page: About dropdown, shorter companion strip.
+
+## 2026.08.11ai
+
+- Page layout: status badges and sections (Packages, Core daemons, Optional protocols); long
+  text moved to Help.
+
+## 2026.08.11ah
+
+- Restored the plugin file; Fabric Routing (FRR) branding.
 
 ## 2026.08.11ag
 - Network Settings tab **Fabric Routing** (with Routing Table / Interface Rules), not System Settings tile.
