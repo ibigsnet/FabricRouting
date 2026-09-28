@@ -6,6 +6,12 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.09.28ab
+
+- **Settings save:** `include/frr-update.php` returns 405 on a direct GET. It only runs from
+  Unraid `update.php` (POST with `csrf_token`), so a GET cannot write config or run Apply.
+- **Changelog:** dropped names of docs that are not in the repo.
+
 ## 2026.09.28aa
 
 - **Packages:** the package catalog is the `packages/manifest.json` bundled with this plugin
@@ -187,7 +193,7 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 - **Boot / plg install is files-only** — no package download, no frr_apply (sync or background). Unraid re-runs every .plg at boot; heavy work there could block rc.local → emhttp → array.
 - **Network download only on Settings → Fabric Routing → Apply** (auto_download). Network package fetch only on Settings → Apply (flash cache + rehydrate on array start).
 - **Array start** rehydrates packages **already on flash** into RAM (`frr_rehydrate_local` / local_only); never fetches catalog. Detached via `at`/`nohup` so emhttp events stay non-blocking.
-- Docs: boot-lifecycle.md; install-uninstall-audit + automation-design aligned with Unraid plugin best practice.
+- Docs: boot-lifecycle.md; automation-design aligned with Unraid plugin best practice.
 - Versioning comment aligned with StorageGuard / Thunderbolt Net (two-letter suffixes only).
 
 ## 2026.08.12f
@@ -212,10 +218,9 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 - Docs: scope-and-safety + DOCS cross-links for routing-table impact.
 - Uninstall: stop via /usr/sbin/frrinit.sh; kill mgmtd; always removepkg-sweep frr-* and libyang-*.
 - Docs: packages/SUPPORTED.md — Unraid product version matrix (lab-proven 7.3.x x86_64).
-- Docs: product-roadmap.md — interfaces/metrics UI, CA/forum, ambitions (Proxmox, multi-node AI).
 - First FRR package set: libyang 2.1.148 + frr 10.7.0 (fabricd) for Unraid 7.x x86_64 — GitHub Release pkg-10.7.0 + manifest catalog.
 - frr_try_start: prefer /usr/sbin/frrinit.sh (our packages).
-- Docs: two-host lab fabric pattern; package build plan; packages/build scripts.
+- Docs: two-host lab fabric pattern.
 - Docs: Contents/TOC on DOCS.md.
 - UI: collapsible About; tighter companion strip (less wall of text).
 - UI: sectioned Status / Packages / Core daemons / Optional protocols (NBD-style density); less wall of text.

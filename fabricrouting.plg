@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.09.28aa">
+<!ENTITY version "2026.09.28ab">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,6 +24,9 @@
 
 <CHANGES>
 ###&version;
+- Settings save include refuses GET (only runs from Unraid update.php POST).
+
+###2026.09.28aa
 - Package catalog is the manifest.json bundled with the plugin; no lookup on live main. Install drops old .txz by version.
 
 ###2026.09.27aa
@@ -60,8 +63,8 @@ echo "FabricRouting: ready."
 <!-- raw-files begin -->
 <FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
-<SHA256>00308569825a1922df62e5ede83796fe9a7e6a5c7e399224a9139b3238f35761</SHA256>
-<MD5>7a17d85b2b5ddc79f95a4137aa4398ad</MD5>
+<SHA256>128cf0afc7c9dac6c87a70afda555e6f5b9ee7d172f4435d9d131776a6a22a66</SHA256>
+<MD5>3560e7a81b64e63012a9008e23c2f652</MD5>
 </FILE>
 <!-- raw-files end -->
 
