@@ -6,6 +6,11 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.10.01aa
+
+- Plugins page description is the short summary.
+- Settings opens on the FRR notes.
+
 ## 2026.09.28ab
 
 - **Settings save:** `include/frr-update.php` returns 405 on a direct GET. It only runs from
