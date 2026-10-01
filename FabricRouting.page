@@ -39,12 +39,6 @@ $bundle_ok = !empty($bundle['ok']);
 ?>
 <style>
 .frr-wrap { max-width: 54em; margin-left: auto; margin-right: auto; }
-.frr-wrap .frr-lead {
-  margin: 0 0 0.55em;
-  font-size: 0.95em;
-  line-height: 1.35;
-  opacity: 0.9;
-}
 .frr-wrap .frr-companion {
   margin: 0.35em 0 0.85em;
   padding: 0.5em 0.7em;
@@ -147,14 +141,6 @@ $bundle_ok = !empty($bundle['ok']);
 </style>
 
 <div class="frr-wrap">
-  <p class="frr-lead">
-    <strong>WIP</strong> — install and run <strong>FRRouting</strong> on this host
-    (<a href="https://frrouting.org/" target="_blank" rel="noopener">frrouting.org</a>) —
-    packages, daemons (<code>zebra</code>, <code>fabricd</code>, …), and start/stop.
-    Primary focus right now: <strong>Thunderbolt Net</strong> OpenFabric underlay.
-    Broader Ethernet fabric support comes later.
-  </p>
-
   <details class="frr-about">
     <summary>What is FRR?</summary>
     <div class="frr-about-body">
