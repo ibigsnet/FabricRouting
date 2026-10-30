@@ -1,78 +1,84 @@
 # Integration with Thunderbolt Net
 
-FabricRouting and Thunderbolt Net are **optional companions**. Either can be installed alone.
+FabricRouting and Thunderbolt Net are **optional companions**. Either can be installed alone. They share **files**, never PHP.
 
 ## Dependency direction
 
 ```text
-FabricRouting  ──provides──►  FRR binaries + daemons (vtysh, zebra, fabricd, …)
-                                │
-                                ▼
-ThunderboltNet  ──uses──►  detect FRR; generate OpenFabric conf; reload when present
+FabricRouting  ──provides──►  FRR binaries + daemons, /etc/frr (frr.conf, daemons, vtysh.conf)
+                                ▲
+                                │ fragment file + scripts/frr-reload
+ThunderboltNet ──writes──►  /boot/config/plugins/ThunderboltNet/frr/thunderboltnet-openfabric.conf
 ```
 
-- Thunderbolt Net **never** requires FabricRouting PHP files.  
-- FabricRouting **never** requires Thunderbolt Net PHP files.  
-- Detection is via **filesystem / PATH** (`vtysh`, `fabricd`, `/etc/frr`), plus an optional marker file.
+- Thunderbolt Net **never** requires FabricRouting PHP files, and FabricRouting never requires Thunderbolt Net's.
+- Detection is via the filesystem (`vtysh`, `fabricd`, `/etc/frr`) plus the optional marker file.
+
+## File contract
+
+| Piece | Owner | Notes |
+|-------|-------|-------|
+| `/etc/frr/frr.conf`, `/etc/frr/daemons`, `/etc/frr/vtysh.conf` | **FabricRouting** | Rebuilt from flash on Apply, package jobs, array start and `frr-reload` |
+| `/boot/config/plugins/ThunderboltNet/frr/thunderboltnet-openfabric.conf` | **Thunderbolt Net** | OpenFabric stanzas for `thunderbolt*` + `lo`; included verbatim between `! BEGIN/END FabricRouting include: ThunderboltNet fragment` |
+| `/boot/config/plugins/FabricRouting/frr.user.conf` | **User** | Hand-written FRR config, included last |
+| `/usr/local/emhttp/plugins/FabricRouting/scripts/frr-reload` | **FabricRouting** | Hook: rebuild + start/restart; exit 0 = OK |
+
+When the fragment exists and is not empty, FabricRouting also turns `fabricd` on in `daemons`. IP forwarding stays Thunderbolt Net's decision.
+
+**Thunderbolt Net side:** write or delete the fragment, then run `frr-reload` if it exists. Do not edit `/etc/frr/*` directly and do not use `vtysh write memory` (the next rebuild replaces the file).
 
 ## Marker file (optional, for UI copy)
-
-When FabricRouting is installed, it maintains:
 
 ```text
 /boot/config/plugins/FabricRouting/companion.json
 ```
 
-Example:
-
 ```json
 {
   "plugin": "FabricRouting",
-  "provides": ["frr", "fabricd", "zebra"],
-  "version": "2026.08.11"
+  "provides": ["frr", "zebra", "fabricd"],
+  "version": "FRRouting 10.7.0 …",
+  "present": true,
+  "fabricd_enabled_cfg": true,
+  "reload_hook": "/usr/local/emhttp/plugins/FabricRouting/scripts/frr-reload",
+  "fragment_path": "/boot/config/plugins/ThunderboltNet/frr/thunderboltnet-openfabric.conf"
 }
 ```
 
-Thunderbolt Net may show **needs FRR packages** / companion card when OpenFabric is On and FRR is missing — pointing at **Network Settings → Fabric Routing**. Absence of the marker is fine; `vtysh` detection is enough for apply paths.
+## Boot order
 
-## Config ownership
+Array-start rehydrate reads the fragment from flash, so it is in `frr.conf` before FRR starts regardless of which plugin's `started` event runs first.
 
-| Path | Owner |
-|------|--------|
-| FRR packages, FabricRouting.cfg, install scripts | **FabricRouting** |
-| `/etc/frr/daemons` enable flags | **FabricRouting** (primary) |
-| OpenFabric interface/router stanzas | **Thunderbolt Net** (marked `BEGIN/END ThunderboltNet OpenFabric`) |
-| Hand-edited FRR for non-Thunderbolt use | **User** |
+## Route guard
 
-Thunderbolt Net must only rewrite its **marked** blocks (already the design). FabricRouting must not wipe `frr.conf` wholesale on every boot if a marked TBN block exists — prefer enabling daemons + package install only.
+FabricRouting's default route guard only installs OpenFabric routes in `10.254.0.0/16`, `10.255.0.0/16` and `fc00::/7` — Thunderbolt Net's loopback and link ranges. Custom Thunderbolt Net router-ids or link addresses outside these ranges must be added under **Fabric Routing → Advanced → Guard prefixes**. See [DOCS.md — Fabric route guard](../DOCS.md#fabric-route-guard).
 
 ## Install order (recommended)
 
-1. **Network Settings → Fabric Routing** → packages → Apply / reboot if needed → `vtysh -v` works  
-2. **Network Settings → Thunderbolt** → OpenFabric On → Apply → conf generated + fabric reload  
+1. **Network Settings → Fabric Routing** → Download & Install packages → `vtysh -v` works.
+2. **Network Settings → Thunderbolt** → OpenFabric On → Apply → fragment written + `frr-reload`.
 
-Reverse order is OK: Thunderbolt Net stays in static/degraded mode until FRR appears, then Apply again.
+Reverse order is OK: Thunderbolt Net keeps the fragment on flash; FabricRouting includes it on its first Apply or package job.
 
 ## Uninstall scenarios
 
 | Remove | Expected |
 |--------|----------|
-| **FabricRouting only** | Plugin remove **stops FRR**, `removepkg`s managed packages, clears emhttp + flash config. TBN stays installed; OpenFabric degrades to static underlay. No broken Unraid Network Settings. |
-| **Thunderbolt Net only** | FRR keeps running if FabricRouting remains; TBN removes its Thunderbolt hooks/config (see TBN remove script). |
-| **Both** | Order does not matter; neither PHP-requires the other. No leftover cross-plugin hooks. |
+| **FabricRouting only** | Stops its FRR, removes its own packages and `frr.conf`/`vtysh.conf`, clears its flash folder. The Thunderbolt Net fragment stays on flash. TBN degrades to static underlay. |
+| **Thunderbolt Net only** | TBN deletes its fragment and runs `frr-reload`; FRR keeps running without OpenFabric stanzas. |
+| **Both** | Order does not matter; neither PHP-requires the other. |
 
 Full FabricRouting removal steps: [DOCS.md — Uninstall](../DOCS.md#uninstall-clean-removal).
 
 ## Mixed Proxmox / Debian + Unraid fabrics
 
-Many sites run OpenFabric between **Unraid** and **Proxmox (or other Debian/Linux)** over Thunderbolt. FabricRouting only supplies FRR on Unraid; peers use distro packages (`apt install frr`, etc.). Same area/metrics/loopback plan on every node.
+FabricRouting only supplies FRR on Unraid; peers use distro packages (`apt install frr`). Same area/metrics/loopback plan on every node, and add the peers' loopback range to the route guard if it differs.
 
-General reference (example multi-node ring, not a fixed site layout):  
-[Thunderbolt Net — fabric-proxmox-unraid.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md)
+General reference: [Thunderbolt Net — fabric-proxmox-unraid.md](https://github.com/ibigsnet/ThunderboltNet/blob/main/docs/fabric-proxmox-unraid.md)
 
 ## Non-goals for the pair
 
-- FabricRouting must not call into `/plugins/ThunderboltNet/`  
-- Thunderbolt Net must not `require` FabricRouting PHP  
-- Neither should fail Settings page load if the other is absent  
-- FabricRouting does not manage Proxmox (docs/interop only)  
+- FabricRouting must not call into `/plugins/ThunderboltNet/` PHP.
+- Thunderbolt Net must not `require` FabricRouting PHP.
+- Neither should fail Settings page load if the other is absent.
+- FabricRouting does not manage Proxmox (docs/interop only).

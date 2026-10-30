@@ -42,10 +42,11 @@ ethtool eth0 | grep Speed   # e.g. 2500Mb/s on a 2.5G link
 
 ## After packages exist
 
-1. Cache `.txz` under `/boot/config/plugins/FabricRouting/packages/` (or use Auto-download → Apply).  
-2. Smoke `vtysh -c 'show version'` on Machine A.  
-3. Repeat on Machine B.  
-4. OpenFabric / static tests only on the **private** underlay (not the management Wi‑Fi/LAN).
+1. **Download & Install packages** on Machine A (sha256-verified into the flash cache).  
+2. Put the OpenFabric stanzas for the private interface in `/boot/config/plugins/FabricRouting/frr.user.conf`, add the underlay range to the route guard prefixes, then **Apply settings**.  
+3. Smoke `vtysh -c 'show version'` on Machine A.  
+4. Repeat on Machine B.  
+5. OpenFabric / static tests only on the **private** underlay (not the management Wi‑Fi/LAN).
 
 ## Physical notes
 

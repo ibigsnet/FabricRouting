@@ -18,9 +18,10 @@ Deeper “what can Unraid do with FRR?”: [frr-and-unraid-routing.md](frr-and-u
 
 ```text
 IN SCOPE
-  · Download/install FRR packages (catalog → flash → installpkg)
-  · Enable/disable FRR daemons (zebra, fabricd, optional bgpd/ospfd/…)
-  · Start/stop FRR best-effort (frrinit)
+  · Download/install FRR packages (bundled catalog → sha256 → flash → upgradepkg)
+  · /etc/frr/frr.conf, daemons, vtysh.conf (rebuilt from flash)
+  · Fabric route guard (which OpenFabric routes reach the kernel)
+  · Start/restart FRR (/usr/sbin/frrinit.sh)
   · Status UI + companion marker for other plugins
   · Standalone use (no Thunderbolt Net required)
 
@@ -37,7 +38,7 @@ OUT OF SCOPE (by design)
 
 ## Why FRR is not “Thunderbolt-only”
 
-FRRouting is a **general** Linux routing stack (same class of tool as FRR on Proxmox/Debian). Once `zebra` is running it *can* install routes into the kernel. Protocol daemons only speak on interfaces **you configure** in `/etc/frr/frr.conf` (or that Thunderbolt Net adds inside its marked block for `thunderbolt*` / `lo`).
+FRRouting is a **general** Linux routing stack (same class of tool as FRR on Proxmox/Debian). Once `zebra` is running it *can* install routes into the kernel. Protocol daemons only speak on interfaces configured in `frr.conf`: your `frr.user.conf`, or the Thunderbolt Net fragment for `thunderbolt*` / `lo`.
 
 So:
 
@@ -55,6 +56,7 @@ So:
 | zebra / fabricd / staticd | On when packages live | Ready for fabric; still need policy |
 | bgpd / ospfd / isisd / … | **Off** | Avoid surprise LAN protocols |
 | IP forwarding | **Not set by FabricRouting** | Unraid LAN behavior stays Unraid’s |
+| Fabric route guard | **On** | OpenFabric routes outside `10.254.0.0/16`, `10.255.0.0/16`, `fc00::/7` are not installed, so a peer cannot pull LAN or default traffic onto the fabric |
 | Auto-add br0 / wlan / docker0 | **Never** | Hard rule |
 
 ---
@@ -62,7 +64,7 @@ So:
 ## What can still go wrong (honest)
 
 1. **Incompatible package** for an untested Unraid build — see [SUPPORTED.md](../packages/SUPPORTED.md) (lab-confirmed vs suggested).  
-2. **Hand-edited `frr.conf`** that redistributes or defaults into the LAN/Wi‑Fi.  
+2. **`frr.user.conf`** that redistributes or defaults into the LAN/Wi‑Fi, or the route guard set to No / widened to LAN ranges.  
 3. **Another tool** putting eth/br0 into FRR protocols.  
 4. **Enabling OSPF/BGP** here and then adding management interfaces yourself.  
 5. **Thunderbolt Net OpenFabric** with forwarding — Thunderbolt prefixes route; still should not steal default via br0 unless you configure that.

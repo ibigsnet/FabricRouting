@@ -6,6 +6,44 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.10.30ab
+
+- **No PHP 8.4 deprecation notices.** Optional parameters are declared nullable explicitly.
+- **Log written once.** The background FRR rebuild after a plugin update no longer writes every line to
+  `/var/log/fabricrouting.log` twice.
+
+## 2026.10.30aa
+
+- **Requires Unraid 7.0 or newer.** The package catalog has always started at 7.0.0; the plugin
+  no longer installs on 6.12.
+- **Package integrity:** `MANIFEST.txt` on flash now records each package's sha256, and every
+  file is checked again before every install (package job and array start). Files it does not
+  list are never installed. Older cache lists are upgraded once by matching the bundled hashes.
+- **Failed downloads stop the job:** a download error or sha256 mismatch now ends the package job
+  with **FAILED** instead of "complete". The previous package set stays untouched.
+- **Package mirror:** the Advanced URL is now only a file mirror; hashes always come from the
+  catalog bundled with the plugin. The settings page never uses the network or writes the flash.
+- **/etc/frr built from flash:** Fabric Routing owns `frr.conf`, `daemons` and `vtysh.conf` and
+  rebuilds them on Apply, package jobs, array start and the new `scripts/frr-reload` hook:
+  baseline, the Thunderbolt Net OpenFabric fragment (when present) and your own
+  `/boot/config/plugins/FabricRouting/frr.user.conf`. After a reboot the Thunderbolt Net
+  fragment is always included. Hand edits found in an old `frr.conf` are copied to
+  `frr.user.conf` once. The repeated safety banner line is gone.
+- **Fabric route guard (new, on by default):** only OpenFabric routes inside
+  `10.254.0.0/16 10.255.0.0/16` and `fc00::/7` reach the kernel table, so a fabric peer cannot
+  install LAN or default routes. Add your own ranges under Advanced if your fabric uses others.
+- **Restarts that take effect:** FRR restarts (`/usr/sbin/frrinit.sh restart`) when the config,
+  daemon switches or packages change; nothing restarts when nothing changed. Packages install with
+  `upgradepkg --install-new`. Updating the plugin while FRR runs rebuilds `/etc/frr` once.
+- **Download & Install always installs**, even when Install on array start is No.
+- **Uninstall** stops only FRR from this plugin's packages (init script, then `/var/run/frr`
+  pidfiles), removes only `MANIFEST.txt`-listed `*_unraid` packages and the files it wrote, and
+  leaves FRR from anything else and same-named processes in containers alone. One script
+  (`scripts/frr-uninstall`) replaces the remove step and `frr-force-cleanup`.
+- **Less flash wear:** the log (`/var/log/fabricrouting.log`) and job lock (flock on
+  `/run/fabricrouting.lock`) live in RAM; `companion.json` and settings are written only on change.
+- **Docs:** updated for the above; the support link is the shared Thunderbolt Net forum thread.
+
 ## 2026.10.01aa
 
 - Plugins page description is the short summary.

@@ -10,7 +10,8 @@ Full product intro: [../DOCS.md](../DOCS.md).
 ```text
 User options (channel, daemons)
     → FabricRouting catalog (manifest.json)
-    → download + sha256 + installpkg
+    → download + sha256 + upgradepkg (sha256 re-checked at every install)
+    → /etc/frr built from flash (baseline + guard, Thunderbolt Net fragment, frr.user.conf)
     → FRR daemons (zebra, fabricd, …)
     → optional Thunderbolt Net OpenFabric policy on Thunderbolt interfaces
 ```

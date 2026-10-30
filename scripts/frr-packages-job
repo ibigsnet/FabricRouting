@@ -29,14 +29,10 @@ if [ ! -f "$PLUGIN_PHP" ]; then
 fi
 
 # Stream progress immediately (emhttpd / logging.htm / nchan).
-# Always exit the shell so openBox/logging.htm onload can paint Done —
-# even if PHP is SIGKILL'd mid-download (lock cleanup is best-effort).
+# The job lock is an flock held by PHP; it is released when PHP exits.
 export PHP_FCGI_CHILDREN=0
-cleanup_lock() {
-  rm -f /boot/config/plugins/FabricRouting/apply.lock 2>/dev/null || true
-}
-trap cleanup_lock EXIT
 
+# shellcheck disable=SC2016 # PHP code, not shell
 php -d display_errors=0 -d zlib.output_compression=0 -d max_execution_time=0 -r '
 require_once $argv[1];
 @ini_set("zlib.output_compression", "0");

@@ -1,0 +1,120 @@
+#!/bin/bash
+# Stop FabricRouting's FRR and remove only what this plugin installed.
+# Used by the plugin remove step. Also safe to run by hand on a half-installed
+# plugin:  bash /usr/local/emhttp/plugins/FabricRouting/scripts/frr-uninstall --all
+#
+# Removes: packages listed in MANIFEST.txt whose names end in _unraid, FRR
+# daemons started from those packages (by pidfile), the frr.conf / vtysh.conf
+# this plugin wrote, its flash folder and log. With --all also the plugin
+# package and web files.
+# Leaves alone: FRR installed by anything else, same-named processes in
+# containers, network.cfg, br0, Docker, Thunderbolt Net and its flash config.
+set -u
+
+ROOT="${FABRICROUTING_ROOT:-}"
+CFG="$ROOT/boot/config/plugins/FabricRouting"
+MAN="$CFG/packages/MANIFEST.txt"
+PKGDB="$ROOT/var/log/packages"
+RUN="$ROOT/var/run/frr"
+ETC="$ROOT/etc/frr"
+INIT="$ROOT/usr/sbin/frrinit.sh"
+ALL=0
+[ "${1:-}" = "--all" ] && ALL=1
+
+echo "FabricRouting: removing..."
+
+# In-flight package jobs / rehydrate (real server only).
+if [ -z "$ROOT" ]; then
+  pkill -f 'FabricRouting/scripts/frr-packages-job|FabricRouting/include/frr-lib' 2>/dev/null || true
+fi
+
+# 1) Packages this plugin installed: listed in MANIFEST.txt, *_unraid, installed.
+ours=()
+if [ -f "$MAN" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%%#*}"
+    line="${line//$'\r'/}"
+    # Last field: "<sha256>  <file>" or a bare "<file>" from older versions.
+    # shellcheck disable=SC2086
+    set -- $line
+    [ "$#" -eq 0 ] && continue
+    pkg="$(basename "${!#}")"
+    pkg="${pkg%.t?z}"
+    [[ "$pkg" =~ ^(frr|libyang)-.+_unraid$ ]] || continue
+    [ -e "$PKGDB/$pkg" ] && ours+=("$pkg")
+  done <"$MAN"
+fi
+frr_ours=0
+for p in "${ours[@]}"; do [[ "$p" == frr-* ]] && frr_ours=1; done
+
+# 2) Stop FRR from our package: frrinit.sh stop, then pidfile TERM, then KILL.
+pidfile_pids() {
+  local pf pid name comm
+  for pf in "$RUN"/*.pid; do
+    [ -f "$pf" ] || continue
+    name="$(basename "$pf" .pid)"
+    name="${name%%-*}"
+    pid="$(tr -cd '0-9' <"$pf")"
+    [ -n "$pid" ] && [ "$pid" -gt 1 ] || continue
+    comm="$(cat "/proc/$pid/comm" 2>/dev/null)"
+    [ "$comm" = "${name:0:15}" ] && echo "$pid"
+  done
+}
+if [ "$frr_ours" -eq 1 ]; then
+  if [ -x "$INIT" ]; then
+    timeout -k 5 45 "$INIT" stop </dev/null >/dev/null 2>&1 || true
+  fi
+  pids="$(pidfile_pids)"
+  if [ -n "$pids" ]; then
+    # shellcheck disable=SC2086
+    kill -TERM $pids 2>/dev/null || true
+    for _ in $(seq 1 20); do
+      left=""
+      for p in $pids; do [ -d "/proc/$p" ] && left="$left $p"; done
+      [ -z "$left" ] && break
+      sleep 0.5
+    done
+    for p in $pids; do
+      [ -d "/proc/$p" ] && kill -KILL "$p" 2>/dev/null && echo "FabricRouting: killed stuck pid $p"
+    done
+  fi
+fi
+
+# 3) removepkg our packages (frr first, then libyang).
+for p in "${ours[@]}"; do
+  [[ "$p" == frr-* ]] && { echo "removepkg $p"; ROOT="${ROOT:-/}" removepkg "$p" >/dev/null 2>&1 || true; }
+done
+for p in "${ours[@]}"; do
+  [[ "$p" == libyang-* ]] && { echo "removepkg $p"; ROOT="${ROOT:-/}" removepkg "$p" >/dev/null 2>&1 || true; }
+done
+
+# 4) Config files this plugin wrote.
+if [ -f "$ETC/frr.conf" ] && head -1 "$ETC/frr.conf" | grep -q '^! FabricRouting managed frr.conf'; then
+  rm -f "$ETC/frr.conf"
+fi
+if [ -f "$ETC/vtysh.conf" ] && head -1 "$ETC/vtysh.conf" | grep -q '^! FabricRouting managed vtysh.conf'; then
+  rm -f "$ETC/vtysh.conf"
+fi
+if [ "$frr_ours" -eq 1 ]; then
+  rm -f "$ETC/daemons"
+  rm -rf "$RUN" "$ROOT/var/lib/frr" "$ROOT/var/tmp/frr"
+fi
+rmdir "$ETC" 2>/dev/null || true
+
+# 5) Flash folder, log, lock, legacy id.
+rm -rf "$CFG" "$ROOT/boot/config/plugins/UnraidFRR"
+rm -f "$ROOT/var/log/fabricrouting.log" "$ROOT/run/fabricrouting.lock"
+
+if [ "$ALL" -eq 1 ]; then
+  for p in "$PKGDB"/FabricRouting-*; do
+    [ -e "$p" ] || continue
+    ROOT="${ROOT:-/}" removepkg "$(basename "$p")" >/dev/null 2>&1 || true
+  done
+  rm -rf "$ROOT/usr/local/emhttp/plugins/FabricRouting" "$ROOT/usr/local/emhttp/plugins/UnraidFRR"
+  rm -f "$ROOT/boot/config/plugins/fabricrouting.plg" "$ROOT/boot/config/plugins/unraidfrr.plg" \
+        "$ROOT/var/log/plugins/fabricrouting.plg" "$ROOT/var/log/plugins/unraidfrr.plg" \
+        "$ROOT/tmp/plugins/fabricrouting.txt"
+fi
+
+echo "FabricRouting: removed (${#ours[@]} package(s))."
+exit 0

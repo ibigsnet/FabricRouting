@@ -17,13 +17,9 @@ Markdown="false"
  */
 require_once '/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php';
 
-$plugin = 'FabricRouting';
-$cfg = function_exists('parse_plugin_cfg') ? parse_plugin_cfg($plugin) : [];
-if (!is_array($cfg)) {
-  $cfg = [];
-}
-$cfg = array_merge(frr_load_cfg(), $cfg);
+// Read-only render: no network, no flash writes.
 $st = frr_status();
+$cfg = $st['cfg'];
 $det = $st['detect'];
 $bundle = $st['bundle'] ?? [];
 $ver = htmlspecialchars($st['plugin_version'] ?? 'dev');
@@ -144,25 +140,14 @@ $bundle_ok = !empty($bundle['ok']);
   <details class="frr-about">
     <summary>What is FRR?</summary>
     <div class="frr-about-body">
-      <p><strong>FRR</strong> is open-source routing software used on many Linux routers and Proxmox hosts.
-      Unraid does not ship it. This plugin downloads FRR onto flash, installs into the live system, and starts the daemons you enable.</p>
-      <p><strong>Useful when:</strong> multi-hop rings, alternate paths, or Proxmox/Linux FRR peers on a private fabric.</p>
-      <p><strong>Usually skip when:</strong> one static Ethernet or Thunderbolt link between two machines — set IPs and use SMB/NFS/NBD; you do not need FRR for that.</p>
+      <p><strong>FRR</strong> is an open-source routing suite. This plugin downloads verified FRR packages to flash, installs them into the live system and runs the daemons you enable.
+        It does not change <code>br0</code>, Wi‑Fi or <code>network.cfg</code>.</p>
 <?php if ($tbn): ?>
-      <p><strong>With Thunderbolt Net:</strong> this tab owns FRR <em>packages and daemons</em>.
-        OpenFabric area/metrics and multi-host fabric reports are on
-        <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt → Settings</a>.</p>
-<?php else: ?>
-      <p><strong>Thunderbolt Net</strong> (optional) can hold OpenFabric policy when you use Thunderbolt host networking.</p>
+      <p>OpenFabric policy (area, metrics, interfaces) is on
+        <a href="/Settings/NetworkSettings" onclick="return ibigsGotoNetTab('Thunderbolt', event)">Network Settings → Thunderbolt</a>.</p>
 <?php endif; ?>
-      <p><strong>First install:</strong>
-        select <strong>Latest</strong> (recommended) → <strong>Download &amp; Install packages</strong> → leave the window open until <strong>Done</strong>, then close.
-        Later reboots rehydrate from flash when Install on array start is Yes (Advanced).</p>
-      <p>Does not change <code>br0</code>, Wi‑Fi, or <code>network.cfg</code>. BGP/OSPF stay Off until you enable them.</p>
       <p>
         <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/first-time-setup.md" target="_blank" rel="noopener"><strong>First-time setup ↗</strong></a>
-        ·
-        <a href="https://github.com/ibigsnet/FabricRouting/blob/main/docs/frr-and-unraid-routing.md" target="_blank" rel="noopener">FRR and Unraid routing ↗</a>
         ·
         <a href="https://github.com/ibigsnet/FabricRouting/blob/main/DOCS.md" target="_blank" rel="noopener">Full docs ↗</a>
       </p>
@@ -174,13 +159,11 @@ $bundle_ok = !empty($bundle['ok']);
     <table class="frr-status tablesorter shift">
       <tr>
         <td>Plugin</td>
-        <td><code><?= $ver ?></code>
-          <span class="frr-muted"> — Plugins tab updates</span></td>
+        <td><code><?= $ver ?></code></td>
       </tr>
       <tr>
-        <td>Unraid product</td>
-        <td><code><?= $uver ?></code> · <code><?= $arch ?></code>
-          <span class="frr-muted"> — picks package bundle (not kernel)</span></td>
+        <td>Unraid</td>
+        <td><code><?= $uver ?></code> · <code><?= $arch ?></code></td>
       </tr>
       <tr>
         <td>FRR live</td>
@@ -192,7 +175,6 @@ $bundle_ok = !empty($bundle['ok']);
           <?php endif; ?>
 <?php else: ?>
           <span class="frr-badge frr-badge-warn">Not installed</span>
-          <span class="frr-muted"> — Apply to download when a bundle exists</span>
 <?php endif; ?>
         </td>
       </tr>
@@ -205,88 +187,54 @@ $bundle_ok = !empty($bundle['ok']);
         </td>
       </tr>
       <tr>
-        <td>Catalog bundle</td>
+        <td>Package set</td>
         <td>
 <?php if ($bundle_ok): ?>
           <span class="frr-badge frr-badge-ok">Match</span>
           FRR <code><?= htmlspecialchars($bundle['frr_version'] ?? '') ?></code>
           · channel <code><?= htmlspecialchars($bundle['channel'] ?? '') ?></code>
 <?php else: ?>
-          <span class="frr-badge frr-badge-warn">No match yet</span>
-          <span class="frr-muted"><?= htmlspecialchars($bundle['error'] ?? 'resolving…') ?></span>
-          <br><span class="frr-muted">The catalog updates with the plugin. Hard-refresh (Ctrl+Shift+R) after a plugin update. See <a href="https://github.com/ibigsnet/FabricRouting/blob/main/packages/SUPPORTED.md" target="_blank" rel="noopener">SUPPORTED.md ↗</a>.</span>
+          <span class="frr-badge frr-badge-warn">No match</span>
+          <span class="frr-muted"><?= htmlspecialchars($bundle['error'] ?? '') ?></span>
 <?php endif; ?>
         </td>
       </tr>
       <tr>
         <td>Flash package cache</td>
         <td><?= $pk
-          ? count($pk) . ' managed file(s) — ' . htmlspecialchars(implode(', ', $pk))
-          : '<span class="frr-muted">Empty — Apply auto-downloads when a catalog match exists</span>' ?></td>
+          ? htmlspecialchars(implode(', ', $pk))
+          : '<span class="frr-muted">Empty</span>' ?></td>
       </tr>
       <tr>
-        <td>Thunderbolt Net</td>
-        <td><?= $tbn
-          ? '<span class="frr-ok">Installed</span> <span class="frr-muted">— policy on Thunderbolt tab</span>'
-          : '<span class="frr-muted">Not installed (OK)</span>' ?></td>
+        <td>frr.conf</td>
+        <td>baseline<?= !empty($st['fragment']) ? ' + Thunderbolt Net fragment' : '' ?><?= !empty($st['user_conf']) ? ' + frr.user.conf' : '' ?></td>
       </tr>
     </table>
   </div>
 
   <div class="frr-section" style="margin-top:0.5em">
     <h3>Packages</h3>
-    <p class="frr-section-lead">
-      Choose what to install, then use the button. Opens Unraid’s download window
-      (same idea as the Nvidia Driver plugin and plugin installs).
-      <strong>Nothing downloads until you click the button</strong> — not on page load, not when saving Advanced.
-    </p>
-
-    <p class="frr-muted" style="margin:0 0 0.5em">
-      Catalog match for this host:
-<?php if ($bundle_ok): ?>
-      <span class="frr-ok">FRR <?= htmlspecialchars($bundle['frr_version'] ?? '') ?></span>
-      <span class="frr-muted"> (<?= htmlspecialchars($bundle['label'] ?? ($bundle['channel'] ?? '')) ?>)</span>
-<?php else: ?>
-      <span class="frr-warn"><?= htmlspecialchars($bundle['error'] ?? 'no bundle yet') ?></span>
-<?php endif; ?>
-    </p>
-
 <?php
   // Default radio: Flash when cache exists (no surprise network fetch).
-  // First install (empty flash): Latest so the button is useful without a dead selection.
   $pkg_default = !empty($pk) ? 'flash' : 'latest';
 ?>
     <ul class="frr-radio-list">
       <li>
         <label>
           <input type="radio" name="frr_pkg_mode" value="latest" <?= $pkg_default === 'latest' ? 'checked' : '' ?>>
-          <span>
-            <strong>Latest</strong> for this Unraid version
-            <span class="frr-muted"> — <strong>recommended</strong> first install; catalog download + install + start</span>
-          </span>
+          <span><strong>Latest</strong> <span class="frr-muted">— download, verify, install, start</span></span>
         </label>
       </li>
       <li>
         <label>
           <input type="radio" name="frr_pkg_mode" value="previous">
-          <span>
-            <strong>Previous</strong> (rollback channel)
-            <span class="frr-muted"> — only if the catalog publishes a previous set</span>
-          </span>
+          <span><strong>Previous</strong> <span class="frr-muted">— rollback set, when the catalog has one</span></span>
         </label>
       </li>
       <li>
         <label>
           <input type="radio" name="frr_pkg_mode" value="flash" <?= empty($pk) ? 'disabled' : '' ?> <?= $pkg_default === 'flash' ? 'checked' : '' ?>>
-          <span>
-            <strong>Flash cache only</strong> (no network)
-            <span class="frr-muted"> — reinstall packages already on the USB into RAM</span>
-<?php if (empty($pk)): ?>
-            <br><span class="frr-warn">No packages on flash yet — choose <strong>Latest</strong> (recommended) for the first download.</span>
-<?php else: ?>
-            <br><span class="frr-muted"><?= (int)count($pk) ?> file(s): <?= htmlspecialchars(implode(', ', $pk)) ?> · default selection (safe, no download)</span>
-<?php endif; ?>
-          </span>
+          <span><strong>Flash cache only</strong> <span class="frr-muted">— install what is on the USB, no download</span></span>
         </label>
       </li>
     </ul>
@@ -294,103 +242,66 @@ $bundle_ok = !empty($bundle['ok']);
     <div class="frr-pkg-actions">
       <input type="button" value="Download &amp; Install packages" onclick="frrPackagesJob()">
     </div>
-    <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em;line-height:1.4">
-      Leave the popup open until <strong>Done</strong>, then close (status updates when the window closes).
-      Do not use the red X early.
-    </p>
+    <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em">Leave the window open until <strong>Done</strong>.</p>
   </div>
 
   <form method="POST" action="/update.php" target="progressFrame">
     <input type="hidden" name="#file" value="FabricRouting/FabricRouting.cfg">
     <input type="hidden" name="#include" value="/plugins/FabricRouting/include/frr-update.php">
-    <input type="hidden" name="auto_download" value="no">
     <input type="hidden" name="package_channel" id="frr_pkg_channel_hidden" value="<?= htmlspecialchars($cfg['package_channel'] ?? 'latest') ?>">
 
     <details class="frr-advanced">
-      <summary>Advanced — daemons &amp; boot (optional)</summary>
-
-      <p class="frr-section-lead" style="margin-top:0.65em">
-        These save with <strong>Apply settings</strong> only (no package download).
-        Defaults are fine for OpenFabric multi-hop.
-      </p>
+      <summary>Advanced — daemons, boot and route guard</summary>
 
       <dl>
         <dt>Install on array start:</dt>
         <dd>
           <select name="install_on_start">
-            <?= mk_option($cfg['install_on_start'] ?? 'yes', 'yes', 'Yes (recommended)') ?>
+            <?= mk_option($cfg['install_on_start'] ?? 'yes', 'yes', 'Yes') ?>
             <?= mk_option($cfg['install_on_start'] ?? 'yes', 'no', 'No') ?>
           </select>
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What this does:</strong> after a reboot, reinstall FRR packages that are
-        <em>already on the flash</em> into the live (RAM) Unraid root so <code>zebra</code> /
-        <code>fabricd</code> exist again.<br><br>
-        <strong>What it does not do:</strong> no catalog download, no internet required at boot.
-        Unraid’s RAM OS loses <code>installpkg</code> results on reboot — that is why this exists.<br><br>
-        Leave <strong>Yes</strong> once you have used Download &amp; Install packages successfully.
+        Yes reinstalls the verified packages from flash after each reboot. No network is used.
       </blockquote>
 
       <dl>
-        <dt>Catalog URL (mirror):</dt>
+        <dt>Package mirror URL:</dt>
         <dd>
           <input type="text" name="package_base_url" style="width:min(32em,100%)"
             value="<?= htmlspecialchars($cfg['package_base_url'] ?? '') ?>"
-            placeholder="default: bundled packages/manifest.json">
+            placeholder="empty = GitHub Release">
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What this is:</strong> where Download &amp; Install packages looks up which
-        <code>.txz</code> files match your Unraid version.<br><br>
-        Leave <strong>empty</strong> to use the catalog bundled with this plugin version. Only set a URL if you host
-        your own mirror of <code>manifest.json</code> (advanced / air‑gapped labs).
+        Optional https folder that serves the same package files. Hashes always come from this plugin version.
       </blockquote>
-
-      <h3 style="margin-top:1em;font-size:1em">Core daemons</h3>
-      <p class="frr-section-lead">
-        These are the FRR processes written to <code>/etc/frr/daemons</code> and started with the stack.
-        Defaults (all Yes below) are right for OpenFabric multi-hop. Blue help under each setting
-        explains what it is and when to leave it alone.
-      </p>
 
       <dl>
         <dt>Enable zebra:</dt>
         <dd>
           <select name="enable_zebra">
-            <?= mk_option($cfg['enable_zebra'] ?? 'yes', 'yes', 'Yes (required for routing)') ?>
+            <?= mk_option($cfg['enable_zebra'] ?? 'yes', 'yes', 'Yes') ?>
             <?= mk_option($cfg['enable_zebra'] ?? 'yes', 'no', 'No') ?>
           </select>
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What it is:</strong> FRR’s core process — the bridge between routing protocols and the
-        Linux kernel routing table (<code>ip route</code>).<br><br>
-        <strong>What it does:</strong> installs/withdraws routes that protocols learn, and owns
-        kernel interaction for the rest of FRR.<br><br>
-        <strong>Leave Yes</strong> if you use this plugin at all. Without zebra, fabricd/BGP/OSPF
-        cannot put routes into the host. Almost never turn this Off.
+        FRR core: puts routes from the protocols into the kernel. Leave Yes.
       </blockquote>
 
       <dl>
         <dt>Enable fabricd (OpenFabric):</dt>
         <dd>
           <select name="enable_fabricd">
-            <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'yes', 'Yes (multi-hop fabric)') ?>
+            <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'yes', 'Yes') ?>
             <?= mk_option($cfg['enable_fabricd'] ?? 'yes', 'no', 'No') ?>
           </select>
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What it is:</strong> the <strong>OpenFabric</strong> daemon (IS‑IS–derived multi-hop
-        IP fabric routing). Process name <code>fabricd</code>.<br><br>
-        <strong>What it does:</strong> exchanges fabric topology with peers so traffic can take
-        alternate paths (rings, multi-hop, Unraid↔Proxmox FRR labs) — not a single static cable.<br><br>
-        <strong>What it does not do:</strong> does not assign Thunderbolt IPs, does not edit
-        <code>br0</code>/Wi‑Fi by default, and does not replace one-peer static tbn addressing.<br><br>
-        <strong>Policy</strong> (area, metrics, which interfaces participate) lives under
-        <strong>Network Settings → Thunderbolt → Advanced</strong> when Thunderbolt Net is installed.
-        This checkbox only enables the daemon binary.
+        OpenFabric daemon. It also runs whenever Thunderbolt Net supplies an OpenFabric fragment.
       </blockquote>
 
       <dl>
@@ -403,45 +314,37 @@ $bundle_ok = !empty($bundle['ok']);
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What it is:</strong> FRR’s static-route helper daemon.<br><br>
-        <strong>What it does:</strong> lets FRR own selected static routes in <code>frr.conf</code>
-        (useful next to OpenFabric). Unraid’s stock <strong>Routing Table</strong> tab can still
-        manage simple statics independently.<br><br>
-        Safe default <strong>Yes</strong>. Set No only if you want zero FRR static handling.
-      </blockquote>
-
-      <h3 style="margin-top:1em;font-size:1em">Optional protocols</h3>
-      <p class="frr-section-lead">Default all No — not needed for OpenFabric / Thunderbolt multi-hop alone.</p>
-      <div class="frr-daemon-grid">
-        <label>bgpd
-          <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>
-        </label>
-        <label>ospfd
-          <select name="enable_ospfd"><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'yes', 'Yes') ?></select>
-        </label>
-        <label>ospf6d
-          <select name="enable_ospf6d"><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'yes', 'Yes') ?></select>
-        </label>
-        <label>isisd
-          <select name="enable_isisd"><?= mk_option($cfg['enable_isisd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_isisd'] ?? 'no', 'yes', 'Yes') ?></select>
-        </label>
-        <label>bfdd
-          <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
-        </label>
-      </div>
-      <blockquote class="inline_help">
-        <strong>bgpd</strong> — BGP (border/external routing, large multi-site fabrics).<br>
-        <strong>ospfd / ospf6d</strong> — OSPF IPv4 / IPv6 (classic multi-router LAN/WAN areas).<br>
-        <strong>isisd</strong> — classic IS‑IS (not the same as OpenFabric’s <code>fabricd</code>).<br>
-        <strong>bfdd</strong> — BFD fast failure detection for other protocols.<br><br>
-        Leave all <strong>No</strong> unless you deliberately run these on this host and know how to
-        configure them in <code>frr.conf</code>. Enabling a daemon alone does not configure peers —
-        it only allows the process to start. This plugin does <strong>not</strong> auto-enroll
-        <code>br0</code> or house Wi‑Fi into any protocol.
+        Static routes written in frr.user.conf.
       </blockquote>
 
       <dl>
-        <dt>Start/restart FRR on Apply settings:</dt>
+        <dt>Optional protocols:</dt>
+        <dd>
+          <div class="frr-daemon-grid">
+            <label>bgpd
+              <select name="enable_bgpd"><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bgpd'] ?? 'no', 'yes', 'Yes') ?></select>
+            </label>
+            <label>ospfd
+              <select name="enable_ospfd"><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospfd'] ?? 'no', 'yes', 'Yes') ?></select>
+            </label>
+            <label>ospf6d
+              <select name="enable_ospf6d"><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_ospf6d'] ?? 'no', 'yes', 'Yes') ?></select>
+            </label>
+            <label>isisd
+              <select name="enable_isisd"><?= mk_option($cfg['enable_isisd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_isisd'] ?? 'no', 'yes', 'Yes') ?></select>
+            </label>
+            <label>bfdd
+              <select name="enable_bfdd"><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'no', 'No') ?><?= mk_option($cfg['enable_bfdd'] ?? 'no', 'yes', 'Yes') ?></select>
+            </label>
+          </div>
+        </dd>
+      </dl>
+      <blockquote class="inline_help">
+        Starts the daemon only. Peers and interfaces go in frr.user.conf.
+      </blockquote>
+
+      <dl>
+        <dt>Start/restart FRR:</dt>
         <dd>
           <select name="start_frr">
             <?= mk_option($cfg['start_frr'] ?? 'yes', 'yes', 'Yes') ?>
@@ -450,21 +353,44 @@ $bundle_ok = !empty($bundle['ok']);
         </dd>
       </dl>
       <blockquote class="inline_help">
-        <strong>What it does:</strong> after you click <strong>Apply settings</strong>, try to start
-        (or leave running) FRR so the daemon checkboxes above take effect.<br><br>
-        <strong>Yes</strong> (default) — bring the stack up after saving.<br>
-        <strong>No</strong> — only write <code>/etc/frr/daemons</code>; you start FRR later yourself
-        (or via Download &amp; Install packages, which still starts FRR).<br><br>
-        Does not download packages. Safe with Yes for normal use.
+        Yes starts FRR, or restarts it when the config or packages changed. No only writes /etc/frr.
+      </blockquote>
+
+      <dl>
+        <dt>Fabric route guard:</dt>
+        <dd>
+          <select name="fabric_guard">
+            <?= mk_option($cfg['fabric_guard'] ?? 'yes', 'yes', 'Yes') ?>
+            <?= mk_option($cfg['fabric_guard'] ?? 'yes', 'no', 'No') ?>
+          </select>
+        </dd>
+      </dl>
+      <blockquote class="inline_help">
+        Yes installs OpenFabric routes only inside the prefixes below, so a peer cannot steer LAN or default traffic.
+      </blockquote>
+
+      <dl>
+        <dt>Guard IPv4 prefixes:</dt>
+        <dd>
+          <input type="text" name="fabric_guard_v4" style="width:min(32em,100%)"
+            value="<?= htmlspecialchars($cfg['fabric_guard_v4'] ?? FRR_GUARD_V4_DEFAULT) ?>">
+        </dd>
+      </dl>
+      <dl>
+        <dt>Guard IPv6 prefixes:</dt>
+        <dd>
+          <input type="text" name="fabric_guard_v6" style="width:min(32em,100%)"
+            value="<?= htmlspecialchars($cfg['fabric_guard_v6'] ?? FRR_GUARD_V6_DEFAULT) ?>">
+        </dd>
+      </dl>
+      <blockquote class="inline_help">
+        Space-separated. Add your fabric loopback and link ranges if they are outside the defaults.
       </blockquote>
 
       <div class="frr-actions">
         <input type="submit" name="#apply" value="Apply settings">
         <input type="button" value="Done" onclick="done()">
       </div>
-      <p class="frr-muted" style="margin:0.5em 0 0;font-size:0.88em">
-        Saves daemons/boot options only. Does <strong>not</strong> download packages.
-      </p>
     </details>
   </form>
 </div>
