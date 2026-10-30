@@ -1,52 +1,85 @@
 #!/bin/bash
-# Install FRR packages from flash into Unraid RAM root.
-# Safe no-op if packages/ is empty. Does not require Thunderbolt Net.
-set -euo pipefail
+# Install the FRR packages listed in MANIFEST.txt from flash into the RAM root.
+# Every listed file must match its sha256 before anything is installed.
+# Files in packages/ that MANIFEST.txt does not list are never installed.
+# Exit 0: nothing to do or all installed. Exit 1: refused or failed.
+set -uo pipefail
 
-PKGDIR="/boot/config/plugins/FabricRouting/packages"
-LOG="/var/log/fabricrouting.log"
-log() { echo "$(date -Iseconds) $*" | tee -a "$LOG" 2>/dev/null || echo "$(date -Iseconds) $*"; }
+ROOT="${FABRICROUTING_ROOT:-}"
+PKGDIR="$ROOT/boot/config/plugins/FabricRouting/packages"
+PKGDB="$ROOT/var/log/packages"
+LOG="$ROOT/var/log/fabricrouting.log"
+MAN="$PKGDIR/MANIFEST.txt"
 
-if [ ! -d "$PKGDIR" ]; then
-  log "packages dir missing: $PKGDIR (idle)"
+log() { printf '%s %s\n' "$(date -Iseconds)" "$*" >>"$LOG" 2>/dev/null; printf '%s\n' "$*"; }
+
+if [ ! -f "$MAN" ]; then
+  log "no MANIFEST.txt — nothing to install"
   exit 0
 fi
 
-# Optional ordered list
-LIST=()
-if [ -f "$PKGDIR/MANIFEST.txt" ]; then
-  while IFS= read -r line || [ -n "$line" ]; do
-    line="${line%%#*}"
-    line="$(echo "$line" | tr -d '\r' | xargs)"
-    [ -z "$line" ] && continue
-    LIST+=("$line")
-  done < "$PKGDIR/MANIFEST.txt"
-else
-  # shellcheck disable=SC2012
-  while IFS= read -r f; do
-    LIST+=("$(basename "$f")")
-  done < <(ls -1 "$PKGDIR"/*.{txz,tgz} 2>/dev/null || true)
-fi
+names=()
+sums=()
+while IFS= read -r line || [ -n "$line" ]; do
+  line="${line%%#*}"
+  line="${line//$'\r'/}"
+  line="$(printf '%s' "$line" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  [ -z "$line" ] && continue
+  if [[ "$line" =~ ^([0-9a-f]{64})[[:space:]]+((frr|libyang)-[A-Za-z0-9._+-]+_unraid\.t[gx]z)$ ]]; then
+    sums+=("${BASH_REMATCH[1]}")
+    names+=("${BASH_REMATCH[2]}")
+  else
+    log "REFUSED: MANIFEST line without sha256 or with an unexpected name: $line"
+    log "Run Download & Install packages to refresh the package cache."
+    exit 1
+  fi
+done <"$MAN"
 
-if [ "${#LIST[@]}" -eq 0 ]; then
-  log "no packages in $PKGDIR (idle)"
+if [ "${#names[@]}" -eq 0 ]; then
+  log "MANIFEST.txt lists no packages — nothing to install"
   exit 0
 fi
 
-if ! command -v installpkg >/dev/null 2>&1; then
-  log "ERROR: installpkg not found"
+# Verify the whole set first.
+for i in "${!names[@]}"; do
+  f="$PKGDIR/${names[$i]}"
+  if [ ! -f "$f" ]; then
+    log "REFUSED: ${names[$i]} is listed but missing on flash"
+    exit 1
+  fi
+  have="$(sha256sum "$f" | cut -d' ' -f1)"
+  if [ "$have" != "${sums[$i]}" ]; then
+    log "REFUSED: sha256 mismatch for ${names[$i]}"
+    exit 1
+  fi
+done
+
+shopt -s nullglob
+for f in "$PKGDIR"/*.txz "$PKGDIR"/*.tgz; do
+  b="$(basename "$f")"
+  listed=0
+  for n in "${names[@]}"; do [ "$n" = "$b" ] && listed=1; done
+  [ "$listed" -eq 0 ] && log "ignored (not in MANIFEST.txt): $b"
+done
+
+if ! command -v upgradepkg >/dev/null 2>&1; then
+  log "ERROR: upgradepkg not found"
   exit 1
 fi
 
-for name in "${LIST[@]}"; do
-  path="$PKGDIR/$name"
-  if [ ! -f "$path" ]; then
-    log "WARN: missing $path"
+for n in "${names[@]}"; do
+  pkg="${n%.t?z}"
+  if [ -e "$PKGDB/$pkg" ]; then
+    log "already installed: $pkg"
     continue
   fi
-  log "installpkg $name"
-  # installpkg is generally safe to re-run; ignore already-installed noise
-  installpkg "$path" >>"$LOG" 2>&1 || log "WARN: installpkg returned $? for $name"
+  if upgradepkg --install-new "$PKGDIR/$n" >>"$LOG" 2>&1 && [ -e "$PKGDB/$pkg" ]; then
+    printf '%s %s\n' "$(date -Iseconds)" "installed $pkg" >>"$LOG" 2>/dev/null
+    echo "INSTALLED $pkg"
+  else
+    log "ERROR: upgradepkg failed for $n"
+    exit 1
+  fi
 done
 
 log "package pass complete"

@@ -1,0 +1,11 @@
+#!/bin/bash
+# Rebuild /etc/frr/frr.conf, daemons and vtysh.conf from flash, then start or
+# restart FRR when it is installed and should run (config changed or not up).
+#
+# Contract for companion plugins (e.g. Thunderbolt Net): write or delete
+#   /boot/config/plugins/ThunderboltNet/frr/thunderboltnet-openfabric.conf
+# then run this script. Exit 0 = config written (and FRR up when it should be).
+# Waits up to 120 s for a running Fabric Routing job.
+LIB="$(cd "$(dirname "$0")/.." && pwd)/include/frr-lib.php"
+# shellcheck disable=SC2016 # PHP code, not shell
+exec php -d display_errors=0 -r 'require $argv[1]; exit(frr_reload_cli() ? 0 : 1);' "$LIB"

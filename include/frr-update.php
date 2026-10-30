@@ -1,8 +1,8 @@
 <?php
 /**
- * Settings form #include after writing FabricRouting.cfg.
- * Settings only: daemons + start from flash — NEVER catalog download.
- * Package download is only via scripts/frr-packages-job (openBox).
+ * Settings form #include after Unraid update.php writes FabricRouting.cfg.
+ * Installs packages already on flash (when Install on array start is Yes),
+ * rebuilds /etc/frr and starts/restarts FRR. Never downloads.
  */
 // Unraid update.php includes this on POST only; refuse a direct GET.
 if (PHP_SAPI !== 'cli' && ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -19,8 +19,4 @@ ob_implicit_flush(true);
 
 require_once '/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php';
 
-frr_apply([
-  'local_only' => true,
-  'settings_apply' => true,
-  'force_download' => false,
-]);
+frr_apply(['settings_apply' => true, 'lock_wait' => 30]);

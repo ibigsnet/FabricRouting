@@ -1,17 +1,6 @@
 #!/bin/bash
-# Download the FRR package bundle for this Unraid host into the flash cache.
-# Fully automated — users do not place files manually.
-# Invoked by PHP (frr_download_bundle) or CLI.
-set -euo pipefail
-
-PLUGIN_PHP=/usr/local/emhttp/plugins/FabricRouting/include/frr-lib.php
-if [ ! -f "$PLUGIN_PHP" ]; then
-  PLUGIN_PHP="$(cd "$(dirname "$0")/.." && pwd)/include/frr-lib.php"
-fi
-
-php -r '
-require_once "'"$PLUGIN_PHP"'";
-$r = frr_download_bundle();
-echo json_encode($r, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES), "\n";
-exit(!empty($r["ok"]) ? 0 : 1);
-'
+# CLI: download and verify the package set for this Unraid version into the flash cache.
+# Does not install. Use frr-apply afterwards (or the page's Download & Install).
+LIB="$(cd "$(dirname "$0")/.." && pwd)/include/frr-lib.php"
+# shellcheck disable=SC2016 # PHP code, not shell
+FABRICROUTING_NO_HTML=1 exec php -d display_errors=0 -r 'require $argv[1]; $r = frr_apply(["download" => true, "install" => false]); exit(!empty($r["ok"]) ? 0 : 1);' "$LIB"

@@ -2,39 +2,29 @@
 
 ## Why `plugin install` runs every boot
 
-Unraid is a **RAM OS**. LimeTech’s plugin manager **re-installs** every `.plg` under `/boot/config/plugins/` from `rc.local` on each boot so files under `/usr/local/emhttp/plugins/` exist again.
+Unraid is a **RAM OS**. The plugin manager **re-installs** every `.plg` under `/boot/config/plugins/` on each boot so files under `/usr/local/emhttp/plugins/` exist again. That path must stay **fast, offline and non-blocking**.
 
-That is **normal and required**. It is **not** “first-time CA install only.”
-
-Authors must keep that path **fast, offline-capable after first success, and non-blocking**.
-
-## What FabricRouting does (2026.08.12da+)
+## What FabricRouting does
 
 | Phase | What runs | Network? | Blocks boot/emhttp? |
 |-------|-----------|----------|---------------------|
-| **Boot `plugin install`** | Deploy plugin files, chmod, default cfg, companion marker | Only small raw GitHub assets for plg FILE URLs (pages/scripts). **No FRR package download.** | Must finish in seconds |
-| **Settings → Apply** | Full `frr_apply()` — catalog + packages (if auto_download) + installpkg + daemons + start | Yes, when downloading | User leaves progress window open |
-| **Array `event/started`** | `frr_rehydrate_local()` — installpkg from **flash cache only** + start | **No** | Detached (`at` / `nohup`) so emhttp events stay free |
+| **Boot `plugin install`** | Installs the plugin `.txz` cached on flash (SHA256-pinned in the `.plg`), chmod, default cfg. If FRR is already running (plugin update on a live system), `frr-reload` runs in the background | Only when the cached plugin `.txz` is missing (Unraid's normal plugin download). **Never FRR packages** | Seconds |
+| **Array `event/started`** | `frr_rehydrate_local()`: install verified packages from flash, rebuild `/etc/frr` (baseline + Thunderbolt Net fragment + `frr.user.conf`), start FRR | **No** | Detached (`at` / `nohup`) |
+| **Apply settings** | Install verified packages from flash (when Install on array start is Yes), rebuild `/etc/frr`, restart FRR if something changed | **No** | Progress frame |
+| **Download & Install packages** | Download + verify, install, rebuild `/etc/frr`, start/restart | **Yes** (only here) | Progress window |
+| **`scripts/frr-reload`** | Rebuild `/etc/frr`, start/restart if needed (companion hook) | **No** | Waits ≤120 s for the job lock |
 
-## Boot vs Apply (corrected)
+If GitHub is unreachable at boot nothing changes: the FRR packages and the plugin `.txz` are already on flash.
 
-| External driver plugins (often) | FabricRouting (this plugin) |
-|---------------|---------------------|
-| UI picks / Apply downloads large driver to flash | UI **Apply** downloads FRR `.txz` to flash |
-| Boot rehydrates from **flash cache** | Array start rehydrates from **flash cache** |
-| Does **not** re-download hundreds of MB every boot if cache good | Does **not** call `frr_apply` download path on boot |
+## Ordering with Thunderbolt Net
 
-## Anti-patterns we fixed
-
-1. Synchronous `frr_apply()` in plg finish (blocked registration + boot).  
-2. Background `nohup frr_apply()` still started multi-minute download from every boot rehydrate.  
-3. `event/started` calling full `frr_apply()` (could download during array start and block emhttp events if not detached).
+Array-start rehydrate reads the Thunderbolt Net fragment from **flash**, so the OpenFabric config is in `frr.conf` before FRR starts, whichever plugin's event runs first. When Thunderbolt Net changes its fragment later it runs `frr-reload`, which waits for a running rehydrate to finish.
 
 ## Operator notes
 
-- First time after install: open **Network Settings → Fabric Routing → Apply**.  
-- After reboot: array start rehydrates if packages already on flash and `install_on_start=yes`.  
-- Set `install_on_start="no"` to skip even local rehydrate.  
-- Set `auto_download="no"` to use flash cache only even on Apply.
+- First time after install: **Download & Install packages**.
+- After reboot: array start reinstalls from flash when `install_on_start="yes"`.
+- Set `install_on_start="no"` to skip reinstall at array start (the package button still installs).
+- Log: `/var/log/fabricrouting.log` (RAM).
 
 See also: [automation-design.md](automation-design.md), [boot-blocker-plugin-install-stall.md](boot-blocker-plugin-install-stall.md), [../RELEASES.md](../RELEASES.md).

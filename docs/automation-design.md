@@ -1,197 +1,105 @@
-# FabricRouting automation design (catalog + flash cache)
+# FabricRouting automation design (catalog, flash cache, /etc/frr)
 
 ## Goal
 
-Users **never** manually download or copy FRR packages. Product flow:
+Users never download or copy FRR packages by hand, and nothing unverified is ever installed.
 
-1. Install FabricRouting from CA / raw `.plg` (**files only** — seconds; no package download at boot)  
-2. Choose options under **Network Settings → Fabric Routing** (daemons, channel)  
-3. User clicks **Apply** → plugin **downloads**, **verifies**, **installs**, and **starts** FRR (catalog)  
-4. On **array start**, plugin **rehydrates from flash cache into RAM** (no network)  
-
-Manual `packages/` drops remain a **developer escape hatch only**, not the product path.
+1. Install FabricRouting from CA / raw `.plg` (**files only** — seconds; no package download at boot).
+2. **Network Settings → Fabric Routing → Download & Install packages**: download, verify, install, build `/etc/frr`, start FRR.
+3. **Array start**: reinstall the verified flash cache into RAM, rebuild `/etc/frr`, start FRR (no network).
+4. **Apply settings** / companion `frr-reload`: rebuild `/etc/frr`, restart FRR only when something changed (no network).
 
 See [boot-lifecycle.md](boot-lifecycle.md).
 
 ---
 
-## Ownership
+## Package catalog and trust
 
-| Step | Owner |
-|------|--------|
-| Detect Unraid version + arch | Plugin |
-| Fetch package **catalog/manifest** | Plugin (HTTP) |
-| Select matching package **bundle** | Plugin (from user channel + host facts) |
-| Download `.txz` to flash cache | Plugin |
-| SHA256 verify | Plugin |
-| `installpkg` into live system | Plugin |
-| Enable daemons + start FRR | Plugin |
-| UI options (which daemons, channel) | User |
-| FRR *routing policy* on Thunderbolt links | Thunderbolt Net (optional) |
+`packages/manifest.json` ships **inside** each plugin version. The plugin `.txz` itself is pinned by SHA256 in the `.plg`, so the chain is: `.plg` → plugin `.txz` (sha256) → `manifest.json` → package sha256.
 
----
+- The catalog is never fetched over the network.
+- Every package entry must have a file name `frr-*_unraid.txz` / `libyang-*_unraid.txz`, a 64-hex `sha256` and an https `url`; otherwise the job stops.
+- **Package mirror URL** (Advanced) only replaces where files come from (`<mirror>/<file>`). Hashes still come from the bundled catalog, so a mirror cannot change what is installed.
+- Downloads use `curl --proto =https` with TLS verification into `/tmp`, are hashed there, copied to flash as `*.part`, hashed again and renamed.
 
-## Package catalog
+### Selection rules
 
-### Location (default)
+1. `arch` matches the host (`x86_64` / `aarch64`).
+2. Unraid product version is within `[unraid_min, unraid_max]`.
+3. `channel` = the chosen package mode (`latest` default, `previous` for rollback).
+4. Highest `frr_version` wins.
 
-`packages/manifest.json` bundled with the installed plugin version (no network lookup).
-
-Large binaries may live on **GitHub Releases**; manifest entries carry full `url` + `sha256`.
-
-Override: Settings → **Catalog URL (mirror)** (advanced; empty = bundled).
-
-### Manifest shape (`packages/manifest.json`)
-
-```json
-{
-  "schema": 1,
-  "updated": "2026-08-11T00:00:00Z",
-  "default_channel": "latest",
-  "channels": {
-    "latest": {
-      "label": "Latest stable",
-      "description": "Recommended for most users"
-    },
-    "previous": {
-      "label": "Previous stable",
-      "description": "Rollback if latest misbehaves"
-    }
-  },
-  "bundles": [
-    {
-      "channel": "latest",
-      "unraid_min": "6.12.0",
-      "unraid_max": "6.12.99",
-      "arch": "x86_64",
-      "frr_version": "10.2.1",
-      "packages": [
-        {
-          "file": "libyang-….txz",
-          "sha256": "…",
-          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.2.1/libyang-….txz"
-        },
-        {
-          "file": "frr-10.2.1-….txz",
-          "sha256": "…",
-          "url": "https://github.com/ibigsnet/FabricRouting/releases/download/pkg-10.2.1/frr-10.2.1-….txz"
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Selection rules:**
-
-1. `arch` matches host (`uname -m` → `x86_64` / `aarch64`)  
-2. Running Unraid version is within `[unraid_min, unraid_max]` (inclusive, lexicographic/`version_compare` style)  
-3. Prefer `channel` = user setting (`latest` default)  
-4. If multiple match, pick highest `frr_version`  
-
-If **no bundle** matches: UI shows clear message (Unraid version not yet supported); **no** silent failure; do not require manual package drop as the fix path—fix the catalog.
+No match → the status says so and nothing is downloaded.
 
 ---
 
-## Flash layout (managed by plugin)
+## Flash layout (plugin-owned)
 
 ```text
 /boot/config/plugins/FabricRouting/
-  FabricRouting.cfg           # user options
-  companion.json          # for Thunderbolt Net / others
-  fabricrouting.log           # durable log
-  packages/               # download cache (plugin-owned)
-    .bundle-id            # which bundle is cached
-    MANIFEST.txt          # install order (generated)
+  FabricRouting.cfg     # settings
+  companion.json        # marker for Thunderbolt Net (written only when it changes)
+  frr.user.conf         # optional: your own FRR config (kept across reboots)
+  packages/
+    .bundle-id          # which set is cached
+    MANIFEST.txt        # "<sha256>  <file>" in install order
     *.txz
 ```
 
-Users should not need to open this directory. Clearing cache = optional “Re-download packages” action.
+The log is `/var/log/fabricrouting.log` and the job lock is `/run/fabricrouting.lock` (flock); neither touches the flash.
 
 ---
 
-## User-facing options only
+## Job steps
+
+### Download & Install packages (Latest / Previous)
+
+1. Resolve the package set from the bundled catalog.
+2. Download any file not already on flash with the right sha256; verify. **Any failure stops the job** (`FAILED`, `_ERROR_`); `MANIFEST.txt` and the previous files stay as they were.
+3. Write `MANIFEST.txt` with hashes, delete package files from older sets.
+4. Install (step below), then build `/etc/frr` and start/restart FRR.
+
+### Install (job, Flash cache only, array start)
+
+`scripts/frr-install-packages` reads `MANIFEST.txt`, refuses lines without a sha256, checks **every** file before installing anything, ignores files it does not list, and runs `upgradepkg --install-new` for packages not already installed. It exits non-zero on any problem and the job reports failure.
+
+`MANIFEST.txt` files from older plugin versions (names only) are upgraded once by matching the files on flash against the bundled hashes; anything that does not match is refused.
+
+### Config and daemons
+
+Built from flash every time — see [DOCS.md — FRR config files](../DOCS.md#frr-config-files): baseline + route guard, Thunderbolt Net fragment, `frr.user.conf`; `daemons` from the settings (+ `fabricd` when the fragment exists); `vtysh.conf` when missing.
+
+FRR is started with `/usr/sbin/frrinit.sh start`, or `restart` when `/etc/frr` or the packages changed or an enabled daemon is down. `reload` is not used: it needs `frr-reload.py` (Python), which Unraid does not ship.
+
+---
+
+## User-facing options
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| Package channel | **latest** | latest / previous (when catalog has them) |
-| Install/update on array start | **Yes** | Rehydrate RAM root after reboot |
-| Auto-download / update packages | **Yes** | Fetch catalog + missing/outdated packages |
-| Enable zebra | **Yes** | Required RIB |
-| Enable fabricd | **Yes** | OpenFabric |
-| Enable staticd | **Yes** | Common |
-| Enable bgpd/ospfd/… | **No** | Opt-in surface |
-| Start FRR after install | **Yes** | Bring daemons up |
-| Catalog URL | (default GitHub) | Advanced override |
-
-**No** “place files here” as a required step.
+| Package choice | Latest (Flash cache only once a cache exists) | Which set the button downloads, or install from flash |
+| Install on array start | **Yes** | Reinstall into RAM after reboot |
+| Package mirror URL | empty | Alternative file host (hashes stay bundled) |
+| zebra / fabricd / staticd | **Yes** | Core + OpenFabric |
+| bgpd / ospfd / ospf6d / isisd / bfdd | **No** | Opt-in |
+| Start/restart FRR | **Yes** | Bring the stack up, restart on changes |
+| Fabric route guard + prefixes | **Yes**, `10.254.0.0/16 10.255.0.0/16`, `fc00::/7` | Limit which OpenFabric routes reach the kernel |
 
 ---
 
-## Lifecycle (product)
+## Building packages (maintainer duty)
 
-### Plugin install / Apply
-
-1. Read cfg  
-2. Detect Unraid version + arch  
-3. Fetch `manifest.json`  
-4. Resolve bundle  
-5. Download packages not present or checksum mismatch  
-6. Write `MANIFEST.txt` install order  
-7. `installpkg` each package  
-8. Patch `/etc/frr/daemons`  
-9. Ensure safe baseline `frr.conf` (no eth/br auto-enroll)  
-10. Start/restart FRR  
-11. Write companion marker  
-
-### Array start (`event/started`)
-
-**Local rehydrate only:** `installpkg` from flash cache + start FRR if enabled.  
-**Never** download catalog/packages here (boot/array must not depend on GitHub).  
-If cache empty: stay idle until user **Apply**.
-
-### Unraid OS upgrade
-
-Next **Apply**: re-resolve bundle for new Unraid version; download new packages if catalog has them.
-
-### Plugin remove
-
-Remove UI/scripts; **keep** flash cache by default (fast reinstall). Optional future: “purge packages on remove.”
+1. Build libyang + FRR for Unraid's Slackware-class userspace (source tarballs pinned by sha256).
+2. Upload the `.txz` files to GitHub Release `pkg-<frrver>`.
+3. Add a bundle to `packages/manifest.json` with `url` + `sha256` and the Unraid range.
+4. Ship a plugin version; users get the new set with **Download & Install packages**.
 
 ---
 
-## Lifecycle summary
+## Security summary
 
-| Phase | FabricRouting |
-|--------|-------------------------|
-| Pick driver branch/version in UI | Pick package **channel** (+ later explicit FRR version) |
-| Plugin downloads ~100MB+ package | Plugin downloads FRR + deps from catalog |
-| Installs into live system | `installpkg` into live system |
-| Reapplies on boot from flash | Array-start rehydrate from flash cache (no download) |
-| No manual file copy for normal users | Same |
-
----
-
-## Building packages (maintainer duty, not end user)
-
-1. Build FRR (+ libyang, etc.) for Unraid’s Slackware-compatible userspace per major Unraid line  
-2. Upload `.txz` to GitHub Release `pkg-<frrver>`  
-3. Update `packages/manifest.json` with urls + sha256  
-4. Users get it automatically on next Apply / start  
-
-Until a bundle exists for a given Unraid version, the plugin reports **“No automated package set for Unraid X.Y yet”** and remains safe (no half-broken install).
-
----
-
-## Security
-
-- HTTPS only for catalog and package URLs  
-- Require **sha256** match before `installpkg`  
-- Do not execute remote shell scripts—only download archives and `installpkg`  
-- Catalog URL override is advanced; default is pinned to this project’s GitHub  
-
----
-
-## Thunderbolt Net
-
-Unchanged split: FabricRouting **owns FRR presence**; Thunderbolt Net **owns OpenFabric policy** when `vtysh`/`fabricd` exist. Automation here means TBN users who install FabricRouting get FRR without a second manual package hunt.
+- HTTPS only, TLS verified, for every package download.
+- sha256 from the bundled catalog is required before a file reaches flash and again before every install.
+- No remote scripts are run; only verified Slackware packages are installed.
+- The settings page never uses the network and never writes the flash.
+- Uninstall removes only the packages listed in `MANIFEST.txt` with an `_unraid` suffix.

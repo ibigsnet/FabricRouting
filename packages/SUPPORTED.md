@@ -8,7 +8,7 @@ Two kinds of rows in the matrix:
 |--------|---------|
 | **Lab-confirmed** | Bundle installed on real hardware; `vtysh` works; basic fabric exercised (install + daemons, and where noted OpenFabric). |
 | **Suggested (compatible)** | Same catalog range / same binary we *expect* to work (same major Unraid line + arch, similar userspace). Not separately signed off on every minor build. Report issues if it fails. |
-| **Not in catalog** | Apply will not download packages. Need a new build or explicit range before support claims. |
+| **Not in catalog** | Nothing is downloaded. Need a new build or explicit range before support claims. |
 
 ---
 
@@ -19,7 +19,7 @@ Two kinds of rows in the matrix:
 | **7.3.2** | **x86_64** | FRR **10.7.0** + libyang **2.1.148** | **Lab-confirmed** — two-host fabric: install, fabricd, OpenFabric adjacency on private **2.5G eth0** underlay |
 | **7.3.x** (other 7.3 builds) | **x86_64** | same bundle | **Suggested** — same product line as lab |
 | **7.0.x – 7.2.x** | **x86_64** | same bundle | **Suggested** — catalog range; similar 7.x userspace; not separately lab-signed |
-| 6.12.x | x86_64 | — | **Not in catalog** |
+| 6.12.x | x86_64 | — | **Not supported** — the plugin requires Unraid 7.0+ |
 | any | **aarch64** | — | **Not in catalog** |
 
 **Catalog entry today:** `unraid_min=7.0.0` … `unraid_max=7.3.99`, `arch=x86_64`, channel `latest`.
@@ -54,7 +54,6 @@ We still prefer **narrow lab-confirmed rows** in this doc even when the catalog 
 
 - [manifest.json](manifest.json) — machine-readable ranges  
 - [README.md](README.md) — catalog layout  
-- [BUILD.md](BUILD.md) — building package `.txz` files  
 - [../docs/frr-and-unraid-routing.md](../docs/frr-and-unraid-routing.md) — FRR vs stock Routing Table  
 - [../docs/lab-two-node-fabric.md](../docs/lab-two-node-fabric.md) — generic two-host lab pattern  
 

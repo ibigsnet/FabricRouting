@@ -74,15 +74,15 @@ Hard-refresh once (**Ctrl+Shift+R**) so you are not looking at a cached UI.
 4. Leave it open until the **DONE** button appears — do **not** use the red X early.  
 5. Hard-refresh the page (**Ctrl+Shift+R**). Status should show FRR present / zebra / fabricd.  
 
-**Advanced** (collapsed): install-on-array-start, catalog mirror, daemon toggles — save with **Apply settings** only (never downloads packages).
+**Advanced** (collapsed): install on array start, package mirror, daemon toggles, route guard — saved with **Apply settings**, which never downloads.
 
-Typical time: a few minutes (package set is tens of MB).
+Typical time: a few minutes (package set is tens of MB). Every package is checked against the sha256 bundled with the plugin; a failed download or a bad hash stops the job with **FAILED** and leaves the previous packages in place.
 
-### Step C — After Apply
+### Step C — After the job
 
 1. Hard-refresh Fabric Routing again.  
-2. Status should show **FRR Present**, **Catalog bundle Match** (for supported Unraid/arch), and packages listed under flash cache.  
-3. Optional: set **Auto-download packages** back to **No** so later Applies do not hit the network. Reboots still rehydrate from flash if **Install on array start** is Yes.
+2. Status should show **FRR Present**, **Package set Match** (for supported Unraid/arch), and packages listed under flash cache.  
+3. Nothing else to switch off: only **Download & Install packages** uses the network. Reboots reinstall from flash when **Install on array start** is Yes.
 
 ### Step D — If download was interrupted
 
@@ -102,7 +102,7 @@ Typical time: a few minutes (package set is tens of MB).
 | Management | Unraid GUI/SSH still works; default route usually still on br0/Wi‑Fi — FRR does not steal mgmt by default |
 | CLI (optional) | `vtysh -c 'show version'` prints FRR version |
 
-**Having packages live does not by itself mesh your LAN.** Multi-hop on Thunderbolt still needs Thunderbolt Net OpenFabric policy. Ethernet fabric needs explicit FRR conf (advanced) or future Interfaces UI.
+**Having packages live does not by itself mesh your LAN.** Multi-hop on Thunderbolt still needs Thunderbolt Net OpenFabric policy. Ethernet fabric needs your own stanzas in `frr.user.conf` (advanced).
 
 ---
 
@@ -112,13 +112,9 @@ Typical time: a few minutes (package set is tens of MB).
 
 | Setting | Default | When to use **Yes** | When to use **No** | What it does |
 |---------|---------|---------------------|--------------------|--------------|
-| **Package channel** | Latest | Normal installs | Only if catalog has a **Previous** rollback and you need it | Picks which catalog channel to resolve |
-| **Auto-download packages** | **No** | First install, or upgrading package set | Day-to-day after cache is filled | On Apply: fetch catalog + `.txz` over HTTPS, verify sha256, store on flash |
-| **Install on array start** | **Yes** | Almost always if you use FRR | You never want FRR after reboot without a manual Apply | Re-`installpkg` from **flash only** (no download) into RAM root |
-| **Catalog URL** | empty | Leave empty | You host a private mirror | Override official `manifest.json` URL |
-
-**Repercussion of Auto-download Yes on every Apply:** may re-check catalog and refresh packages; uses network and time.  
-**Repercussion of Auto-download No with empty flash:** Apply cannot install FRR until you turn Yes or place packages manually.
+| **Package choice** (Latest / Previous / Flash cache only) | Latest (Flash when a cache exists) | Latest for normal installs | Previous only if the catalog has a rollback set | **Download & Install packages** downloads the chosen set (or uses flash), verifies sha256, installs, starts FRR |
+| **Install on array start** | **Yes** | Almost always if you use FRR | You never want FRR after reboot | Reinstalls the verified packages from **flash only** (no download) |
+| **Package mirror URL** | empty | Leave empty | You host the same files on your own https server | Package files come from the mirror; hashes still come from the bundled catalog |
 
 ### Core daemons
 
@@ -134,11 +130,15 @@ Typical time: a few minutes (package set is tens of MB).
 |---------|---------|--------|
 | **bgpd / ospfd / ospf6d / isisd / bfdd** | **No** | Expert. Enabling the daemon does **not** put `br0` into OSPF/BGP by itself — you must configure FRR. Defaults stay LAN-safe. |
 
-### Start on Apply
+### Start/restart and route guard
 
 | Setting | Default | What it does |
 |---------|---------|--------------|
-| **Start/restart FRR on Apply** | **Yes** | After install/rehydrate, start FRR so Status/daemons match checkboxes |
+| **Start/restart FRR** | **Yes** | Starts FRR, or restarts it when `/etc/frr` or the packages changed, so the daemons match the switches |
+| **Fabric route guard** | **Yes** | Only OpenFabric routes inside the guard prefixes reach the kernel table — see [DOCS.md — Fabric route guard](../DOCS.md#fabric-route-guard) |
+| **Guard IPv4 / IPv6 prefixes** | `10.254.0.0/16 10.255.0.0/16` / `fc00::/7` | Add your own fabric ranges here |
+
+Your own FRR config (BGP peers, statics, Ethernet fabric) goes in `/boot/config/plugins/FabricRouting/frr.user.conf`, not in `/etc/frr/frr.conf` — see [DOCS.md — FRR config files](../DOCS.md#frr-config-files).
 
 Why these defaults: [defaults-rationale.md](defaults-rationale.md).
 
@@ -150,8 +150,7 @@ Why these defaults: [defaults-rationale.md](defaults-rationale.md).
 |------|------------|
 | Thunderbolt multi-hop / rings | Install [Thunderbolt Net](https://github.com/ibigsnet/ThunderboltNet) → underlay working → Advanced **OpenFabric** (metrics, participate). Packages stay on this tab. |
 | Proxmox peer | Same OpenFabric idea on Debian/Proxmox FRR; see Thunderbolt Net mixed-fabric guide when using Thunderbolt |
-| Ethernet-only fabric lab | Packages here + careful `frr.conf` / future Interfaces UI — do **not** put management Wi‑Fi/br0 into the fabric |
-| Only needed packages once | Auto-download Yes → Apply → Auto-download No |
+| Ethernet-only fabric lab | Packages here + OpenFabric stanzas in `frr.user.conf` — do **not** put management Wi‑Fi/br0 into the fabric |
 
 ---
 
@@ -159,9 +158,10 @@ Why these defaults: [defaults-rationale.md](defaults-rationale.md).
 
 | Mistake | Fix |
 |---------|-----|
-| Expect FRR after plugin install alone | Plugin install is **UI + scripts**. Packages need **Apply** (with Auto-download Yes) or array-start rehydrate of an existing cache |
-| Close progress window early | Leave it open; re-Apply if unsure |
-| “No match yet” forever | Unsupported Unraid/arch, or stale page — hard-refresh; see [SUPPORTED.md](../packages/SUPPORTED.md) |
+| Expect FRR after plugin install alone | Plugin install is **UI + scripts**. Packages need **Download & Install packages** once; after that array start reinstalls from flash |
+| Close progress window early | Leave it open; run the job again if unsure |
+| Edit `/etc/frr/frr.conf` or `write memory` | Lost on the next rebuild — use `frr.user.conf` |
+| “No match” forever | Unsupported Unraid/arch, or stale page — hard-refresh; see [SUPPORTED.md](../packages/SUPPORTED.md) |
 | Think this replaces Routing Table | Different tool — [frr-and-unraid-routing.md](frr-and-unraid-routing.md) |
 | Put br0/Wi‑Fi into OpenFabric “to try it” | Can break management; use private underlays |
 | Confuse FRR with USB4STREAM | Kernel raw stream ≠ routing packages |
