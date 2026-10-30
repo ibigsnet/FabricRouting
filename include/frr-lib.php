@@ -497,7 +497,7 @@ function frr_arch() {
 /**
  * Mirror base URL (https) or '' for the catalog's own URLs.
  */
-function frr_mirror_base(array $cfg = null) {
+function frr_mirror_base(?array $cfg = null) {
   if ($cfg === null) {
     $cfg = frr_load_cfg();
   }
@@ -513,7 +513,7 @@ function frr_mirror_base(array $cfg = null) {
 }
 
 /** Human-readable catalog/mirror description for the status page. */
-function frr_catalog_url(array $cfg = null) {
+function frr_catalog_url(?array $cfg = null) {
   $m = frr_mirror_base($cfg);
   return $m === '' ? 'bundled packages/manifest.json' : ('bundled hashes, files from ' . $m);
 }
@@ -548,7 +548,7 @@ function frr_version_compare_loose($a, $b) {
  *
  * @return array{ok:bool,error?:string,channel?:string,frr_version?:string,packages?:array,id?:string}
  */
-function frr_resolve_bundle(array $cfg = null) {
+function frr_resolve_bundle(?array $cfg = null) {
   if ($cfg === null) {
     $cfg = frr_load_cfg();
   }
@@ -832,7 +832,7 @@ function frr_download_bundle() {
 /**
  * Write companion marker for other plugins (only when it changes).
  */
-function frr_write_companion_marker(array $det = null) {
+function frr_write_companion_marker(?array $det = null) {
   $cfg = frr_load_cfg();
   if ($det === null) {
     $det = frr_detect();

@@ -6,6 +6,12 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.10.30ab
+
+- **No PHP 8.4 deprecation notices.** Optional parameters are declared nullable explicitly.
+- **Log written once.** The background FRR rebuild after a plugin update no longer writes every line to
+  `/var/log/fabricrouting.log` twice.
+
 ## 2026.10.30aa
 
 - **Requires Unraid 7.0 or newer.** The package catalog has always started at 7.0.0; the plugin

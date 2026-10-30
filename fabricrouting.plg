@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.10.30aa">
+<!ENTITY version "2026.10.30ab">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,7 +24,7 @@
 
 <CHANGES>
 ###&version;
-- Packages are sha256-checked before every install; a failed download or bad hash stops the job. FRR restarts when its config or packages change.
+- Packages are sha256-checked before every install; a failed download or bad hash stops the job. FRR restarts when its config or packages change. No PHP 8.4 deprecation notices.
 - Fabric Routing now builds /etc/frr from flash (Thunderbolt Net fragment, frr.user.conf, new route guard). Uninstall removes only what it installed. Needs Unraid 7.0+.
 
 ###2026.10.01aa
@@ -69,8 +69,8 @@ echo "FabricRouting: ready."
 <!-- raw-files begin -->
 <FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
-<SHA256>a963785916a42fb68e39fb7d48c1f244494948c33453deafd340cd7f9207a027</SHA256>
-<MD5>bc7a45a22215d31c0ec5ed1d02bdbb53</MD5>
+<SHA256>52db20ab6bdeaf2abba050148e5e2f186a1056ede81e968d398b89f90c915f31</SHA256>
+<MD5>488990d40da10714f0c6d8acc01e97c3</MD5>
 </FILE>
 <!-- raw-files end -->
 
@@ -99,7 +99,7 @@ if [ -d /boot/config/plugins/UnraidFRR ]; then
 fi
 # Upgrade on a running system: hand /etc/frr to the new config builder now (detached).
 if [ -s /var/run/frr/zebra.pid ]; then
-  nohup /usr/local/emhttp/plugins/FabricRouting/scripts/frr-reload >>/var/log/fabricrouting.log 2>&1 </dev/null &
+  nohup /usr/local/emhttp/plugins/FabricRouting/scripts/frr-reload >/dev/null 2>&1 </dev/null &
   echo "FabricRouting: FRR is running; rebuilding /etc/frr in the background."
 fi
 echo "FabricRouting: packages now: $(ls /var/log/packages/FabricRouting-* 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ')"
