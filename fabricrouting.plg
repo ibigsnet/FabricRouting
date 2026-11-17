@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.10.30ab">
+<!ENTITY version "2026.11.17aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,6 +24,9 @@
 
 <CHANGES>
 ###&version;
+- A neighbour whose routing is stopped no longer takes traffic. With two equal-cost paths, FRR 10.7 put the next hop of a lost neighbour back as soon as its link returned, and packets sent that way were lost. The base frr.conf now has "no zebra nexthop kernel enable". FRR restarts once after this update.
+
+###2026.10.30aa–ab
 - Packages are sha256-checked before every install; a failed download or bad hash stops the job. FRR restarts when its config or packages change. No PHP 8.4 deprecation notices.
 - Fabric Routing now builds /etc/frr from flash (Thunderbolt Net fragment, frr.user.conf, new route guard). Uninstall removes only what it installed. Needs Unraid 7.0+.
 
@@ -42,9 +45,6 @@
 
 ###2026.09.08aa
 - Install overlays hashed files; do not wipe the live plugin before FILE copy.
-
-###2026.09.06aa–ab
-- Hashed plugin install (SHA256/MD5); catalog/install URLs pin main.
 
 ### Older releases
 - Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
@@ -69,8 +69,8 @@ echo "FabricRouting: ready."
 <!-- raw-files begin -->
 <FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
-<SHA256>52db20ab6bdeaf2abba050148e5e2f186a1056ede81e968d398b89f90c915f31</SHA256>
-<MD5>488990d40da10714f0c6d8acc01e97c3</MD5>
+<SHA256>ffd0f9ba1ff0d11858e3a8a9fc35c14be089f30f9de0f8d3fd18c6676262d44d</SHA256>
+<MD5>d5501328287d2463a50b4c7a439a5c5d</MD5>
 </FILE>
 <!-- raw-files end -->
 

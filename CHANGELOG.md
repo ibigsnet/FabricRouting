@@ -6,6 +6,18 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.11.17aa
+
+- **A neighbour whose routing is stopped no longer takes traffic.** With two equal-cost paths to a
+  destination, FRR 10.7's zebra kept the next hop of a lost neighbour inside its next-hop group and
+  put it back into the kernel route as soon as that link came up again, whether or not the neighbour
+  was routing. Packets sent that way were lost; in the test the stale next hop was still in place
+  30 seconds later. The baseline `frr.conf` now carries `no zebra nexthop kernel enable`, which stops
+  it. Measured on a four-node ring: 0 of 20 pings before, 20 of 20 after, and both paths are used
+  again once the neighbour routes.
+- **FRR restarts once after this update,** because `frr.conf` changes.
+- To use kernel next-hop groups anyway, put `zebra nexthop kernel enable` in `frr.user.conf`.
+
 ## 2026.10.30ab
 
 - **No PHP 8.4 deprecation notices.** Optional parameters are declared nullable explicitly.
