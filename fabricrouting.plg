@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "FabricRouting">
 <!ENTITY author "RifleJock">
-<!ENTITY version "2026.11.17aa">
+<!ENTITY version "2026.11.26aa">
 <!ENTITY launch "Settings/FabricRouting">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/ibigsnet/FabricRouting/testing/fabricrouting.plg">
 <!ENTITY github "ibigsnet/FabricRouting">
@@ -24,6 +24,9 @@
 
 <CHANGES>
 ###&version;
+- Unraid 7.4 is in the package catalog. On 7.4.0, Download and Install packages stopped with "No package set for Unraid 7.4.0"; servers that already had the packages on flash kept working. The same FRR 10.7.0 packages are tested on 7.4.0.
+
+###2026.11.17aa
 - A neighbour whose routing is stopped no longer takes traffic. With two equal-cost paths, FRR 10.7 put the next hop of a lost neighbour back as soon as its link returned, and packets sent that way were lost. The base frr.conf now has "no zebra nexthop kernel enable". FRR restarts once after this update.
 
 ###2026.10.30aa–ab
@@ -42,9 +45,6 @@
 
 ###2026.09.27aa
 - Plugin payload is a flash .txz from the GitHub Release (not re-fetched from main at boot).
-
-###2026.09.08aa
-- Install overlays hashed files; do not wipe the live plugin before FILE copy.
 
 ### Older releases
 - Full changelog: https://github.com/ibigsnet/FabricRouting/blob/main/CHANGELOG.md
@@ -69,8 +69,8 @@ echo "FabricRouting: ready."
 <!-- raw-files begin -->
 <FILE Name="&configdir;/FabricRouting-&version;-x86_64-1.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://github.com/ibigsnet/FabricRouting/releases/download/v&version;/FabricRouting-&version;-x86_64-1.txz</URL>
-<SHA256>ffd0f9ba1ff0d11858e3a8a9fc35c14be089f30f9de0f8d3fd18c6676262d44d</SHA256>
-<MD5>d5501328287d2463a50b4c7a439a5c5d</MD5>
+<SHA256>bcf57deb196d209d11747030a0f8e506b0b9f7e2a41e3ff9cdc723c49ebf5a4b</SHA256>
+<MD5>37503f5bc5afe6ab73297e7090f2b14f</MD5>
 </FILE>
 <!-- raw-files end -->
 

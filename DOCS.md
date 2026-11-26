@@ -24,6 +24,7 @@ How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) s
 - [When do I need this?](#when-do-i-need-this)
 - [What it does](#what-it-does)
 - [FRR config files](#frr-config-files)
+- [Next-hop groups](#next-hop-groups)
 - [Fabric route guard](#fabric-route-guard)
 - [FRR vs Unraid Routing Table](#frr-vs-unraid-routing-table)
 - [Supported Unraid versions](#supported-unraid-versions)
@@ -122,12 +123,7 @@ If `/etc/frr/frr.conf` held hand edits when you upgraded to 2026.10.30aa, they a
 
 The baseline turns off zebra's use of kernel next-hop groups (`no zebra nexthop kernel enable`).
 
-With them on, FRR 10.7 handled this case wrongly: a destination has two equal-cost paths, one neighbour
-goes away, and later its link comes back while its routing is still stopped (the machine is starting, or
-FRR is off there). zebra put that neighbour back into the kernel route by itself, and packets sent that
-way were lost. On a four-node test ring 0 of 20 pings arrived, and the stale next hop was still in place
-30 seconds later. With the baseline line, 20 of 20 arrived, and both paths came back into use once the
-neighbour was routing again.
+With them on, FRR 10.7 handled this case wrongly: a destination has two equal-cost paths, one neighbour goes away, and later its link comes back while its routing is still stopped (the machine is starting, or FRR is off there). zebra put that neighbour back into the kernel route by itself, and packets sent that way were lost. On a four-node test ring 0 of 20 pings arrived, and the stale next hop was still in place 30 seconds later. With the baseline line, 20 of 20 arrived, and both paths came back into use once the neighbour was routing again.
 
 To turn kernel next-hop groups back on, put `zebra nexthop kernel enable` in `frr.user.conf`.
 
@@ -168,7 +164,7 @@ The plugin needs **Unraid 7.0 or newer** (the package catalog starts at 7.0.0). 
 
 | Status | Meaning |
 |--------|---------|
-| **Lab-confirmed** | Tested on real hardware (today: **7.3.2 x86_64**) |
+| **Lab-confirmed** | Tested on real hardware (today: **7.3.2** and **7.4.0**, x86_64) |
 | **Suggested** | Same catalog range; expected compatible (other **7.x x86_64**) |
 | **Not in catalog** | Nothing to download (aarch64 until built) |
 

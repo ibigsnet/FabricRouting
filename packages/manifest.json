@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-08-12T05:00:00Z",
+  "updated": "2026-11-26T09:30:00Z",
   "default_channel": "latest",
   "channels": {
     "latest": {
@@ -16,7 +16,7 @@
     {
       "channel": "latest",
       "unraid_min": "7.0.0",
-      "unraid_max": "7.3.99",
+      "unraid_max": "7.4.99",
       "arch": "x86_64",
       "frr_version": "10.7.0",
       "label": "FRR 10.7.0 + libyang 2.1.148 for Unraid 7.x x86_64 (fabricd)",
@@ -34,5 +34,5 @@
       ]
     }
   ],
-  "notes": "First automated bundle: Slackware-style packages built for Unraid 7.3.2 x86_64 lab. Includes fabricd (OpenFabric). Built with --disable-protobuf."
+  "notes": "First automated bundle: Slackware-style packages built for Unraid 7.3.2 x86_64 lab. Includes fabricd (OpenFabric). Built with --disable-protobuf. Range extended to 7.4.x on 2026-11-26 after the same packages ran on Unraid 7.4.0."
 }

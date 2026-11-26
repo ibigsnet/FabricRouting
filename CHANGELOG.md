@@ -6,6 +6,17 @@ User-facing history for this plugin. The `.plg` file (Community Applications / P
 
 ---
 
+## 2026.11.26aa
+
+- **Unraid 7.4 is in the package catalog.** The catalog ended at Unraid 7.3.99, so on 7.4.0
+  **Download & Install packages** stopped with `No package set for Unraid 7.4.0`. Servers that already
+  had the packages on flash kept working: the install at array start reads the package list on flash,
+  not the catalog. The same FRR 10.7.0 and libyang 2.1.148 packages are now offered up to 7.4.x.
+- **Tested on Unraid 7.4.0** (kernel 6.18.60): the packages install at array start, zebra, fabricd and
+  staticd start, `vtysh` works, and the four-node test ring gave the same results as on 7.3.4.
+- **Docs:** `packages/SUPPORTED.md` lists 7.4.0 as lab-confirmed. The `DOCS.md` contents list now
+  includes Next-hop groups.
+
 ## 2026.11.17aa
 
 - **A neighbour whose routing is stopped no longer takes traffic.** With two equal-cost paths to a
