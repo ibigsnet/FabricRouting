@@ -16,13 +16,15 @@ Two kinds of rows in the matrix:
 
 | Unraid product | Arch | FRR package set | Status |
 |----------------|------|-----------------|--------|
+| **7.4.0** | **x86_64** | FRR **10.7.0** + libyang **2.1.148** | **Lab-confirmed** — one host: packages installed at array start and by **Download & Install packages**, daemons up, `vtysh` works; OpenFabric on a four-node test ring built from network namespaces |
+| **7.4.x** (other 7.4 builds) | **x86_64** | same bundle | **Suggested** — same product line as lab |
 | **7.3.2** | **x86_64** | FRR **10.7.0** + libyang **2.1.148** | **Lab-confirmed** — two-host fabric: install, fabricd, OpenFabric adjacency on private **2.5G eth0** underlay |
 | **7.3.x** (other 7.3 builds) | **x86_64** | same bundle | **Suggested** — same product line as lab |
 | **7.0.x – 7.2.x** | **x86_64** | same bundle | **Suggested** — catalog range; similar 7.x userspace; not separately lab-signed |
 | 6.12.x | x86_64 | — | **Not supported** — the plugin requires Unraid 7.0+ |
 | any | **aarch64** | — | **Not in catalog** |
 
-**Catalog entry today:** `unraid_min=7.0.0` … `unraid_max=7.3.99`, `arch=x86_64`, channel `latest`.
+**Catalog entry today:** `unraid_min=7.0.0` … `unraid_max=7.4.99`, `arch=x86_64`, channel `latest`.
 
 ---
 

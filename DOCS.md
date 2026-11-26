@@ -24,6 +24,7 @@ How FabricRouting installs and manages the [FRRouting](https://frrouting.org/) s
 - [When do I need this?](#when-do-i-need-this)
 - [What it does](#what-it-does)
 - [FRR config files](#frr-config-files)
+- [Next-hop groups](#next-hop-groups)
 - [Fabric route guard](#fabric-route-guard)
 - [FRR vs Unraid Routing Table](#frr-vs-unraid-routing-table)
 - [Supported Unraid versions](#supported-unraid-versions)
@@ -102,7 +103,7 @@ Fabric Routing owns `/etc/frr/frr.conf`, `/etc/frr/daemons` and `/etc/frr/vtysh.
 
 `frr.conf` is built from, in order:
 
-1. The Fabric Routing baseline (`frr defaults traditional`, hostname, syslog) and the [fabric route guard](#fabric-route-guard).
+1. The Fabric Routing baseline (`frr defaults traditional`, hostname, syslog, `no zebra nexthop kernel enable`) and the [fabric route guard](#fabric-route-guard).
 2. The Thunderbolt Net fragment `/boot/config/plugins/ThunderboltNet/frr/thunderboltnet-openfabric.conf`, when it exists and is not empty.
 3. Your own file `/boot/config/plugins/FabricRouting/frr.user.conf`, when it exists.
 
@@ -117,6 +118,14 @@ If `/etc/frr/frr.conf` held hand edits when you upgraded to 2026.10.30aa, they a
 `daemons` gets the switches from **Advanced**; `fabricd` is also on whenever the Thunderbolt Net fragment exists. FRR restarts only when one of these files or the packages changed. (`frrinit.sh reload` needs Python, which Unraid does not ship, so the plugin restarts instead; OpenFabric adjacencies re-form within seconds.)
 
 **Companion contract** (files only, no PHP coupling): a plugin writes or deletes its fragment file, then runs `scripts/frr-reload`. It waits up to 120 s for a running Fabric Routing job. Exit status 0 means the config was written and FRR is up when it should be.
+
+## Next-hop groups
+
+The baseline turns off zebra's use of kernel next-hop groups (`no zebra nexthop kernel enable`).
+
+With them on, FRR 10.7 handled this case wrongly: a destination has two equal-cost paths, one neighbour goes away, and later its link comes back while its routing is still stopped (the machine is starting, or FRR is off there). zebra put that neighbour back into the kernel route by itself, and packets sent that way were lost. On a four-node test ring 0 of 20 pings arrived, and the stale next hop was still in place 30 seconds later. With the baseline line, 20 of 20 arrived, and both paths came back into use once the neighbour was routing again.
+
+To turn kernel next-hop groups back on, put `zebra nexthop kernel enable` in `frr.user.conf`.
 
 ## Fabric route guard
 
@@ -155,7 +164,7 @@ The plugin needs **Unraid 7.0 or newer** (the package catalog starts at 7.0.0). 
 
 | Status | Meaning |
 |--------|---------|
-| **Lab-confirmed** | Tested on real hardware (today: **7.3.2 x86_64**) |
+| **Lab-confirmed** | Tested on real hardware (today: **7.3.2** and **7.4.0**, x86_64) |
 | **Suggested** | Same catalog range; expected compatible (other **7.x x86_64**) |
 | **Not in catalog** | Nothing to download (aarch64 until built) |
 

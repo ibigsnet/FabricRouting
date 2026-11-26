@@ -951,6 +951,9 @@ function frr_build_conf(array $cfg) {
     'log syslog informational',
     'service integrated-vtysh-config',
     '!',
+    // FRR 10.7 zebra puts a removed equal-cost next hop back when its link returns (kernel next-hop groups)
+    'no zebra nexthop kernel enable',
+    '!',
   ];
   foreach (frr_guard_lines($cfg) as $l) {
     $out[] = $l;
